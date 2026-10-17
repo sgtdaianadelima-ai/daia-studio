@@ -141,10 +141,16 @@ canvas{display:none}
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);
   padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
   display:flex;justify-content:center;gap:4px}
-nav.tabs button{flex:1;max-width:120px;border:none;background:none;border-radius:14px;padding:6px 4px;font-weight:800;font-size:12px;color:var(--muted);display:grid;justify-items:center;gap:2px}
+nav.tabs button{flex:1;max-width:120px;min-width:0;border:none;background:none;border-radius:14px;padding:6px 2px;font-weight:800;font-size:11px;color:var(--muted);display:grid;justify-items:center;gap:2px}
 nav.tabs svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-soft)}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:14px;font-size:14px;font-weight:700;max-width:min(92vw,420px);z-index:9;text-align:center}
+.pr-cover{width:96px;aspect-ratio:4/5;border-radius:10px;object-fit:cover;background:var(--wine-soft)}
+.pr-head{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:start}
+.pr-head .info{min-width:0;display:grid;gap:4px}
+.slides{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.slides img{width:120px;flex-shrink:0;border-radius:10px;border:1px solid var(--line)}
+.leg{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
 .splash{position:fixed;inset:0;background:var(--wine);color:var(--on-accent);display:grid;place-items:center;z-index:20;transition:opacity .4s}
 .splash div{font-family:var(--display);font-size:40px}
 .splash.hide{opacity:0;pointer-events:none}
@@ -168,6 +174,19 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
   </header>
   <div id="arrived"></div>
   <div class="list" id="cards"></div>
+</section>
+
+<!-- PRONTOS -->
+<section id="tab-prontos" hidden>
+  <header class="top">
+    <div class="brand">Daia Studio</div>
+    <h1>Posts <em>prontos</em></h1>
+    <p class="sub">Para os dias sem gravar. Escolha, gere as imagens e poste no Instagram ou no TikTok (modo foto).</p>
+  </header>
+  <div class="form" id="handleBox">
+    <div class="field"><label for="handle">Seu @ nas imagens (opcional)</label><input class="input" id="handle" placeholder="@seuperfil" maxlength="30"></div>
+  </div>
+  <div class="list" id="prontoList"></div>
 </section>
 
 <!-- PRODUTOS -->
@@ -254,6 +273,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="hoje" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Hoje</button>
+  <button role="tab" data-tab="prontos" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="14" height="18" rx="2"/><path d="M21 7v12a2 2 0 0 1-2 2"/><path d="M7 8h6M7 12h6"/></svg>Prontos</button>
   <button role="tab" data-tab="produtos" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Produtos</button>
   <button role="tab" data-tab="ideias" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Ideias</button>
   <button role="tab" data-tab="editar" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Editar</button>
@@ -261,6 +281,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <div class="toast" id="toast" hidden></div>
 
 <script src="plan.js"></script>
+<script src="prontos.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

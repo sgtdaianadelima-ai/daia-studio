@@ -101,7 +101,12 @@ function renderHoje(){
   const arrived = state.products.filter(p => p.status === "chegou" && p.at === cur);
   $("arrived").innerHTML = arrived.map(p => '<div class="alert"><span><b>Chegou: ' + esc(p.n) + '</b><br>Grave o unboxing hoje: ele vira um episódio extra.</span><button class="btn wine" data-ask="' + esc(p.id) + '">Criar 3 vídeos com ele</button></div>').join("");
 
-  $("cards").innerHTML = posts.map((p, i) => {
+  const pr = prontoDoDia(cur);
+  const prDone = state.prontos && state.prontos[pr.id];
+  const prontoCard = '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Sem tempo pra gravar?</span><span class="why">post pronto</span></div>' +
+    '<h3 class="title">' + esc(pr.c1 + " " + pr.c2) + '</h3><p class="how">Carrossel pronto, com legenda e hashtags. Serve para o Instagram e para o TikTok (modo foto).' + (prDone ? ' <b>Já postado ✓</b>' : '') + '</p>' +
+    '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
+  $("cards").innerHTML = prontoCard + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -118,6 +123,8 @@ function renderHoje(){
   }).join("");
 }
 $("cards").addEventListener("click", e => {
+  const pb = e.target.closest("button[data-pronto]");
+  if (pb) { openPronto = pb.dataset.pronto; show("prontos"); setTimeout(() => document.querySelector('[data-pid="' + openPronto + '"]')?.scrollIntoView({block:"start"}), 50); return; }
   const b = e.target.closest("button[data-act]"); if (!b) return;
   const i = Number(b.closest(".card").dataset.i), p = PLAN[cur][i], k = cur + "-" + i;
   if (b.dataset.act === "done") { state.done[k] = !state.done[k]; save(); renderHoje(); }
@@ -353,11 +360,159 @@ $("vSave").addEventListener("click", () => {
   $("vSaveStatus").textContent = "Salvo na pasta Downloads. Ele aparece na galeria em \"Downloads\".";
 });
 
+// ---------- PRONTOS (carrosséis gerados no celular) ----------
+let openPronto = null, prFormat = "ig";
+const prOutputs = {};
+state.prontos = state.prontos || {};
+function prontoDoDia(k){ const i = Math.max(0, DAYS.indexOf(k)); return PRONTOS[i % PRONTOS.length]; }
+$("handle").value = state.handle || "";
+$("handle").addEventListener("change", () => { state.handle = $("handle").value.trim(); save(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); renderProntos(); });
+const BGS = [["#8E1B3A","#4A0E1F"],["#3B2A26","#1E1513"],["#2E5E4C","#14291F"],["#A87A2C","#5A3F14"]];
+function wrapText(ctx, text, maxW, maxLines){
+  const words = String(text).split(/\s+/), lines = []; let line = "";
+  for (const w of words) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line);
+  return maxLines ? lines.slice(0, maxLines) : lines;
+}
+function paintBg(ctx, W, H, img, idx){
+  if (img) {
+    const s = Math.max(W / img.width, H / img.height), dw = img.width * s, dh = img.height * s;
+    ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(20,10,14,0.25)"); g.addColorStop(0.5, "rgba(20,10,14,0.45)"); g.addColorStop(1, "rgba(20,10,14,0.75)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  } else {
+    const c = BGS[idx % BGS.length], g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, c[0]); g.addColorStop(1, c[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = "rgba(231,194,122,0.55)"; ctx.lineWidth = W * 0.004; ctx.strokeRect(W*0.05, H*0.04, W*0.9, H*0.92);
+  }
+}
+function footer(ctx, W, H, left, right){
+  ctx.font = "700 " + Math.round(W*0.032) + "px 'Nunito Sans', sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.textAlign = "left"; ctx.fillText(left || "", W*0.09, H*0.93);
+  ctx.textAlign = "right"; ctx.fillText(right || "", W*0.91, H*0.93);
+}
+function drawProntoSlide(ctx, W, H, p, n, total, img, idx){
+  paintBg(ctx, W, H, img, idx);
+  ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF";
+  const handle = state.handle || "", mw = W * 0.82;
+  if (n === 0) {
+    ctx.textAlign = "center";
+    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
+    const l1 = wrapText(ctx, p.c1, mw, 2);
+    ctx.font = "900 " + Math.round(W*0.088) + "px 'Nunito Sans', sans-serif";
+    const l2 = wrapText(ctx, p.c2, mw, 3);
+    const h1 = W*0.105, h2 = W*0.098, blockH = l1.length*h1 + l2.length*h2;
+    let y = H*0.62 - blockH/2;
+    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
+    l1.forEach(l => { y += h1; ctx.fillText(l, W/2, y); });
+    ctx.font = "900 " + Math.round(W*0.088) + "px 'Nunito Sans', sans-serif";
+    l2.forEach(l => { y += h2; ctx.fillText(l, W/2, y); });
+    footer(ctx, W, H, handle, "arrasta →");
+  } else if (n <= p.s.length) {
+    const [t, body] = p.s[n-1];
+    ctx.textAlign = "left";
+    ctx.fillStyle = "#E7C27A"; ctx.font = "900 " + Math.round(W*0.05) + "px 'Nunito Sans', sans-serif";
+    let y = H*0.30; ctx.fillText(String(n).padStart(2,"0"), W*0.09, y);
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + Math.round(W*0.085) + "px 'DM Serif Display', Georgia, serif";
+    for (const l of wrapText(ctx, t, mw, 3)) { y += W*0.1; ctx.fillText(l, W*0.09, y); }
+    y += W*0.04; ctx.font = "600 " + Math.round(W*0.05) + "px 'Nunito Sans', sans-serif";
+    for (const l of wrapText(ctx, body, mw, 6)) { y += W*0.068; ctx.fillText(l, W*0.09, y); }
+    footer(ctx, W, H, handle, (n+1) + "/" + total);
+  } else {
+    ctx.textAlign = "center";
+    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
+    const ls = wrapText(ctx, p.fim, mw, 4); let y = H*0.5 - ls.length*W*0.055;
+    ls.forEach(l => { y += W*0.11; ctx.fillText(l, W/2, y); });
+    ctx.font = "800 " + Math.round(W*0.042) + "px 'Nunito Sans', sans-serif"; ctx.fillStyle = "#E7C27A";
+    ctx.fillText("Promoções reais no grupo · link na bio", W/2, y + W*0.12);
+    footer(ctx, W, H, handle, total + "/" + total);
+  }
+}
+function loadImg(blob){ return new Promise(res => { if (!blob) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = URL.createObjectURL(blob); }); }
+async function buildPronto(p){
+  try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'")]); } catch(_) {}
+  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = p.s.length + 2;
+  const img = await loadImg(await getPhoto("bg-" + p.id)), idx = PRONTOS.indexOf(p);
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
+  const blobs = [];
+  for (let n = 0; n < total; n++) {
+    drawProntoSlide(ctx, W, H, p, n, total, n === 0 ? img : null, idx);
+    blobs.push(await new Promise(r => c.toBlob(r, "image/jpeg", 0.92)));
+  }
+  return blobs;
+}
+async function renderProntos(){
+  $("prontoList").innerHTML = PRONTOS.map(p => {
+    const open = openPronto === p.id, done = state.prontos[p.id];
+    return '<article class="card" data-pid="' + p.id + '">' +
+      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
+      '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
+      '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
+      (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
+        '<button type="button" class="chip" data-v="ig" aria-pressed="' + (prFormat === "ig") + '">Instagram (4:5)</button>' +
+        '<button type="button" class="chip" data-v="tt" aria-pressed="' + (prFormat === "tt") + '">TikTok (9:16)</button></div></div>' +
+        '<label class="photo" for="bg-' + p.id + '"><span>Usar uma foto sua na capa (opcional)</span><input type="file" accept="image/*" id="bg-' + p.id + '" data-pa="bg"></label>' +
+        '<div class="slides" id="sl-' + p.id + '"><p class="note">Gerando as imagens...</p></div>' +
+        '<div class="leg sel">' + esc(p.leg + "\n\n" + p.tags) + '</div>' +
+        '<div class="actions"><button class="btn wine" data-pa="share">Postar (envia as imagens)</button><button class="btn" data-pa="copy">Copiar legenda</button><button class="btn" data-pa="save">Salvar imagens</button>' +
+        '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' : '') +
+    '</article>';
+  }).join("");
+  for (const p of PRONTOS) {
+    const el = document.querySelector('[data-cover="' + p.id + '"]');
+    const key = p.id + "-" + prFormat;
+    if (!prOutputs[key] && openPronto !== p.id) {
+      // capa pequena
+      const c = document.createElement("canvas"); c.width = 270; c.height = 338; const ctx = c.getContext("2d");
+      try { await document.fonts.load("italic 30px 'DM Serif Display'"); } catch(_) {}
+      drawProntoSlide(ctx, 270, 338, p, 0, p.s.length + 2, await loadImg(await getPhoto("bg-" + p.id)), PRONTOS.indexOf(p));
+      if (el) el.src = c.toDataURL("image/jpeg", 0.8);
+    }
+  }
+  if (openPronto) {
+    const p = PRONTOS.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
+    if (!prOutputs[key]) prOutputs[key] = await buildPronto(p);
+    const box = $("sl-" + p.id); if (!box) return;
+    const urls = prOutputs[key].map(b => URL.createObjectURL(b));
+    box.innerHTML = urls.map(u => '<img src="' + u + '" alt="">').join("");
+    const cv = document.querySelector('[data-cover="' + p.id + '"]'); if (cv) cv.src = urls[0];
+  }
+}
+$("prontoList").addEventListener("click", async e => {
+  const b = e.target.closest("[data-pa]"); if (!b) return;
+  const pid = b.closest("[data-pid]").dataset.pid, p = PRONTOS.find(x => x.id === pid), a = b.dataset.pa;
+  if (a === "toggle") { openPronto = openPronto === pid ? null : pid; renderProntos(); return; }
+  if (a === "fmt") { const v = e.target.closest("button[data-v]")?.dataset.v; if (v && v !== prFormat) { prFormat = v; renderProntos(); } return; }
+  const blobs = prOutputs[pid + "-" + prFormat]; const text = p.leg + "\n\n" + p.tags;
+  if (a === "copy") { try { await navigator.clipboard.writeText(text); toast("Legenda copiada."); } catch(_) { toast("Segure o texto da legenda para copiar."); } }
+  if (a === "done") { state.prontos[pid] = !state.prontos[pid]; save(); renderProntos(); }
+  if (!blobs) return;
+  const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"}));
+  if (a === "share") {
+    try { await navigator.clipboard.writeText(text); } catch(_) {}
+    if (navigator.canShare && navigator.canShare({files})) {
+      try { await navigator.share({files, text}); toast("Escolha o Instagram ou o TikTok. A legenda está copiada: é só colar.", 6000); } catch(err) { if (!err || err.name !== "AbortError") toast("Não deu para enviar. Use Salvar imagens."); }
+    } else toast("Este celular não deixou enviar direto. Use Salvar imagens.");
+  }
+  if (a === "save") {
+    for (const f of files) { const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); await new Promise(r => setTimeout(r, 300)); }
+    toast("Imagens salvas na pasta Downloads.");
+  }
+});
+$("prontoList").addEventListener("change", async e => {
+  if (e.target.dataset.pa !== "bg") return;
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const pid = e.target.closest("[data-pid]").dataset.pid;
+  await putPhoto("bg-" + pid, await shrink(f, 1600));
+  delete prOutputs[pid + "-ig"]; delete prOutputs[pid + "-tt"];
+  renderProntos(); toast("Foto colocada na capa.");
+});
+
 // ---------- abas ----------
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["hoje","produtos","ideias","editar"].forEach(x => $("tab-" + x).hidden = x !== t);
-  if (t === "hoje") renderHoje(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
+  ["hoje","prontos","produtos","ideias","editar"].forEach(x => $("tab-" + x).hidden = x !== t);
+  if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}
 }
