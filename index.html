@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daia Studio</title>
+<meta name="theme-color" content="#8E1B3A">
+<meta name="robots" content="noindex,nofollow">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
+<style>
+/* Layout: app de uma coluna — cabeçalho do dia, conteúdo rolando, barra de abas fixa embaixo */
+:root{
+  --bg:#FBF5F6; --surface:#FFFFFF; --ink:#2B1D22; --muted:#7A666D; --line:#EBDDE1;
+  --wine:#8E1B3A; --wine-soft:#F6E3E8; --gold:#A87A2C; --gold-soft:#F7EEDC; --pine:#2E5E4C; --pine-soft:#E2EFE9;
+  --on-accent:#FFFFFF;
+  --display:"DM Serif Display",Georgia,"Times New Roman",serif;
+  --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#181114; --surface:#231A1E; --ink:#F5E9EC; --muted:#B49FA6; --line:#3A2C31;
+  --wine:#E0617F; --wine-soft:#3A1E27; --gold:#D9AE5F; --gold-soft:#36291A; --pine:#7CC3A5; --pine-soft:#1B2E27;
+  --on-accent:#181114; color-scheme:dark}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg)}
+body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  overscroll-behavior-y:contain;user-select:none;-webkit-user-select:none}
+input,textarea,pre,.sel{user-select:text;-webkit-user-select:text}
+img{max-width:100%}
+[hidden]{display:none!important}
+.wrap{max-width:560px;margin:0 auto}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--wine);outline-offset:2px}
+header.top{padding-block:18px 8px;display:grid;gap:4px}
+.brand{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--wine)}
+.dayrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{font-family:var(--display);font-weight:400;font-size:30px;line-height:1.1;margin:0;text-wrap:balance}
+h1 em{color:var(--wine)}
+h2{font-family:var(--display);font-weight:400;font-size:23px;margin:22px 0 8px}
+.arrows{display:flex;gap:6px;flex-shrink:0}
+.round{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:20px;line-height:1;display:grid;place-items:center}
+.round[disabled]{opacity:.35}
+.sub{color:var(--muted);font-size:14px;display:flex;flex-wrap:wrap;gap:4px 14px;font-variant-numeric:tabular-nums;margin:0}
+.sub b{color:var(--gold)}
+.progress{margin-top:10px;display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800}
+.bar{flex:1;height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--pine);border-radius:99px;transition:width .3s}
+.list{display:grid;gap:14px;margin-top:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:10px}
+.card.done{opacity:.6}
+.card.done .title{text-decoration:line-through;text-decoration-color:var(--muted)}
+.meta{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800}
+.tag{padding:3px 10px;border-radius:99px;font-size:12px;letter-spacing:.03em;font-weight:800}
+.tag.serie{background:var(--wine-soft);color:var(--wine)}
+.tag.casa{background:var(--gold-soft);color:var(--gold)}
+.tag.trend{background:var(--pine-soft);color:var(--pine)}
+.why{margin-left:auto;color:var(--muted);font-weight:700;font-size:12px}
+.title{font-family:var(--display);font-weight:400;font-size:22px;line-height:1.2;margin:0;text-wrap:balance}
+.say{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:15px}
+.say small{display:block;font-size:11px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+.how,.cta{font-size:15px;margin:0}
+.cta{color:var(--muted);font-size:14px}
+.script{margin:0;padding-left:20px;display:grid;gap:6px;font-size:15px}
+.script li::marker{color:var(--wine);font-weight:900}
+details.tips{font-size:14px;color:var(--muted)}
+details.tips summary{cursor:pointer;font-weight:800;color:var(--ink)}
+details.tips p{margin:6px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:10px 16px;font-size:15px;font-weight:800}
+.btn.main{background:var(--pine);border-color:var(--pine);color:var(--on-accent)}
+.btn.wine{background:var(--wine);border-color:var(--wine);color:var(--on-accent)}
+.btn.full{width:100%;padding:14px}
+.card.done .btn.main{background:var(--surface);color:var(--pine)}
+.btn[disabled]{opacity:.5}
+.alert{margin-top:12px;background:var(--gold-soft);border-radius:16px;padding:12px 14px;font-size:15px;display:grid;gap:8px}
+.alert b{color:var(--gold)}
+.note{font-size:13px;color:var(--muted);margin:0}
+/* formulários */
+.form{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:12px;margin-top:14px}
+.field{display:grid;gap:6px}
+.field label,.lab{font-size:14px;font-weight:800}
+.input,select.input,textarea.input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:12px;font:inherit;width:100%}
+textarea.input{min-height:96px;resize:vertical}
+.photo{display:flex;align-items:center;gap:12px;border:2px dashed var(--line);border-radius:14px;padding:12px;cursor:pointer;font-weight:800;color:var(--wine)}
+.photo img{width:64px;height:64px;object-fit:cover;border-radius:10px}
+.photo input{position:absolute;opacity:0;width:1px;height:1px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);border-radius:99px;padding:8px 12px;font-size:14px;font-weight:800;color:var(--muted)}
+.chip[aria-pressed="true"]{background:var(--wine-soft);border-color:var(--wine);color:var(--wine)}
+/* produtos */
+.filters{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-top:14px}
+.filters .chip{flex-shrink:0}
+.prod{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;display:grid;grid-template-columns:72px 1fr;gap:12px}
+.prod .ph{width:72px;height:72px;border-radius:12px;background:var(--wine-soft);object-fit:cover;display:grid;place-items:center;font-family:var(--display);font-size:26px;color:var(--wine)}
+.prod .info{min-width:0;display:grid;gap:4px}
+.prod .n{font-weight:800;line-height:1.25}
+.prod .sm{font-size:13px;color:var(--muted)}
+.prod .actions{grid-column:1/-1}
+.st{border:none;border-radius:99px;padding:4px 10px;font-size:12px;font-weight:900;justify-self:start}
+.st.tenho{background:var(--pine-soft);color:var(--pine)}
+.st.caminho{background:var(--gold-soft);color:var(--gold)}
+.st.chegou{background:var(--wine-soft);color:var(--wine)}
+.confirm{grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:14px;font-weight:700}
+.empty{text-align:center;color:var(--muted);padding:28px 12px;border:1px dashed var(--line);border-radius:18px;margin-top:14px}
+/* editor */
+.step{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:12px;margin-top:14px}
+.step h3{margin:0;font-size:13px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.step.off{opacity:.45;pointer-events:none}
+.pick{display:grid;place-items:center;gap:4px;border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;font-weight:800;color:var(--wine);cursor:pointer}
+.pick small{color:var(--muted);font-weight:600}
+.pick input{position:absolute;opacity:0;width:1px;height:1px}
+.seg3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.seg3 .chip{padding:10px 4px}
+.check{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:700}
+.check input{width:22px;height:22px;accent-color:var(--wine)}
+.stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:15px;font-variant-numeric:tabular-nums}
+.stats b{font-size:20px;color:var(--pine)}
+.timeline{position:relative;height:22px;border-radius:8px;background:var(--wine-soft);overflow:hidden}
+.timeline i{position:absolute;top:0;bottom:0;background:var(--pine);border-radius:3px}
+.status{font-size:15px;font-weight:800;margin:0}
+.status.err{color:var(--wine)}
+video{width:100%;max-height:65vh;border-radius:14px;background:#000}
+canvas{display:none}
+.after{background:var(--gold-soft);border-radius:14px;padding:12px 14px;font-size:15px}
+.after ol{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:8px}
+.day h4{margin:0;font-size:14px;font-weight:900;text-transform:capitalize}
+.row{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.row input{width:20px;height:20px;margin-top:1px;accent-color:var(--pine);flex-shrink:0}
+.dot{width:8px;height:8px;border-radius:50%;margin-top:8px;flex-shrink:0}
+.dot.serie{background:var(--wine)}.dot.casa{background:var(--gold)}.dot.trend{background:var(--pine)}
+/* barra de abas */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);
+  padding:6px max(10px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));
+  display:flex;justify-content:center;gap:4px}
+nav.tabs button{flex:1;max-width:120px;border:none;background:none;border-radius:14px;padding:6px 4px;font-weight:800;font-size:12px;color:var(--muted);display:grid;justify-items:center;gap:2px}
+nav.tabs svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-soft)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:14px;font-size:14px;font-weight:700;max-width:min(92vw,420px);z-index:9;text-align:center}
+.splash{position:fixed;inset:0;background:var(--wine);color:var(--on-accent);display:grid;place-items:center;z-index:20;transition:opacity .4s}
+.splash div{font-family:var(--display);font-size:40px}
+.splash.hide{opacity:0;pointer-events:none}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="splash" id="splash"><div>Daia <em>Studio</em></div></div>
+<div class="wrap">
+
+<!-- HOJE -->
+<section id="tab-hoje">
+  <header class="top">
+    <div class="brand">Daia Studio</div>
+    <div class="dayrow">
+      <h1 id="dayTitle">Hoje</h1>
+      <div class="arrows"><button class="round" id="prev" aria-label="Dia anterior">‹</button><button class="round" id="next" aria-label="Próximo dia">›</button></div>
+    </div>
+    <p class="sub" id="daySub"></p>
+    <div class="progress"><div class="bar"><i id="barFill"></i></div><span id="progText">0 de 3</span></div>
+  </header>
+  <div id="arrived"></div>
+  <div class="list" id="cards"></div>
+</section>
+
+<!-- PRODUTOS -->
+<section id="tab-produtos" hidden>
+  <header class="top">
+    <div class="brand">Daia Studio</div>
+    <h1>Meus <em>produtos</em></h1>
+    <p class="sub">Tudo que você tem ou comprou. Cada produto rende 3 vídeos diferentes.</p>
+  </header>
+  <button class="btn wine full" id="openAdd" style="margin-top:12px">+ Adicionar produto</button>
+  <form class="form" id="addForm" hidden>
+    <label class="photo" for="pPhoto"><img id="pPrev" alt="" hidden><span id="pPhotoTxt">Tirar ou escolher foto</span><input type="file" id="pPhoto" accept="image/*"></label>
+    <div class="field"><label for="pName">Nome do produto</label><input class="input" id="pName" placeholder="Ex.: laço vermelho gigante" required></div>
+    <div class="field"><span class="lab">Categoria</span><div class="chips" id="pCat"></div></div>
+    <div class="field"><span class="lab">Situação</span><div class="chips" id="pStatus">
+      <button type="button" class="chip" data-v="tenho" aria-pressed="true">Já tenho</button>
+      <button type="button" class="chip" data-v="caminho" aria-pressed="false">A caminho</button>
+      <button type="button" class="chip" data-v="chegou" aria-pressed="false">Chegou hoje</button></div></div>
+    <div class="field"><label for="pNote">O que você quer fazer com ele (opcional)</label><input class="input" id="pNote" placeholder="Ex.: montar o laço da ponta da árvore"></div>
+    <div class="actions"><button class="btn wine" type="submit">Salvar</button><button class="btn" type="button" id="cancelAdd">Cancelar</button></div>
+  </form>
+  <div class="filters" id="pFilter"></div>
+  <div class="list" id="prodList"></div>
+</section>
+
+<!-- IDEIAS -->
+<section id="tab-ideias" hidden>
+  <header class="top">
+    <div class="brand">Daia Studio</div>
+    <h1>Minhas <em>ideias</em></h1>
+    <p class="sub">Escreva a ideia do jeito que vier, com foto se quiser. O Claude transforma em vídeo.</p>
+  </header>
+  <form class="form" id="ideaForm">
+    <div class="field"><label for="iText">Sua ideia</label><textarea class="input" id="iText" placeholder="Ex.: vou montar a base da árvore com a casca de pinus e a espuma" required></textarea></div>
+    <label class="photo" for="iPhoto"><img id="iPrev" alt="" hidden><span id="iPhotoTxt">Foto (opcional)</span><input type="file" id="iPhoto" accept="image/*"></label>
+    <div class="actions"><button class="btn wine" type="submit">Salvar e criar vídeo</button><button class="btn" type="button" id="iSaveOnly">Só salvar</button></div>
+  </form>
+  <div class="list" id="ideaList"></div>
+  <h2>Gravar no fim de semana</h2>
+  <p class="note" id="gravNote"></p>
+  <div class="day" id="gravList" style="margin-top:8px"></div>
+</section>
+
+<!-- EDITAR -->
+<section id="tab-editar" hidden>
+  <header class="top">
+    <div class="brand">Daia Studio</div>
+    <h1>Editar <em>vídeo</em></h1>
+    <p class="sub">Tira as pausas, coloca o título e devolve pronto. O vídeo não sai do seu celular.</p>
+  </header>
+  <section class="step" id="s1">
+    <h3>1. Vídeo</h3>
+    <label class="pick" for="vFile"><span id="pickText">Toque para escolher o vídeo</span><small id="pickInfo">Da galeria. Até 3 minutos.</small><input type="file" id="vFile" accept="video/*"></label>
+  </section>
+  <section class="step off" id="s2">
+    <h3>2. Do seu jeito</h3>
+    <div class="field"><label for="vTitle">Título no alto</label><input class="input" id="vTitle" maxlength="60"><p class="note">Deixe em branco para não ter título.</p></div>
+    <div class="field"><span class="lab">Cortar pausas</span><div class="seg3" id="level">
+      <button type="button" class="chip" data-v="leve" aria-pressed="false">Só as longas</button>
+      <button type="button" class="chip" data-v="normal" aria-pressed="true">Normal</button>
+      <button type="button" class="chip" data-v="forte" aria-pressed="false">Ritmo rápido</button></div></div>
+    <label class="check" for="vZoom"><input type="checkbox" id="vZoom" checked> Zoom alternado a cada corte</label>
+    <div class="stats" id="vStats"></div>
+    <div class="timeline" id="vTimeline" hidden></div>
+  </section>
+  <section class="step off" id="s3">
+    <h3>3. Editar</h3>
+    <button class="btn wine full" id="vGo">Editar vídeo</button>
+    <div class="bar" hidden id="vBarBox"><i id="vBar"></i></div>
+    <p class="status" id="vStatus"></p>
+    <p class="note">Leva mais ou menos o tempo do vídeo editado. Deixe a tela ligada e não saia do app.</p>
+  </section>
+  <section class="step off" id="s4">
+    <h3>4. Pronto</h3>
+    <video id="vOut" controls playsinline></video>
+    <div class="actions"><button class="btn wine" id="vShare">Enviar para o TikTok</button><button class="btn" id="vSave">Salvar no celular</button></div>
+    <p class="status" id="vSaveStatus"></p>
+    <div class="after"><b>No TikTok:</b><ol><li>Toque em <b>Legendas</b> (legenda automática).</li><li>Escolha a música.</li><li>Poste. Use o mesmo vídeo no Reels.</li></ol></div>
+  </section>
+  <canvas id="cv"></canvas>
+</section>
+
+</div>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="hoje" aria-selected="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Hoje</button>
+  <button role="tab" data-tab="produtos" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Produtos</button>
+  <button role="tab" data-tab="ideias" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Ideias</button>
+  <button role="tab" data-tab="editar" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Editar</button>
+</nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="plan.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
