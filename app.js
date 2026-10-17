@@ -362,90 +362,126 @@ $("vSave").addEventListener("click", () => {
 
 // ---------- PRONTOS (carrosséis gerados no celular) ----------
 let openPronto = null, prFormat = "ig";
-const prOutputs = {};
+const prOutputs = {}, prVideos = {};
 state.prontos = state.prontos || {};
 function prontoDoDia(k){ const i = Math.max(0, DAYS.indexOf(k)); return PRONTOS[i % PRONTOS.length]; }
 $("handle").value = state.handle || "";
 $("handle").addEventListener("change", () => { state.handle = $("handle").value.trim(); save(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); renderProntos(); });
-const BGS = [["#8E1B3A","#4A0E1F"],["#3B2A26","#1E1513"],["#2E5E4C","#14291F"],["#A87A2C","#5A3F14"]];
+// Estilo Dale Daia: foto real em todas as imagens, texto branco, letra fina inclinada + letra grossa.
+const SERIF = "'DM Serif Display', Georgia, serif", SANS = "'Nunito Sans', sans-serif";
 function wrapText(ctx, text, maxW, maxLines){
   const words = String(text).split(/\s+/), lines = []; let line = "";
   for (const w of words) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
   if (line) lines.push(line);
   return maxLines ? lines.slice(0, maxLines) : lines;
 }
-function paintBg(ctx, W, H, img, idx){
+// zoom/dx/dy servem para o movimento suave do vídeo
+function paintPhoto(ctx, W, H, img, dark, zoom, dx, dy){
+  ctx.fillStyle = "#1A1114"; ctx.fillRect(0, 0, W, H);
   if (img) {
-    const s = Math.max(W / img.width, H / img.height), dw = img.width * s, dh = img.height * s;
-    ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
-    const g = ctx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(20,10,14,0.25)"); g.addColorStop(0.5, "rgba(20,10,14,0.45)"); g.addColorStop(1, "rgba(20,10,14,0.75)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  } else {
-    const c = BGS[idx % BGS.length], g = ctx.createLinearGradient(0, 0, W, H);
-    g.addColorStop(0, c[0]); g.addColorStop(1, c[1]); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = "rgba(231,194,122,0.55)"; ctx.lineWidth = W * 0.004; ctx.strokeRect(W*0.05, H*0.04, W*0.9, H*0.92);
+    const z = zoom || 1, s = Math.max(W / img.width, H / img.height) * z, dw = img.width * s, dh = img.height * s;
+    ctx.drawImage(img, (W - dw) / 2 + (dx || 0) * W, (H - dh) / 2 + (dy || 0) * H, dw, dh);
   }
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, "rgba(15,8,10," + (0.10 + dark*0.2) + ")");
+  g.addColorStop(0.45, "rgba(15,8,10," + (0.18 + dark*0.35) + ")");
+  g.addColorStop(1, "rgba(15,8,10," + (0.55 + dark*0.3) + ")");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 }
-function footer(ctx, W, H, left, right){
-  ctx.font = "700 " + Math.round(W*0.032) + "px 'Nunito Sans', sans-serif"; ctx.fillStyle = "rgba(255,255,255,0.85)";
-  ctx.textAlign = "left"; ctx.fillText(left || "", W*0.09, H*0.93);
-  ctx.textAlign = "right"; ctx.fillText(right || "", W*0.91, H*0.93);
+function shadowOn(ctx, W){ ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = W*0.02; ctx.shadowOffsetY = W*0.003; }
+function shadowOff(ctx){ ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; }
+function drawHandle(ctx, W, H, extra){
+  const h = state.handle || "";
+  ctx.font = "700 " + Math.round(W*0.03) + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.textAlign = "center"; ctx.fillText([h, extra].filter(Boolean).join("   ·   "), W/2, H*0.95);
 }
-function drawProntoSlide(ctx, W, H, p, n, total, img, idx){
-  paintBg(ctx, W, H, img, idx);
-  ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF";
-  const handle = state.handle || "", mw = W * 0.82;
+// a = quanto do texto já apareceu (0 a 1), usado no vídeo
+function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
+  opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
+  const img = n === 0 || n === total - 1 ? imgs[0] : (imgs[n % 2 === 1 ? 1 : 0] || imgs[0]);
+  paintPhoto(ctx, W, H, img, n === 0 ? 0 : 1, opt.zoom, opt.dx, opt.dy);
+  ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
+  const mw = W * 0.84, rise = (1 - a) * W * 0.03;
   if (n === 0) {
     ctx.textAlign = "center";
-    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
-    const l1 = wrapText(ctx, p.c1, mw, 2);
-    ctx.font = "900 " + Math.round(W*0.088) + "px 'Nunito Sans', sans-serif";
-    const l2 = wrapText(ctx, p.c2, mw, 3);
-    const h1 = W*0.105, h2 = W*0.098, blockH = l1.length*h1 + l2.length*h2;
-    let y = H*0.62 - blockH/2;
-    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
-    l1.forEach(l => { y += h1; ctx.fillText(l, W/2, y); });
-    ctx.font = "900 " + Math.round(W*0.088) + "px 'Nunito Sans', sans-serif";
-    l2.forEach(l => { y += h2; ctx.fillText(l, W/2, y); });
-    footer(ctx, W, H, handle, "arrasta →");
-  } else if (n <= p.s.length) {
+    const s1 = Math.round(W*0.105), s2 = Math.round(W*0.092);
+    ctx.font = "italic " + s1 + "px " + SERIF; const l1 = wrapText(ctx, p.c1, mw, 2);
+    ctx.font = "900 " + s2 + "px " + SANS; const l2 = wrapText(ctx, p.c2, mw, 3);
+    const blockH = l1.length*s1*1.05 + l2.length*s2*1.08;
+    let y = H*0.70 - blockH/2 + rise;
+    ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.05; ctx.fillText(l, W/2, y); });
+    ctx.font = "900 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.08; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : "arrasta →");
+  } else if (n < total - 1) {
     const [t, body] = p.s[n-1];
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#E7C27A"; ctx.font = "900 " + Math.round(W*0.05) + "px 'Nunito Sans', sans-serif";
-    let y = H*0.30; ctx.fillText(String(n).padStart(2,"0"), W*0.09, y);
-    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + Math.round(W*0.085) + "px 'DM Serif Display', Georgia, serif";
-    for (const l of wrapText(ctx, t, mw, 3)) { y += W*0.1; ctx.fillText(l, W*0.09, y); }
-    y += W*0.04; ctx.font = "600 " + Math.round(W*0.05) + "px 'Nunito Sans', sans-serif";
-    for (const l of wrapText(ctx, body, mw, 6)) { y += W*0.068; ctx.fillText(l, W*0.09, y); }
-    footer(ctx, W, H, handle, (n+1) + "/" + total);
+    ctx.textAlign = "center";
+    const sn = Math.round(W*0.06), st = Math.round(W*0.088), sb = Math.round(W*0.05);
+    ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 3);
+    ctx.font = "600 " + sb + "px " + SANS; const lb = wrapText(ctx, body, mw*0.95, 5);
+    const blockH = sn*1.3 + lt.length*st*1.08 + W*0.03 + lb.length*sb*1.35;
+    let y = H*0.66 - blockH/2 + rise;
+    ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText(String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.08; ctx.fillText(l, W/2, y); });
+    y += W*0.03; ctx.font = "600 " + sb + "px " + SANS; lb.forEach(l => { y += sb*1.35; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
   } else {
     ctx.textAlign = "center";
-    ctx.font = "italic " + Math.round(W*0.095) + "px 'DM Serif Display', Georgia, serif";
-    const ls = wrapText(ctx, p.fim, mw, 4); let y = H*0.5 - ls.length*W*0.055;
-    ls.forEach(l => { y += W*0.11; ctx.fillText(l, W/2, y); });
-    ctx.font = "800 " + Math.round(W*0.042) + "px 'Nunito Sans', sans-serif"; ctx.fillStyle = "#E7C27A";
-    ctx.fillText("Promoções reais no grupo · link na bio", W/2, y + W*0.12);
-    footer(ctx, W, H, handle, total + "/" + total);
+    const s1 = Math.round(W*0.1); ctx.font = "italic " + s1 + "px " + SERIF;
+    const ls = wrapText(ctx, p.fim, mw, 4); let y = H*0.55 - (ls.length*s1*1.08)/2 + rise;
+    ls.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
+    ctx.font = "800 " + Math.round(W*0.042) + "px " + SANS; ctx.fillStyle = "#F1D29A";
+    ctx.fillText("Promoções reais no grupo · link na bio", W/2, y + W*0.1);
+    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
   }
+  ctx.globalAlpha = 1;
 }
-function loadImg(blob){ return new Promise(res => { if (!blob) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = URL.createObjectURL(blob); }); }
+function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = u; }); }
+function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
+async function prontoImgs(p){
+  const own = await loadImg(await getPhoto("bg-" + p.id));
+  const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
+  return [own || f1 || f2, f2 || f1];
+}
+async function fontsReady(){ try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'"), document.fonts.load("700 30px 'Nunito Sans'"), document.fonts.load("800 30px 'Nunito Sans'")]); } catch(_) {} }
 async function buildPronto(p){
-  try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'")]); } catch(_) {}
-  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = p.s.length + 2;
-  const img = await loadImg(await getPhoto("bg-" + p.id)), idx = PRONTOS.indexOf(p);
+  await fontsReady();
+  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = p.s.length + 2, imgs = await prontoImgs(p);
   const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
   const blobs = [];
-  for (let n = 0; n < total; n++) {
-    drawProntoSlide(ctx, W, H, p, n, total, n === 0 ? img : null, idx);
-    blobs.push(await new Promise(r => c.toBlob(r, "image/jpeg", 0.92)));
-  }
+  for (let n = 0; n < total; n++) { drawProntoSlide(ctx, W, H, p, n, total, imgs); blobs.push(await new Promise(r => c.toBlob(r, "image/jpeg", 0.9))); }
   return blobs;
+}
+// Vídeo pronto (9:16): cada imagem ~2,4 s com zoom suave e o texto subindo. Sem som: o áudio em alta você escolhe no TikTok.
+async function buildVideo(p, onProgress){
+  await fontsReady();
+  const mime = pickMime(); if (!mime) throw new Error("sem gravador");
+  const W = 720, H = 1280, total = p.s.length + 2, imgs = await prontoImgs(p), per = 2.4, fps = 30;
+  const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
+  drawProntoSlide(ctx, W, H, p, 0, total, imgs, {a:0, zoom:1, video:true});
+  const stream = c.captureStream(fps), rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: 5000000});
+  const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  const stopped = new Promise(r => rec.onstop = r);
+  rec.start(500);
+  const t0 = performance.now(), dur = total * per * 1000;
+  await new Promise(res => {
+    const step = () => {
+      const t = performance.now() - t0; if (t >= dur) return res();
+      const n = Math.min(total - 1, Math.floor(t / (per*1000))), local = (t - n*per*1000) / (per*1000);
+      const dir = n % 2 ? -1 : 1;
+      drawProntoSlide(ctx, W, H, p, n, total, imgs, {a: Math.min(1, local / 0.25), zoom: 1.04 + local*0.06, dx: dir*local*0.015, dy: -local*0.01, video:true});
+      onProgress && onProgress(t / dur);
+      setTimeout(step, 1000/fps);
+    };
+    step();
+  });
+  rec.stop(); await stopped;
+  return new Blob(chunks, {type: mime.split(";")[0]});
 }
 async function renderProntos(){
   $("prontoList").innerHTML = PRONTOS.map(p => {
     const open = openPronto === p.id, done = state.prontos[p.id];
     return '<article class="card" data-pid="' + p.id + '">' +
-      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
+      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="f-' + p.id + '-1.jpg" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
       '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
       '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
       (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
@@ -455,19 +491,15 @@ async function renderProntos(){
         '<div class="slides" id="sl-' + p.id + '"><p class="note">Gerando as imagens...</p></div>' +
         '<div class="leg sel">' + esc(p.leg + "\n\n" + p.tags) + '</div>' +
         '<div class="actions"><button class="btn wine" data-pa="share">Postar (envia as imagens)</button><button class="btn" data-pa="copy">Copiar legenda</button><button class="btn" data-pa="save">Salvar imagens</button>' +
-        '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' : '') +
+        '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' +
+        '<div class="field"><span class="lab">Vídeo pronto (TikTok e Reels)</span><p class="note">As mesmas imagens viram um vídeo de uns ' + Math.round((p.s.length + 2) * 2.4) + ' segundos, com movimento. No TikTok, coloque um áudio em alta.</p>' +
+        '<button class="btn wine" data-pa="video">Criar vídeo</button><p class="status" id="vs-' + p.id + '"></p><video id="vv-' + p.id + '" controls playsinline hidden></video>' +
+        '<div class="actions" id="va-' + p.id + '" hidden><button class="btn wine" data-pa="vshare">Enviar vídeo para o TikTok</button><button class="btn" data-pa="vsave">Salvar vídeo</button></div></div>' : '') +
     '</article>';
   }).join("");
   for (const p of PRONTOS) {
-    const el = document.querySelector('[data-cover="' + p.id + '"]');
-    const key = p.id + "-" + prFormat;
-    if (!prOutputs[key] && openPronto !== p.id) {
-      // capa pequena
-      const c = document.createElement("canvas"); c.width = 270; c.height = 338; const ctx = c.getContext("2d");
-      try { await document.fonts.load("italic 30px 'DM Serif Display'"); } catch(_) {}
-      drawProntoSlide(ctx, 270, 338, p, 0, p.s.length + 2, await loadImg(await getPhoto("bg-" + p.id)), PRONTOS.indexOf(p));
-      if (el) el.src = c.toDataURL("image/jpeg", 0.8);
-    }
+    const own = await getPhoto("bg-" + p.id);
+    if (own) { const el = document.querySelector('[data-cover="' + p.id + '"]'); if (el) el.src = URL.createObjectURL(own); }
   }
   if (openPronto) {
     const p = PRONTOS.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
@@ -486,6 +518,25 @@ $("prontoList").addEventListener("click", async e => {
   const blobs = prOutputs[pid + "-" + prFormat]; const text = p.leg + "\n\n" + p.tags;
   if (a === "copy") { try { await navigator.clipboard.writeText(text); toast("Legenda copiada."); } catch(_) { toast("Segure o texto da legenda para copiar."); } }
   if (a === "done") { state.prontos[pid] = !state.prontos[pid]; save(); renderProntos(); }
+  if (a === "video") {
+    b.disabled = true; const st = $("vs-" + pid);
+    let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch(_) {}
+    try {
+      const v = await buildVideo(p, f => { st.textContent = "Criando o vídeo... " + Math.round(f*100) + "%"; });
+      prVideos[pid] = v; const el = $("vv-" + pid); el.src = URL.createObjectURL(v); el.hidden = false; $("va-" + pid).hidden = false;
+      st.textContent = "Pronto! No TikTok, escolha um áudio em alta antes de postar.";
+    } catch(_) { st.textContent = "Não consegui criar o vídeo neste celular. Tente pelo Chrome."; }
+    try { wake && wake.release(); } catch(_) {}
+    b.disabled = false; return;
+  }
+  if (a === "vshare" || a === "vsave") {
+    const v = prVideos[pid]; if (!v) return;
+    const name = p.id + "." + (v.type.includes("mp4") ? "mp4" : "webm"), f = new File([v], name, {type: v.type});
+    try { await navigator.clipboard.writeText(text); } catch(_) {}
+    if (a === "vshare" && navigator.canShare && navigator.canShare({files:[f]})) { try { await navigator.share({files:[f], text}); toast("A legenda está copiada: é só colar."); } catch(err) { if (!err || err.name !== "AbortError") toast("Não deu para enviar. Use Salvar vídeo."); } return; }
+    const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = name; document.body.appendChild(l); l.click(); l.remove();
+    toast("Vídeo salvo na pasta Downloads. A legenda está copiada."); return;
+  }
   if (!blobs) return;
   const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"}));
   if (a === "share") {
