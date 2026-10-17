@@ -398,8 +398,9 @@ function drawHandle(ctx, W, H, extra){
 // a = quanto do texto já apareceu (0 a 1), usado no vídeo
 function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
-  const img = n === 0 || n === total - 1 ? imgs[0] : (imgs[n % 2 === 1 ? 1 : 0] || imgs[0]);
-  paintPhoto(ctx, W, H, img, n === 0 ? 0 : 1, opt.zoom, opt.dx, opt.dy);
+  // imgs = [capa, final, dica 1, dica 2, ...]: cada imagem do carrossel tem a sua foto
+  const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
+  paintPhoto(ctx, W, H, img, n === 0 ? 0 : 0.6, opt.zoom, opt.dx, opt.dy);
   ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
   const mw = W * 0.84, rise = (1 - a) * W * 0.03;
   if (n === 0) {
@@ -419,7 +420,7 @@ function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
     ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 3);
     ctx.font = "600 " + sb + "px " + SANS; const lb = wrapText(ctx, body, mw*0.95, 5);
     const blockH = sn*1.3 + lt.length*st*1.08 + W*0.03 + lb.length*sb*1.35;
-    let y = H*0.66 - blockH/2 + rise;
+    let y = H*0.885 - blockH + rise; // texto embaixo, para o produto aparecer na foto
     ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText(String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
     ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.08; ctx.fillText(l, W/2, y); });
     y += W*0.03; ctx.font = "600 " + sb + "px " + SANS; lb.forEach(l => { y += sb*1.35; ctx.fillText(l, W/2, y); });
@@ -440,7 +441,8 @@ function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Pr
 async function prontoImgs(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
   const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
-  return [own || f1 || f2, f2 || f1];
+  const dicas = await Promise.all(p.s.map((_, i) => loadImgURL("s-" + p.id + "-" + (i + 1) + ".jpg")));
+  return [own || f1 || f2, f2 || f1].concat(dicas.map(d => d || f2 || f1));
 }
 async function fontsReady(){ try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'"), document.fonts.load("700 30px 'Nunito Sans'"), document.fonts.load("800 30px 'Nunito Sans'")]); } catch(_) {} }
 async function buildPronto(p){
