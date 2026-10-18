@@ -106,12 +106,7 @@ function renderHoje(){
   const prontoCard = '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Sem tempo pra gravar?</span><span class="why">post pronto</span></div>' +
     '<h3 class="title">' + esc(pr.c1 + " " + pr.c2) + '</h3><p class="how">Carrossel pronto, com legenda e hashtags. Serve para o Instagram e para o TikTok (modo foto).' + (prDone ? ' <b>Já postado ✓</b>' : '') + '</p>' +
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
-  const iaCard = '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Vídeo IA do dia</span><span class="why">Shopee Vídeo</span></div>' +
-    '<h3 class="title">3 produtos prontos para virar vídeo de IA</h3>' +
-    '<p class="how">Todo dia o robô escolhe 3 produtos com boa comissão e já coloca o seu link, o pedido para a IA, a legenda e as hashtags.</p>' +
-    '<ol class="script"><li>Abra a planilha e toque no link do produto. Salve a foto do anúncio.</li><li>No YouTube Create, toque em Gerar vídeo, escolha a foto e cole o pedido.</li><li>Salve o vídeo e poste na Shopee Vídeo marcando o produto. Marque que é feito com IA.</li></ol>' +
-    '<div class="actions"><a class="btn wine" style="text-decoration:none" href="https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7vyP75S87wBq-RuoiOyyJyU/edit" target="_blank" rel="noopener">Abrir os vídeos de hoje</a></div></article>';
-  $("cards").innerHTML = iaCard + prontoCard + posts.map((p, i) => {
+  $("cards").innerHTML = (cur === todayKey ? iaCards() + respostasCard() : "") + prontoCard + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -127,7 +122,69 @@ function renderHoje(){
     '</article>';
   }).join("");
 }
+// ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
+const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
+const LINK_PAGINA = "https://daledaia.github.io", LINK_VIP = "https://chat.whatsapp.com/E6jfFnVCMfN9Byt4p1nEtm";
+let COPY = [];
+const copyBtn = (txt, label, cls) => { COPY.push(txt); return '<button class="btn' + (cls ? " " + cls : "") + '" data-copy="' + (COPY.length-1) + '">' + label + '</button>'; };
+const respostaProduto = v => "Oi! 🤍 Aqui está o link do " + v.nome + ": " + v.link + "\nQualquer dúvida me chama! E no meu grupo VIP tem promoção todo dia: " + LINK_VIP;
+function iaCards(){
+  COPY = [];
+  const ia = state.ia;
+  if (!ia || !ia.videos || !ia.videos.length) return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Shopee Vídeo de hoje</span></div><p class="how">Buscando os 3 produtos de hoje… Se não aparecer, confira a internet e abra o app de novo.</p></article>';
+  const feitos = ia.videos.filter(v => state.iaDone && state.iaDone[v.id]).length;
+  return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Shopee Vídeo de hoje</span><span class="why">' + feitos + ' de ' + ia.videos.length + ' postados</span></div>' +
+    '<h3 class="title">3 vídeos de IA, um por produto</h3>' +
+    '<p class="how">O robô já escolheu produtos com comissão boa (10% ou mais) e que vendem. Faça um de cada vez, seguindo os passos.</p>' +
+    '<details class="tips"><summary>Dicas para a Shopee Vídeo entregar mais</summary><p>• Marque que o vídeo é feito com IA.<br>• Se o produto tiver outras cores, mostre ou escreva na legenda ("tem em outras cores").<br>• Coloque sua marca d\'água "Dale Daia" no canto (no YouTube Create: Texto).<br>• Entre pelo produto (Compartilhe para ganhar → Shopee Vídeo): assim o link já vai junto.<br>• Poste 3 por dia, todo dia.</p></details></article>' +
+    ia.videos.map((v, n) => {
+      const d = !!(state.iaDone && state.iaDone[v.id]);
+      return '<article class="card' + (d ? " done" : "") + '" data-ia="' + esc(v.id) + '">' +
+        '<div class="meta"><span class="tag casa">Vídeo ' + (n+1) + '</span><span class="why">' + esc(v.preco) + ' · comissão ' + esc(v.comissao) + ' · ' + esc(v.vendas) + ' vendidos</span></div>' +
+        (v.foto ? '<img src="' + esc(v.foto) + '" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;background:#fff">' : '') +
+        '<h3 class="title">' + esc(v.nome) + '</h3>' +
+        '<ol class="script">' +
+          '<li><b>Foto:</b> toque em "Salvar foto do produto". Abra o ChatGPT (ou o Gemini), mande a foto e cole o pedido.<div class="actions">' + '<button class="btn" data-foto="' + n + '">Salvar foto do produto</button>' + copyBtn(v.pedidoFoto, "Copiar pedido da foto") + '</div></li>' +
+          '<li><b>Vídeo:</b> no YouTube Create, toque em Gerar vídeo, escolha a foto que o ChatGPT fez e cole o pedido. Depois: Usar vídeo → seta para cima → salvar no celular.<div class="actions">' + copyBtn(v.pedidoVideo, "Copiar pedido do vídeo") + '</div></li>' +
+          '<li><b>Postar:</b> abra o produto, toque em Compartilhe para ganhar → Shopee Vídeo, escolha o vídeo e cole a legenda.<div class="actions"><a class="btn" style="text-decoration:none" href="' + esc(v.link) + '" target="_blank" rel="noopener">Abrir o produto</a>' + copyBtn(v.legenda + "\n\n" + v.hashtags, "Copiar legenda") + '</div></li>' +
+          '<li><b>Comentaram "quero"?</b> Copie e mande no direct ou responda o comentário.<div class="actions">' + copyBtn(respostaProduto(v), "Copiar resposta com link") + '</div></li>' +
+        '</ol>' +
+        '<div class="actions"><button class="btn main" data-iadone="' + esc(v.id) + '">' + (d ? "Postado ✓" : "Marcar como postado") + '</button></div></article>';
+    }).join("");
+}
+function respostasCard(){
+  const r = [
+    ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: " + LINK_PAGINA + "\nE no grupo VIP eu mando as promoções do dia: " + LINK_VIP],
+    ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: " + LINK_VIP],
+    ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, o link está na minha bio."],
+    ["Perguntou se é bom", "É sim! Tem muitas avaliações boas e eu indico 🤍 O link está no meu perfil, e qualquer dúvida me chama aqui."]
+  ];
+  return '<article class="card"><div class="meta"><span class="tag trend">Respostas prontas</span><span class="why">copie e cole</span></div>' +
+    '<p class="how">Para comentários e directs do Instagram e do TikTok.</p><div class="actions" style="flex-wrap:wrap">' + r.map(x => copyBtn(x[1], x[0])).join("") + '</div></article>';
+}
+async function loadIA(tent){
+  try {
+    const r = await fetch(ROBO); const j = await r.json();
+    if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j.videos) !== JSON.stringify(state.ia && state.ia.videos); state.ia = j; save(); if (novo && $("cards")) renderHoje(); }
+  } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
+}
+async function copyText(t){
+  try { await navigator.clipboard.writeText(t); toast("Copiado! Agora é só colar."); }
+  catch(_) { const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); toast("Copiado! Agora é só colar."); } catch(__) { toast("Não consegui copiar."); } a.remove(); }
+}
+async function salvarFoto(v){
+  try {
+    const b = await (await fetch(v.foto)).blob();
+    const f = new File([b], "produto.jpg", {type: b.type || "image/jpeg"});
+    if (navigator.canShare && navigator.canShare({files:[f]})) { await navigator.share({files:[f]}); return; }
+  } catch(e) { if (e && e.name === "AbortError") return; }
+  window.open(v.foto, "_blank"); toast("Segure o dedo na foto e toque em Baixar imagem.", 5000);
+}
+
 $("cards").addEventListener("click", e => {
+  const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(state.ia.videos[Number(fb.dataset.foto)]); return; }
+  const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = !state.iaDone[db.dataset.iadone]; save(); renderHoje(); return; }
   const pb = e.target.closest("button[data-pronto]");
   if (pb) { openPronto = pb.dataset.pronto; show("prontos"); setTimeout(() => document.querySelector('[data-pid="' + openPronto + '"]')?.scrollIntoView({block:"start"}), 50); return; }
   const b = e.target.closest("button[data-act]"); if (!b) return;
@@ -577,5 +634,7 @@ function show(t){
 document.querySelector("nav.tabs").addEventListener("click", e => { const t = e.target.closest("button")?.dataset.tab; if (t) show(t); });
 let first = "hoje"; try { first = sessionStorage.getItem("daia-tab") || "hoje"; } catch(_) {}
 show(first);
+loadIA();
+document.addEventListener("visibilitychange", () => { if (!document.hidden) loadIA(); });
 setTimeout(() => $("splash").classList.add("hide"), 500);
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
