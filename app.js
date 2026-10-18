@@ -162,8 +162,8 @@ function packsCard(){
   const ps = (state.ia && state.ia.packs) || [];
   if (!ps.length) return "";
   return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Vídeos dos seus packs</span><span class="why">já com o seu link</span></div>' +
-    '<p class="how">Vídeos prontos dos packs do Telegram. Abra no Telegram, salve o vídeo e poste com o SEU link (já convertido).</p>' +
-    ps.map(p => '<div style="border-top:1px solid var(--line, #eee);padding-top:10px;margin-top:10px"><b>' + esc(p.nicho || "Achado") + '</b> <small>· ' + esc(p.pack) + ' · ' + esc(p.tipo) + '</small>' +
+    '<ol class="script"><li>Toque em <b>Abrir no Telegram</b>: abre direto no vídeo certo.</li><li>No Telegram, toque no vídeo › ⋮ (três pontinhos) › <b>Salvar na galeria</b>.</li><li>Volte aqui, toque em <b>Copiar meu link</b> e <b>Copiar legenda</b> e poste (Shopee Vídeo, TikTok ou Reels).</li></ol>' +
+    ps.map(p => '<div style="border-top:1px solid var(--line, #eee);padding-top:10px;margin-top:10px"><b>' + esc(p.nicho || "Achado") + '</b><br><small>Onde está: Telegram › PACK VIP STORYS/VIDEOS › tópico "' + esc(/natal/i.test(p.nicho) ? "*Vídeo* Natal" : "*Vídeo* casa decoração") + '"</small>' +
       '<div class="actions">' + (p.tg ? '<a class="btn" style="text-decoration:none" href="' + esc(p.tg) + '" target="_blank" rel="noopener">Abrir no Telegram</a>' : '') +
       copyBtn(p.link, "Copiar meu link") + copyBtn((p.legenda || "Achadinho da Shopee que vale a pena 🤍 Toca no link!") + "\n\n#achadinhosshopee #shopeevideo #casa", "Copiar legenda") + '</div></div>').join("") + '</article>';
 }
@@ -490,7 +490,7 @@ function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
   // imgs = [capa, final, dica 1, dica 2, ...]: cada imagem do carrossel tem a sua foto
   const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
-  paintPhoto(ctx, W, H, img, n === 0 ? 0 : 0.6, opt.zoom, opt.dx, opt.dy);
+  paintPhoto(ctx, W, H, img, n === 0 ? 0 : (p.tipo === "achados" && n < total - 1 ? 0.15 : 0.6), opt.zoom, opt.dx, opt.dy);
   ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
   const mw = W * 0.84, rise = (1 - a) * W * 0.03;
   if (n === 0) {
@@ -510,10 +510,11 @@ function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
     ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 3);
     ctx.font = "600 " + sb + "px " + SANS; const lb = wrapText(ctx, body, mw*0.95, 5);
     const blockH = sn*1.3 + lt.length*st*1.08 + W*0.03 + lb.length*sb*1.35;
-    let y = H*0.885 - blockH + rise; // texto embaixo, para o produto aparecer na foto
-    ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText(String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
+    let y = H*0.885 - blockH - (p.tipo === "achados" ? W*0.075 : 0) + rise; // texto embaixo, para o produto aparecer na foto
+    ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText((p.tipo === "achados" ? "Achado " : "") + String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
     ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.08; ctx.fillText(l, W/2, y); });
     y += W*0.03; ctx.font = "600 " + sb + "px " + SANS; lb.forEach(l => { y += sb*1.35; ctx.fillText(l, W/2, y); });
+    if (p.tipo === "achados") { ctx.font = "800 " + Math.round(W*0.034) + "px " + SANS; ctx.fillStyle = "#F1D29A"; ctx.fillText("Comenta QUERO que eu te mando o link", W/2, y + W*0.065); }
     shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
   } else {
     ctx.textAlign = "center";
@@ -530,6 +531,7 @@ function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); co
 function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
 async function prontoImgs(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
+  if (p.tipo === "achados") { const capa = await loadImgURL("c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((_, i) => loadImgURL("p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
   const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
   const dicas = await Promise.all(p.s.map((_, i) => loadImgURL("s-" + p.id + "-" + (i + 1) + ".jpg")));
   return [own || f1 || f2, f2 || f1].concat(dicas.map(d => d || f2 || f1));
@@ -573,7 +575,7 @@ async function renderProntos(){
   $("prontoList").innerHTML = PRONTOS.map(p => {
     const open = openPronto === p.id, done = state.prontos[p.id];
     return '<article class="card" data-pid="' + p.id + '">' +
-      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="f-' + p.id + '-1.jpg" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
+      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="' + (p.tipo === "achados" ? "c-" + p.id + ".jpg" : "f-" + p.id + "-1.jpg") + '" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
       '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
       '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
       (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
@@ -584,9 +586,8 @@ async function renderProntos(){
         '<div class="leg sel">' + esc(p.leg + "\n\n" + p.tags) + '</div>' +
         '<div class="actions"><button class="btn wine" data-pa="share">Postar (envia as imagens)</button><button class="btn" data-pa="copy">Copiar legenda</button><button class="btn" data-pa="save">Salvar imagens</button>' +
         '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' +
-        '<div class="field"><span class="lab">Vídeo pronto (TikTok e Reels)</span><p class="note">As mesmas imagens viram um vídeo de uns ' + Math.round((p.s.length + 2) * 2.4) + ' segundos, com movimento. No TikTok, coloque um áudio em alta.</p>' +
-        '<button class="btn wine" data-pa="video">Criar vídeo</button><p class="status" id="vs-' + p.id + '"></p><video id="vv-' + p.id + '" controls playsinline hidden></video>' +
-        '<div class="actions" id="va-' + p.id + '" hidden><button class="btn wine" data-pa="vshare">Enviar vídeo para o TikTok</button><button class="btn" data-pa="vsave">Salvar vídeo</button></div></div>' : '') +
+        (p.itens ? '<div class="field"><span class="lab">Alguém comentou QUERO?</span><p class="note">Copie e mande no direct: já vai com os 5 links, todos SEUS links de afiliada. (Fotos dos produtos: Telegram › PACK VIP DE FOTOS PARA CARROSSEL › CASA/DECORAÇÃO › ' + esc(p.album) + '.)</p><button class="btn" data-pa="links">Copiar resposta com os links</button></div>' : '') +
+        '<div class="field"><span class="lab">Quer vídeo?</span><p class="note">Os vídeos de IA dos produtos e os vídeos prontos dos seus packs ficam na tela Hoje.</p></div>' : '') +
     '</article>';
   }).join("");
   for (const p of PRONTOS) {
@@ -610,6 +611,7 @@ $("prontoList").addEventListener("click", async e => {
   const blobs = prOutputs[pid + "-" + prFormat]; const text = p.leg + "\n\n" + p.tags;
   if (a === "copy") { try { await navigator.clipboard.writeText(text); toast("Legenda copiada."); } catch(_) { toast("Segure o texto da legenda para copiar."); } }
   if (a === "done") { state.prontos[pid] = !state.prontos[pid]; save(); renderProntos(); }
+  if (a === "links") { copyText("Oi! 🤍 Aqui estão os links:\n" + p.itens.map((it, i) => (i+1) + ". " + it[0] + ": https://s.shopee.com.br/" + it[2]).join("\n") + "\n\nE no meu grupo VIP tem promoção todo dia: " + LINK_VIP); return; }
   if (a === "video") {
     b.disabled = true; const st = $("vs-" + pid);
     let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch(_) {}
