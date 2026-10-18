@@ -106,7 +106,7 @@ function renderHoje(){
   const prontoCard = '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Sem tempo pra gravar?</span><span class="why">post pronto</span></div>' +
     '<h3 class="title">' + esc(pr.c1 + " " + pr.c2) + '</h3><p class="how">Carrossel pronto, com legenda e hashtags. Serve para o Instagram e para o TikTok (modo foto).' + (prDone ? ' <b>Já postado ✓</b>' : '') + '</p>' +
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
-  $("cards").innerHTML = (cur === todayKey ? iaCards() + respostasCard() : "") + prontoCard + posts.map((p, i) => {
+  $("cards").innerHTML = (cur === todayKey ? iaCards() + packsCard() + conversorCard() + respostasCard() : "") + prontoCard + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -152,6 +152,33 @@ function iaCards(){
         '<div class="actions"><button class="btn main" data-iadone="' + esc(v.id) + '">' + (d ? "Postado ✓" : "Marcar como postado") + '</button></div></article>';
     }).join("");
 }
+function conversorCard(){
+  return '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Converter link</span><span class="why">vira o SEU link</span></div>' +
+    '<p class="how">Copiou um link da Shopee de um pack, do Telegram ou de outra pessoa? Cole aqui e eu troco pelo seu link de afiliada.</p>' +
+    '<input id="convIn" type="url" inputmode="url" placeholder="Cole o link da Shopee aqui" style="width:100%;box-sizing:border-box;padding:12px;border-radius:12px;border:1px solid var(--line, #ddd);font:inherit">' +
+    '<div class="actions"><button class="btn wine" data-conv="1">Converter</button></div><div id="convOut"></div></article>';
+}
+function packsCard(){
+  const ps = (state.ia && state.ia.packs) || [];
+  if (!ps.length) return "";
+  return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Vídeos dos seus packs</span><span class="why">já com o seu link</span></div>' +
+    '<p class="how">Vídeos prontos dos packs do Telegram. Abra no Telegram, salve o vídeo e poste com o SEU link (já convertido).</p>' +
+    ps.map(p => '<div style="border-top:1px solid var(--line, #eee);padding-top:10px;margin-top:10px"><b>' + esc(p.nicho || "Achado") + '</b> <small>· ' + esc(p.pack) + ' · ' + esc(p.tipo) + '</small>' +
+      '<div class="actions">' + (p.tg ? '<a class="btn" style="text-decoration:none" href="' + esc(p.tg) + '" target="_blank" rel="noopener">Abrir no Telegram</a>' : '') +
+      copyBtn(p.link, "Copiar meu link") + copyBtn((p.legenda || "Achadinho da Shopee que vale a pena 🤍 Toca no link!") + "\n\n#achadinhosshopee #shopeevideo #casa", "Copiar legenda") + '</div></div>').join("") + '</article>';
+}
+async function converter(){
+  const v = $("convIn").value.trim(), out = $("convOut");
+  if (!v) { toast("Cole um link primeiro."); return; }
+  out.innerHTML = '<p class="how">Convertendo…</p>';
+  try {
+    const j = await (await fetch(ROBO + "?link=" + encodeURIComponent(v))).json();
+    if (!j.link) throw new Error(j.erro || "não deu");
+    COPY.push(j.link);
+    out.innerHTML = '<p class="how"><b>Seu link:</b> ' + esc(j.link) + '</p><div class="actions"><button class="btn main" data-copy="' + (COPY.length-1) + '">Copiar meu link</button></div>';
+    copyText(j.link);
+  } catch(e) { out.innerHTML = '<p class="how">Não consegui converter: ' + esc(e.message) + '. Confira se é um link da Shopee.</p>'; }
+}
 function respostasCard(){
   const r = [
     ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: " + LINK_PAGINA + "\nE no grupo VIP eu mando as promoções do dia: " + LINK_VIP],
@@ -165,7 +192,7 @@ function respostasCard(){
 async function loadIA(tent){
   try {
     const r = await fetch(ROBO); const j = await r.json();
-    if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j.videos) !== JSON.stringify(state.ia && state.ia.videos); state.ia = j; save(); if (novo && $("cards")) renderHoje(); }
+    if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save(); if (novo && $("cards")) renderHoje(); }
   } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
 }
 async function copyText(t){
@@ -183,6 +210,7 @@ async function salvarFoto(v){
 
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  if (e.target.closest("button[data-conv]")) { converter(); return; }
   const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(state.ia.videos[Number(fb.dataset.foto)]); return; }
   const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = !state.iaDone[db.dataset.iadone]; save(); renderHoje(); return; }
   const pb = e.target.closest("button[data-pronto]");
