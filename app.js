@@ -106,7 +106,12 @@ function renderHoje(){
   const prontoCard = '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Sem tempo pra gravar?</span><span class="why">post pronto</span></div>' +
     '<h3 class="title">' + esc(pr.c1 + " " + pr.c2) + '</h3><p class="how">Carrossel pronto, com legenda e hashtags. Serve para o Instagram e para o TikTok (modo foto).' + (prDone ? ' <b>Já postado ✓</b>' : '') + '</p>' +
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
-  $("cards").innerHTML = prontoCard + posts.map((p, i) => {
+  const iaCard = '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Vídeo IA do dia</span><span class="why">Shopee Vídeo</span></div>' +
+    '<h3 class="title">3 produtos prontos para virar vídeo de IA</h3>' +
+    '<p class="how">Todo dia o robô escolhe 3 produtos com boa comissão e já coloca o seu link, o pedido para a IA, a legenda e as hashtags.</p>' +
+    '<ol class="script"><li>Abra a planilha e toque no link do produto. Salve a foto do anúncio.</li><li>No YouTube Create, toque em Gerar vídeo, escolha a foto e cole o pedido.</li><li>Salve o vídeo e poste na Shopee Vídeo marcando o produto. Marque que é feito com IA.</li></ol>' +
+    '<div class="actions"><a class="btn wine" style="text-decoration:none" href="https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7vyP75S87wBq-RuoiOyyJyU/edit" target="_blank" rel="noopener">Abrir os vídeos de hoje</a></div></article>';
+  $("cards").innerHTML = iaCard + prontoCard + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
