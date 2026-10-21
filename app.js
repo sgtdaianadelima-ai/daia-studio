@@ -202,22 +202,109 @@ function iaCards(){
   const feitos = ia.videos.filter(v => state.iaDone && state.iaDone[v.id]).length;
   return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Shopee Vídeo de hoje</span><span class="why">' + feitos + ' de ' + ia.videos.length + ' postados</span></div>' +
     '<h3 class="title">3 vídeos de IA, um por produto</h3>' +
-    '<p class="how det">O robô já escolheu produtos com comissão boa (10% ou mais) e que vendem. Faça um de cada vez.</p>' +
-    '<details class="tips det"><summary>Dicas para a Shopee Vídeo entregar mais</summary><p>• Marque que o vídeo é feito com IA.<br>• Se o produto tiver outras cores, mostre ou escreva na legenda ("tem em outras cores").<br>• Coloque sua marca d\'água "Dale Daia" no canto (no YouTube Create: Texto).<br>• Entre pelo produto (Compartilhe para ganhar → Shopee Vídeo): assim o link já vai junto.<br>• Poste 3 por dia, todo dia.</p></details></article>' +
-    ia.videos.map((v, n) => {
-      const d = !!(state.iaDone && state.iaDone[v.id]);
+    '<p class="how det">O robô escolhe pelo equilíbrio: comissão boa, vendas no meio termo (nem pouco, nem demais) e nota alta. Faça um de cada vez.</p>' +
+    '<details class="tips det"><summary>Regras e dicas da Shopee Vídeo</summary><p>• <b>Mostre todas as cores.</b> A Shopee esconde o vídeo quando o produto do link tem cores ou modelos que não aparecem. Use a "foto das cores" como figurinha no vídeo.<br>• O produto do vídeo tem que ser igual ao do link (mesma cor e modelo).<br>• Um produto por vídeo.<br>• Marque que o vídeo é feito com IA.<br>• Coloque sua marca d\'água "Dale Daia" no canto (no YouTube Create: Texto).<br>• Entre pelo produto (Compartilhe para ganhar → Shopee Vídeo): assim o link já vai junto.<br>• Poste 3 por dia, todo dia.</p></details></article>' +
+    ia.videos.map((v0, n) => {
+      const v = efetivo(v0), d = !!(state.iaDone && state.iaDone[v.id]);
       return '<article class="card' + (d ? " done" : "") + '" data-ia="' + esc(v.id) + '">' +
         '<div class="meta"><span class="tag casa">Vídeo ' + (n+1) + '</span><span class="why">' + esc(v.preco) + ' · comissão ' + esc(v.comissao) + ' · ' + esc(v.vendas) + ' vendidos</span></div>' +
         (v.foto ? '<img src="' + esc(v.foto) + '" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;background:#fff">' : '') +
-        '<h3 class="title">' + esc(v.nome) + '</h3>' +
+        '<h3 class="title">' + esc(v.nome) + '</h3>' + (v.trocado ? '<p class="how">🔁 Você trocou por este. <button class="link-btn" data-destroca="' + n + '">Voltar ao primeiro</button></p>' : '') +
+        fotosBloco(v, n) + coresBloco(v, n) +
         '<div class="passo"><b>1 · Foto bonita</b><span class="det">Manda a foto e o pedido juntos para o ChatGPT. Ele cria uma foto linda do produto: salve no celular.</span>' +
           '<div class="actions"><button class="btn wine" data-gpt="' + n + '">📸 Fazer a foto no ChatGPT</button>' + copyBtn(v.pedidoFoto, "Só copiar o pedido") + '</div></div>' +
         '<div class="passo"><b>2 · Vídeo</b><span class="det">No YouTube Create: Gerar vídeo › escolha a foto do ChatGPT › cole o pedido › Usar vídeo › seta para cima › salvar.</span>' +
           '<div class="actions">' + copyBtn(v.pedidoVideo, "Copiar pedido do vídeo") + '</div></div>' +
         '<div class="passo"><b>3 · Postar na Shopee Vídeo</b><span class="det">Abra o produto › Compartilhe para ganhar › Shopee Vídeo › escolha o vídeo › cole a legenda. Marque que é feito com IA.</span>' +
           '<div class="actions"><a class="btn" style="text-decoration:none" href="' + esc(v.link) + '" target="_blank" rel="noopener">Abrir o produto</a>' + copyBtn(v.legenda + "\n\n" + v.hashtags, "Copiar legenda") + '</div></div>' +
+        opcoesBloco(v0, n) +
         '<div class="actions"><button class="btn main" data-iadone="' + esc(v.id) + '">' + (d ? "Postado ✓" : "Marcar como postado") + '</button></div></article>';
     }).join("");
+}
+// ---- fotos extras, foto das cores e opções parecidas ----
+function efetivo(v){
+  const t = state.iaTroca && state.iaTroca[v.id];
+  if (!t) return v;
+  const troca = x => String(x || "").split(v.nome).join(t.n);
+  return Object.assign({}, v, {nome: t.n, preco: t.preco, comissao: t.com, vendas: t.vendas, link: t.link, foto: t.foto,
+    pedidoFoto: troca(v.pedidoFoto), pedidoVideo: troca(v.pedidoVideo), legenda: troca(v.legenda), fotos: [], cores: [], trocado: true});
+}
+const vid = n => efetivo(state.ia.videos[n]);
+const grande = u => String(u || "").replace(/_tn$/, "");
+function fotosBloco(v, n){
+  const chave = u => String(u).split("/").pop().replace(/_tn$/, "");
+  const fs = [v.foto].concat(v.fotos || []).filter((u, i, a) => u && a.findIndex(x => chave(x) === chave(u)) === i).slice(0, 6);
+  if (fs.length < 2) return "";
+  return '<div class="passo"><b>📷 Mais fotos do produto</b><span class="det">Toque numa foto para salvar. Use a mais bonita no ChatGPT.</span>' +
+    '<div class="galeria">' + fs.map((u, i) => '<button type="button" data-salvarfoto="' + n + '-' + i + '" aria-label="Salvar foto ' + (i+1) + '"><img src="' + esc(grande(u)) + '" alt="" loading="lazy"></button>').join("") + '</div></div>';
+}
+function coresBloco(v, n){
+  const cs = v.cores || [];
+  if (cs.length < 2) return "";
+  return '<div class="passo cores"><b>🎨 Tem ' + cs.length + ' opções: mostre todas</b><span class="det">A Shopee pede que o vídeo mostre todas as cores. Salve a foto das cores e coloque como figurinha no vídeo.</span>' +
+    '<div class="cores-mini">' + cs.slice(0, 12).map(c => '<span><img src="' + esc(grande(c.img)) + '" alt="" loading="lazy"><small>' + esc(c.n) + '</small></span>').join("") + '</div>' +
+    '<div class="actions"><button class="btn wine" data-corfoto="' + n + '">🎨 Salvar foto das cores</button></div></div>';
+}
+function opcoesBloco(v, n){
+  const os = (v.opcoes || []).filter(o => o && o.n && o.link);
+  const dica = '<p class="how">💡 Antes de gravar, abra o produto no app da Shopee e toque em <b>Compartilhe para ganhar</b>: se tiver muita afiliada divulgando, troque por um parecido.</p>';
+  if (!os.length) return '<details class="tips det"><summary>Será que muita gente já divulga?</summary>' + dica + '</details>';
+  const atual = state.iaTroca && state.iaTroca[v.id];
+  return '<details class="tips det"><summary>🔁 Outras opções boas do mesmo tema (' + os.length + ')</summary>' + dica +
+    os.map((o, i) => '<div class="opcao">' + (o.foto ? '<img src="' + esc(o.foto) + '" alt="" loading="lazy">' : '') +
+      '<div><b>' + esc(o.n) + '</b><small>' + esc(o.preco) + ' · comissão ' + esc(o.com) + ' · ' + esc(o.vendas) + ' vendidos' + (o.nota ? ' · ⭐ ' + esc(o.nota) : '') + '</small>' +
+      '<div class="actions"><a class="btn" style="text-decoration:none" href="' + esc(o.link) + '" target="_blank" rel="noopener">Ver</a>' +
+      (atual && atual.link === o.link ? '<span class="why">✓ usando este</span>' : '<button class="btn wine" data-troca="' + n + '-' + i + '">Usar este</button>') + '</div></div></div>').join("") + '</details>';
+}
+async function compartilharArquivo(blob, nome){
+  const f = new File([blob], nome, {type: blob.type || "image/jpeg"});
+  if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f]}); return true; }
+  return false;
+}
+async function salvarUrl(u){
+  try { const b = await (await fetch(u)).blob(); if (await compartilharArquivo(b, "produto.jpg")) return; }
+  catch(e) { if (e && e.name === "AbortError") return; }
+  window.open(u, "_blank"); toast("Segure o dedo na foto e toque em Baixar imagem.", 5000);
+}
+function carregarImg(u){
+  return new Promise(ok => { const i = new Image(); i.crossOrigin = "anonymous"; i.onload = () => ok(i); i.onerror = () => ok(null); i.src = u; });
+}
+function retRedondo(g, x, y, w, h, r){
+  g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath();
+}
+// Junta as cores numa imagem só (fundo branco arredondado, nome embaixo) para usar como figurinha.
+async function montarCores(v){
+  const cs = (v.cores || []).slice(0, 12);
+  const imgs = await Promise.all(cs.map(c => carregarImg(grande(c.img))));
+  const col = cs.length <= 4 ? 2 : 3, lin = Math.ceil(cs.length / col);
+  const W = 1080, pad = 40, gap = 24, cel = Math.floor((W - pad*2 - gap*(col-1)) / col), txt = 64, topo = 130;
+  const H = topo + lin * (cel + txt) + (lin-1) * gap + pad;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const g = c.getContext("2d");
+  const cor = getComputedStyle(document.documentElement).getPropertyValue("--wine").trim() || "#7A1F2B";
+  g.fillStyle = "#ffffff"; retRedondo(g, 0, 0, W, H, 48); g.fill();
+  g.fillStyle = cor; g.font = "700 56px system-ui, sans-serif"; g.textAlign = "center";
+  g.fillText("Tem em " + cs.length + " opções 🤍", W/2, 88);
+  cs.forEach((x, i) => {
+    const cx = pad + (i % col) * (cel + gap), cy = topo + Math.floor(i / col) * (cel + txt + gap);
+    g.save(); retRedondo(g, cx, cy, cel, cel, 28); g.clip();
+    g.fillStyle = "#f4f1ee"; g.fillRect(cx, cy, cel, cel);
+    const im = imgs[i];
+    if (im) { const s = Math.max(cel / im.width, cel / im.height), w = im.width * s, h = im.height * s; g.drawImage(im, cx + (cel - w)/2, cy + (cel - h)/2, w, h); }
+    g.restore();
+    g.fillStyle = "#3a2a2a"; g.font = "600 34px system-ui, sans-serif";
+    const cheio = String(x.n || ""); let nome = cheio;
+    while (nome.length > 3 && g.measureText(nome + "…").width > cel) nome = nome.slice(0, -1);
+    g.fillText(nome === cheio ? nome : nome + "…", cx + cel/2, cy + cel + 46);
+  });
+  return new Promise(ok => { try { c.toBlob(ok, "image/png"); } catch(_) { ok(null); } });
+}
+async function fotoDasCores(v){
+  toast("Montando a foto das cores…");
+  const blob = await montarCores(v);
+  if (!blob) { toast("Não consegui montar a foto. Tire um print das cores na página do produto.", 6000); return; }
+  try { if (await compartilharArquivo(blob, "cores.png")) return; } catch(e) { if (e && e.name === "AbortError") return; }
+  window.open(URL.createObjectURL(blob), "_blank"); toast("Segure o dedo na foto e toque em Baixar imagem.", 5000);
 }
 function conversorCard(){
   return '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Converter link</span><span class="why">vira o SEU link</span></div>' +
@@ -290,8 +377,12 @@ async function salvarFoto(v){
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
-  const gb = e.target.closest("button[data-gpt]"); if (gb) { fotoNoChatGPT(state.ia.videos[Number(gb.dataset.gpt)]); return; }
-  const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(state.ia.videos[Number(fb.dataset.foto)]); return; }
+  const gb = e.target.closest("button[data-gpt]"); if (gb) { fotoNoChatGPT(vid(Number(gb.dataset.gpt))); return; }
+  const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(vid(Number(fb.dataset.foto))); return; }
+  const sf = e.target.closest("button[data-salvarfoto]"); if (sf) { salvarUrl(grande(sf.querySelector("img").src)); return; }
+  const cf = e.target.closest("button[data-corfoto]"); if (cf) { fotoDasCores(vid(Number(cf.dataset.corfoto))); return; }
+  const tb = e.target.closest("button[data-troca]"); if (tb) { const [n, i] = tb.dataset.troca.split("-").map(Number), v0 = state.ia.videos[n]; state.iaTroca = state.iaTroca || {}; state.iaTroca[v0.id] = v0.opcoes[i]; save(); renderHoje(); toast("Trocado! Os pedidos e a legenda já estão com o produto novo."); return; }
+  const dt = e.target.closest("button[data-destroca]"); if (dt) { const v0 = state.ia.videos[Number(dt.dataset.destroca)]; if (state.iaTroca) delete state.iaTroca[v0.id]; save(); renderHoje(); return; }
   const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = state.iaDone[db.dataset.iadone] ? false : todayKey; save(); renderHoje(); return; }
   const pb = e.target.closest("button[data-pronto]");
   if (pb) { openPronto = pb.dataset.pronto; show("prontos"); setTimeout(() => document.querySelector('[data-pid="' + openPronto + '"]')?.scrollIntoView({block:"start"}), 50); return; }

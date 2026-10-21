@@ -213,6 +213,18 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .passo{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
 .passo b{font-size:15px}
 .passo .det{font-size:14px;color:var(--muted)}
+.galeria{display:flex;gap:8px;overflow-x:auto;padding:4px 0;scroll-snap-type:x mandatory}
+.galeria button{flex:0 0 31%;aspect-ratio:1;border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden;background:#fff;scroll-snap-align:start;cursor:pointer}
+.galeria img,.cores-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.cores-mini{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.cores-mini span{display:grid;gap:2px;text-align:center;min-width:0}
+.cores-mini img{height:auto;aspect-ratio:1;border-radius:10px;background:#fff;border:1px solid var(--line)}
+.cores-mini small{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opcao{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.opcao img{width:64px;height:64px;object-fit:cover;border-radius:10px;background:#fff;flex:none}
+.opcao>div{min-width:0;display:grid;gap:2px}
+.opcao small{color:var(--muted)}
+.link-btn{background:none;border:0;padding:0;color:var(--wine);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
 .ferramentas{display:block}
 .ferramentas>summary{font-weight:800;font-size:16px;cursor:pointer;list-style:none}
 .ferramentas>summary small{display:block;font-weight:600;color:var(--muted);font-size:13px}
