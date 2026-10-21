@@ -116,6 +116,43 @@ function editarCard(){
     '<p class="how">Recado do topo, respostas prontas, carrosséis e plano de postagens ficam na planilha, nas abas que começam com <b>App -</b>. Mudou lá, o app muda sozinho (feche e abra o app).</p>' +
     '<div class="actions"><a class="btn" style="text-decoration:none" href="' + PLANILHA + '" target="_blank" rel="noopener">✏️ Abrir a planilha</a></div></article>';
 }
+// ---------- RESUMO DA SEMANA (o que ela marcou como postado nos últimos 7 dias) ----------
+function resumoSemana(){
+  const dias = []; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); dias.push(keyOf(d)); }
+  const naSemana = k => dias.indexOf(k) >= 0;
+  let plano = 0, planoTotal = 0;
+  dias.forEach(d => { const ps = PLAN[d] || []; planoTotal += ps.length; ps.forEach((p, i) => { if (state.done[d + "-" + i]) plano++; }); });
+  const ia = Object.values(state.iaDone || {}).filter(v => typeof v === "string" && naSemana(v)).length;
+  const car = Object.values(state.prontos || {}).filter(v => typeof v === "string" && naSemana(v)).length;
+  const postouNo = d => (PLAN[d] || []).some((p, i) => state.done[d + "-" + i]) || Object.values(state.iaDone || {}).includes(d) || Object.values(state.prontos || {}).includes(d);
+  let seguidos = 0; for (let i = 0; i < 60; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = keyOf(d); if (postouNo(k)) seguidos++; else if (i > 0) break; }
+  const total = plano + ia + car;
+  const frase = total === 0 ? "Essa semana ainda está em branco. Bora começar hoje? Um post já conta! 🤍" : total < 7 ? "Você começou! Cada post te deixa mais perto das vendas. ✨" : total < 15 ? "Que semana boa! Continua assim. 💪" : "Você está voando! Semana incrível. 🎉";
+  return {plano, planoTotal, ia, car, seguidos, total, frase};
+}
+function semanaCard(){
+  const r = resumoSemana();
+  return '<article class="card"><div class="meta"><span class="tag casa">Sua semana</span><span class="why">últimos 7 dias</span></div>' +
+    '<div class="semana"><div><b>' + r.plano + '</b><small>de ' + r.planoTotal + ' posts do plano</small></div><div><b>' + r.ia + '</b><small>Shopee Vídeos</small></div><div><b>' + r.car + '</b><small>carrosséis</small></div><div><b>' + r.seguidos + '</b><small>' + (r.seguidos === 1 ? 'dia seguido' : 'dias seguidos') + '</small></div></div>' +
+    '<p class="how">' + esc(r.frase) + '</p></article>';
+}
+// ---------- LEMBRETES ----------
+const minDe = h => { const m = String(h).match(/(\d{1,2})h(\d{2})?/); return m ? Number(m[1]) * 60 + Number(m[2] || 0) : null; };
+function pendentesCard(){
+  const agora = new Date().getHours() * 60 + new Date().getMinutes();
+  const falta = (PLAN[todayKey] || []).map((p, i) => ({p, i})).filter(x => !state.done[todayKey + "-" + x.i] && minDe(x.p.h) !== null && minDe(x.p.h) <= agora);
+  if (!falta.length) return "";
+  return '<article class="card pendente"><p>⏰ Já passou da hora e ainda falta:</p><ul>' + falta.map(x => '<li><b>' + esc(x.p.h) + '</b> · ' + esc(x.p.t) + '</li>').join("") + '</ul></article>';
+}
+function lembretesCard(){
+  const t = conteudo().lembretes;
+  if (!t) return "";
+  COPY.push(t);
+  return '<article class="card"><div class="meta"><span class="tag trend">Lembretes no celular</span><span class="why">12h · 18h30 · 21h</span></div>' +
+    '<p class="how">Para o celular apitar na hora de postar, mesmo com o app fechado:</p>' +
+    '<ol class="script"><li>Instale o app grátis <b>ntfy</b> (não precisa de conta).</li><li>Abra o ntfy, toque em <b>+</b> e cole o seu tópico: <b class="sel">' + esc(t) + '</b></li><li>Pronto! A Dalinha avisa nos horários do plano.</li></ol>' +
+    '<div class="actions"><a class="btn" style="text-decoration:none" href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Baixar o ntfy</a><button class="btn" data-copy="' + (COPY.length - 1) + '">Copiar meu tópico</button></div></article>';
+}
 function renderHoje(){
   const posts = PLAN[cur] || [];
   const dd = fmtDay(cur, {day:"numeric", month:"short"});
@@ -137,7 +174,7 @@ function renderHoje(){
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
   COPY = [];
   const semPlano = posts.length ? '' : '<article class="card"><div class="meta"><span class="tag trend">Plano de postagens</span></div><p class="how">Ainda não tem plano para este dia. Me peça um plano novo no Claude, ou escreva os posts na aba <b>App - Plano</b> da planilha.</p></article>';
-  $("cards").innerHTML = (cur === todayKey ? recadoCard() + iaCards() + packsCard() : "") + prontoCard + semPlano + posts.map((p, i) => {
+  $("cards").innerHTML = (cur === todayKey ? recadoCard() + pendentesCard() + iaCards() + packsCard() : "") + prontoCard + semPlano + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -151,7 +188,7 @@ function renderHoje(){
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
       '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
     '</article>';
-  }).join("") + (cur === todayKey ? conversorCard() + respostasCard() + editarCard() : "");
+  }).join("") + (cur === todayKey ? semanaCard() + conversorCard() + respostasCard() + lembretesCard() + editarCard() : "");
 }
 // ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
 const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
@@ -244,7 +281,7 @@ $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
   const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(state.ia.videos[Number(fb.dataset.foto)]); return; }
-  const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = !state.iaDone[db.dataset.iadone]; save(); renderHoje(); return; }
+  const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = state.iaDone[db.dataset.iadone] ? false : todayKey; save(); renderHoje(); return; }
   const pb = e.target.closest("button[data-pronto]");
   if (pb) { openPronto = pb.dataset.pronto; show("prontos"); setTimeout(() => document.querySelector('[data-pid="' + openPronto + '"]')?.scrollIntoView({block:"start"}), 50); return; }
   const b = e.target.closest("button[data-act]"); if (!b) return;
@@ -642,7 +679,7 @@ $("prontoList").addEventListener("click", async e => {
   if (a === "fmt") { const v = e.target.closest("button[data-v]")?.dataset.v; if (v && v !== prFormat) { prFormat = v; renderProntos(); } return; }
   const blobs = prOutputs[pid + "-" + prFormat]; const text = p.leg + "\n\n" + p.tags;
   if (a === "copy") { try { await navigator.clipboard.writeText(text); toast("Legenda copiada."); } catch(_) { toast("Segure o texto da legenda para copiar."); } }
-  if (a === "done") { state.prontos[pid] = !state.prontos[pid]; save(); renderProntos(); }
+  if (a === "done") { state.prontos[pid] = state.prontos[pid] ? false : todayKey; save(); renderProntos(); }
   if (a === "links") { copyText("Oi! 🤍 Aqui estão os links:\n" + p.itens.map((it, i) => (i+1) + ". " + it[0] + ": " + (/^https?:/.test(it[2]) ? it[2] : "https://s.shopee.com.br/" + it[2])).join("\n") + "\n\nE no meu grupo VIP tem promoção todo dia: " + LINK_VIP); return; }
   if (a === "video") {
     b.disabled = true; const st = $("vs-" + pid);

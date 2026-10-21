@@ -80,6 +80,11 @@ footer{text-align:center;color:var(--soft);font-size:12px}
   <li><a href="#dalinha">Falar com a Dalinha (assistente de voz)</a></li>
   <li><a href="#planilha">Mudar o conteúdo do app pela planilha</a></li>
   <li><a href="#computador">Mexer no app pelo computador</a></li>
+  <li><a href="#ditado">Ditar um texto (sem a Dalinha fazer nada)</a></li>
+  <li><a href="#lembretes">Lembrete no celular na hora de postar</a></li>
+  <li><a href="#semana">Ver como foi a sua semana</a></li>
+  <li><a href="#gemini">Ligar a inteligência da Dalinha (Gemini)</a></li>
+  <li><a href="#celular">Falar com o Claude pelo celular</a></li>
   <li><a href="#problema">Deu problema? Faça isto</a></li>
 </ol></nav>
 
@@ -88,6 +93,8 @@ footer{text-align:center;color:var(--soft);font-size:12px}
   <div class="grid">
     <div class="mini"><span class="when">Todo dia às 6h</span><b>Robô da Shopee</b><span>Escolhe 3 produtos com comissão boa e coloca no app (tela Hoje) com o seu link, o pedido da foto, o pedido do vídeo e a legenda. Roda no Google: funciona mesmo com o computador desligado.</span></div>
     <div class="mini"><span class="when">Toda meia-noite</span><b>Vídeos dos packs e métricas</b><span>Pega até 6 vídeos novos do PACK VIP STORYS/VIDEOS (Natal e casa), troca o link pelo seu e coloca no app. Também lê seus números do TikTok e Instagram e escreve no doc “Métricas da Daia”. <b>Precisa do computador ligado e do Chrome aberto.</b></span></div>
+    <div class="mini"><span class="when">Todo dia às 5h e 7h</span><b>Trend e carrossel do dia</b><span>Às 5h o robô pesquisa a trend que está bombando e coloca no plano (precisa da chave do Gemini). Às 7h ele monta um carrossel novo com 5 produtos da Shopee e o seu link.</span></div>
+    <div class="mini"><span class="when">12h · 18h30 · 21h</span><b>Lembretes</b><span>O celular avisa a hora de postar pelo app ntfy.</span></div>
     <div class="mini"><span class="when">O tempo todo</span><b>Página de links</b><span>daledaia.github.io mostra os “Achadinhos do dia”, que mudam sozinhos com os produtos do robô.</span></div>
   </div>
 </section>
@@ -287,6 +294,60 @@ footer{text-align:center;color:var(--soft);font-size:12px}
     <li><b>Código do app</b> (só quando eu pedir): ele fica salvo no GitHub, em <span class="path">github.com/sgtdaianadelima-ai/daia-studio</span>. Eu deixo a página aberta e você só sobe os arquivos.</li>
     <li>Pelo celular também dá para mexer no GitHub com o app <b>GitHub</b>, mas não precisa: o dia a dia é todo pela planilha.</li>
   </ul>
+</section>
+
+<section id="ditado">
+  <h2><small>Ditado</small>Ditar um texto</h2>
+  <p>Quando você só quer falar e ver o texto escrito (legenda, ideia, recado), sem a Dalinha fazer nada:</p>
+  <ol class="steps">
+    <li>Toque no 🎙️ do canto da tela e depois em <b>📝 Ditado</b>.</li>
+    <li>Toque no microfone grande e fale à vontade. O texto vai aparecendo. Para parar, toque no microfone de novo.</li>
+    <li>Toque em <b>Copiar texto</b> (para colar onde quiser) ou em <b>Salvar como ideia</b>.</li>
+  </ol>
+  <p class="tip">Para voltar a pedir coisas para a Dalinha, toque em <b>💬 Pedir</b>.</p>
+</section>
+
+<section id="lembretes">
+  <h2><small>Lembretes</small>Lembrete no celular na hora de postar</h2>
+  <p>O robô avisa às <b>12h, 18h30 e 21h</b> o que postar, mesmo com o app fechado. Não mexe na sua agenda.</p>
+  <ol class="steps">
+    <li>Instale o app grátis <b>ntfy</b> na Play Store (não precisa criar conta).</li>
+    <li>No Daia Studio, na tela Hoje, toque em <b>Copiar meu tópico</b> (cartão “Lembretes no celular”).</li>
+    <li>No ntfy, toque em <b>+</b>, cole o tópico e toque em <b>Inscrever</b>. Pronto!</li>
+  </ol>
+  <p class="tip">Com o app aberto, a tela Hoje também mostra “⏰ Já passou da hora e ainda falta…”.</p>
+</section>
+
+<section id="semana">
+  <h2><small>Resultado</small>Ver como foi a sua semana</h2>
+  <ul>
+    <li>Na tela Hoje, o cartão <b>Sua semana</b> mostra os últimos 7 dias: posts do plano, Shopee Vídeos, carrosséis e quantos dias seguidos você postou.</li>
+    <li>Ou pergunte para a Dalinha: “como foi minha semana?”.</li>
+    <li>Ele conta o que você <b>marcou como postado</b> no app. Marque sempre que postar!</li>
+  </ul>
+</section>
+
+<section id="gemini">
+  <h2><small>Inteligência</small>Ligar a inteligência da Dalinha</h2>
+  <p>Com o Gemini (grátis, do Google), a Dalinha responde qualquer pergunta, pesquisa as trends do dia às 5h e cria os títulos dos carrosséis novos. Faça só uma vez:</p>
+  <ol class="steps">
+    <li>No celular ou no computador, abra <span class="path">aistudio.google.com/apikey</span> com a sua conta Google e toque em <b>Criar chave de API</b>. Copie a chave.</li>
+    <li>Abra a planilha › <b>Extensões › Apps Script</b> › engrenagem <b>Configurações do projeto</b> › <b>Propriedades do script</b> › <b>Adicionar propriedade</b>.</li>
+    <li>Nome: <b>GEMINI_KEY</b>. Valor: cole a chave. Toque em <b>Salvar</b>.</li>
+  </ol>
+  <p class="tip">A chave é como uma senha: não mande para ninguém. O Google dá um limite grátis por dia; se passar, a Dalinha só volta a responder no dia seguinte.</p>
+</section>
+
+<section id="celular">
+  <h2><small>Claude</small>Falar com o Claude pelo celular</h2>
+  <p>O projeto do app está salvo no GitHub. Assim você pode pedir mudanças ao Claude pelo celular, sem o computador ligado.</p>
+  <ol class="steps">
+    <li>No app do <b>Claude</b> no celular, toque em <b>Code</b> (ou abra <span class="path">claude.ai/code</span> no navegador).</li>
+    <li>Na primeira vez, toque em <b>Conectar GitHub</b> e entre com a sua conta do GitHub. Libere o repositório <b>daia-studio</b>.</li>
+    <li>Escolha o repositório <b>sgtdaianadelima-ai/daia-studio</b> e escreva o que você quer. Ex.: “troca a cor do botão”, “cria 5 carrosséis de Natal”.</li>
+    <li>O Claude faz a mudança e manda para o GitHub. Se ele pedir para você aprovar (“Merge”), toque no botão verde.</li>
+  </ol>
+  <p class="tip">O que o Claude do celular <b>não</b> faz: mexer no Telegram, no Chrome do computador ou publicar o robô do Google. Isso continua sendo pelo computador.</p>
 </section>
 
 <section id="problema">

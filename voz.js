@@ -34,6 +34,10 @@
   box.className = "voz-box"; box.hidden = true; box.setAttribute("aria-label", "Assistente de voz");
   box.innerHTML =
     '<div class="voz-top"><b>Dalinha <span>· sua ajudante</span></b><button class="voz-x" aria-label="Fechar">×</button></div>' +
+    '<div class="voz-modos"><button type="button" class="chip" data-modo="pedir" aria-pressed="true">💬 Pedir</button><button type="button" class="chip" data-modo="ditado" aria-pressed="false">📝 Ditado</button></div>' +
+    '<div class="voz-ditado" id="vozDitBox" hidden><textarea class="input" id="vozDit" placeholder="Toque no microfone e fale. O que você falar vira texto aqui, sem a Dalinha fazer nada."></textarea>' +
+    '<button type="button" class="voz-mic grande" id="vozDitMic" aria-label="Ditar"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>' +
+    '<div class="actions"><button type="button" class="btn wine" id="vozDitCopiar">Copiar texto</button><button type="button" class="btn" id="vozDitIdeia">Salvar como ideia</button><button type="button" class="btn" id="vozDitLimpar">Limpar</button></div></div>' +
     '<div class="voz-chat" id="vozChat" aria-live="polite"></div>' +
     '<div class="voz-chips" id="vozChips"></div>' +
     '<form class="voz-form" id="vozForm"><input id="vozIn" class="input" placeholder="Fale ou escreva aqui…" autocomplete="off" enterkeyhint="send"><button type="button" class="voz-mic" id="vozMic" aria-label="Falar"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button><button class="btn wine" type="submit">Enviar</button></form>' +
@@ -50,7 +54,7 @@
   preencherVozes();
   if (!SR) { $v("vozMic").hidden = true; $v("vozDica").textContent = "Este celular não deixa o app ouvir direto. Toque no 🎤 do seu teclado e fale: eu entendo do mesmo jeito."; }
 
-  const CHIPS = ["O que eu faço hoje?", "Abrir carrosséis", "Converter link", "Anotar ideia: ", "Como posto na Shopee Vídeo?", "Copiar link do grupo VIP"];
+  const CHIPS = ["O que eu faço hoje?", "Abrir carrosséis", "Converter link", "Anotar ideia: ", "Como posto na Shopee Vídeo?", "Como foi minha semana?", "Qual trend está bombando?", "Copiar link do grupo VIP"];
   $v("vozChips").innerHTML = CHIPS.map(c => '<button type="button" class="chip" data-c="' + esc(c) + '">' + esc(c.replace(/: $/, "…")) + '</button>').join("");
 
   function bolha(quem, html){
@@ -68,7 +72,7 @@
   }
 
   function abrir(){ box.hidden = false; fab.classList.add("on"); if (!$v("vozChat").children.length) responder({txt: saudacao() + " Toque no microfone e me fala o que você precisa, ou escolha uma opção aqui embaixo. 🤍"}); }
-  function fechar(){ box.hidden = true; fab.classList.remove("on"); pararOuvir(); try { tts && tts.cancel(); } catch(_) {} }
+  function fechar(){ box.hidden = true; fab.classList.remove("on"); pararOuvir(); if (typeof pararDitado === "function") pararDitado(); try { tts && tts.cancel(); } catch(_) {} }
   fab.addEventListener("click", () => box.hidden ? abrir() : fechar());
   box.querySelector(".voz-x").addEventListener("click", fechar);
   $v("vozForm").addEventListener("submit", e => { e.preventDefault(); const t = $v("vozIn").value.trim(); if (!t) return; $v("vozIn").value = ""; entender(t); });
@@ -77,6 +81,41 @@
   $v("vozFalar").addEventListener("change", e => { cfg.falar = e.target.checked; salvarCfg(); if (cfg.falar) falar("Oba! Agora eu respondo falando."); });
   $v("vozVoz").addEventListener("change", e => { cfg.voz = e.target.value; salvarCfg(); falar("Oi, Daia! Gostou dessa voz?"); });
   $v("vozTeste").addEventListener("click", () => falar("Oi, Daia! Eu sou a Dalinha. Bora vender muito hoje?"));
+
+  // ---------- modo ditado: só transforma a fala em texto ----------
+  let modo = "pedir", ditando = false, recDit = null, baseDit = "";
+  function trocarModo(m){
+    modo = m; pararOuvir(); pararDitado();
+    box.querySelectorAll("[data-modo]").forEach(b => b.setAttribute("aria-pressed", b.dataset.modo === m));
+    $v("vozDitBox").hidden = m !== "ditado";
+    ["vozChat", "vozChips", "vozForm"].forEach(id => $v(id).hidden = m === "ditado");
+    box.querySelector(".voz-cfg").hidden = m === "ditado";
+  }
+  box.querySelector(".voz-modos").addEventListener("click", e => { const m = e.target.closest("[data-modo]")?.dataset.modo; if (m) trocarModo(m); });
+  function pararDitado(){ ditando = false; if (recDit) { try { recDit.stop(); } catch(_) {} } $v("vozDitMic").classList.remove("on"); }
+  function ligarDitado(){
+    recDit = new SR(); recDit.lang = "pt-BR"; recDit.interimResults = true; recDit.continuous = true;
+    baseDit = $v("vozDit").value ? $v("vozDit").value.replace(/\s*$/, " ") : "";
+    recDit.onresult = e => {
+      let fin = "", meio = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) { const r = e.results[i]; if (r.isFinal) fin += r[0].transcript; else meio += r[0].transcript; }
+      if (fin) { baseDit += fin.trim() + " "; }
+      $v("vozDit").value = baseDit + meio;
+    };
+    recDit.onerror = e => { if (e.error === "not-allowed" || e.error === "service-not-allowed") { pararDitado(); toast("Libere o Microfone para o app (cadeado › Permissões)."); } };
+    recDit.onend = () => { if (ditando) { try { ligarDitado(); } catch(_) { pararDitado(); } } };
+    recDit.start();
+  }
+  $v("vozDitMic").addEventListener("click", () => {
+    if (!SR) { $v("vozDit").focus(); toast("Toque no 🎤 do teclado para ditar."); return; }
+    if (ditando) { pararDitado(); return; }
+    try { tts && tts.cancel(); } catch(_) {}
+    ditando = true; $v("vozDitMic").classList.add("on");
+    try { ligarDitado(); } catch(_) { pararDitado(); toast("Não consegui ligar o microfone agora."); }
+  });
+  $v("vozDitCopiar").addEventListener("click", () => { const t = $v("vozDit").value.trim(); if (t) copyText(t); });
+  $v("vozDitIdeia").addEventListener("click", () => { const t = $v("vozDit").value.trim(); if (!t) return; state.ideas.unshift({id: "i" + Date.now(), text: t, hasPhoto: false, at: todayKey}); save(); toast("Salvei na aba Ideias! ✨"); });
+  $v("vozDitLimpar").addEventListener("click", () => { $v("vozDit").value = ""; baseDit = ""; });
 
   // ---------- microfone ----------
   function pararOuvir(){ if (rec && ouvindo) { try { rec.stop(); } catch(_) {} } ouvindo = false; $v("vozMic").classList.remove("on"); }
@@ -159,6 +198,10 @@
       const p = PR.find(x => !(state.prontos && state.prontos[x.id])) || PR[0];
       return responder({txt: 'Que tal o carrossel "' + p.c1 + " " + p.c2 + '"? ✨', acoes: [{rotulo: "Abrir esse carrossel", fn: () => { openPronto = p.id; fechar(); show("prontos"); }}]}, pediuVoz);
     }
+    // semana
+    if (/\b(semana|semanal|como (eu )?fui|meu resultado|quanto eu postei|dias seguidos)\b/.test(t)) { const r = resumoSemana(); return responder({txt: "Nos últimos 7 dias: " + r.plano + " de " + r.planoTotal + " posts do plano, " + r.ia + " Shopee Vídeos e " + r.car + " carrosséis. " + (r.seguidos ? "Você está há " + r.seguidos + (r.seguidos === 1 ? " dia" : " dias") + " seguidos postando! " : "") + r.frase}, pediuVoz); }
+    // ditado
+    if (/\b(ditado|ditar|so quero ditar|escrever falando)\b/.test(t)) { trocarModo("ditado"); return; }
     // hoje / tarefas
     if (/\b(o que|oque)\b.*\b(faco|fazer|tenho|postar|posto)\b|\b(hoje|tarefa|tarefas|agenda|resumo|quanto falta|quantos faltam|meu dia)\b/.test(t)) return responder(resumoHoje(), pediuVoz);
     // copiar textos prontos
@@ -180,6 +223,15 @@
     if (claude) { const pedido = claude[2] && claude[2].length > 3 ? claude[2] : original; askClaude(CONTEXTO + "\n\n" + pedido); return responder({txt: "Mandei para o Claude! Escolha o app do Claude na lista. 🤍"}, pediuVoz); }
     // dúvidas: procura no manual
     const m = await perguntaManual(original);
+    if (m && !/\b(trend|viral\w*|tendencia|audio|som|ideia de|sugest\w*|legenda|roteiro|escrev\w*|cria\w*|o que eu posto)\b/.test(t)) return responder(m, pediuVoz);
+    // o resto: pergunta para o Gemini (pelo robô do Google), que também pesquisa na internet
+    const pensando = bolha("ela", "Pensando… 💭");
+    try {
+      const ctx = resumoHoje().txt.slice(0, 600);
+      const j = await (await fetch(ROBO + "?pergunta=" + encodeURIComponent(original.slice(0, 500)) + "&ctx=" + encodeURIComponent(ctx))).json();
+      pensando.remove();
+      if (j && j.resposta) return responder({txt: j.resposta, acoes: [{rotulo: "Copiar", fn: () => copyText(j.resposta)}]}, pediuVoz);
+    } catch(_) { pensando.remove(); }
     if (m) return responder(m, pediuVoz);
     return responder({txt: "Hmm, essa eu ainda não sei 🥺 Quer que eu mande sua pergunta para o Claude?", acoes: [{rotulo: "Mandar para o Claude", fn: () => askClaude(CONTEXTO + "\n\n" + original)}, {rotulo: "Abrir o manual", fn: abrirUrl("manual.html")}]}, pediuVoz);
   }
