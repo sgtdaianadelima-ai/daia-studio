@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#7A1F2B">
+<meta name="robots" content="noindex,nofollow">
+<title>Cronograma Dale Daia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,500;1,600&family=Montserrat:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: uma coluna de celular — totais da semana, abas dos dias, lista do dia por horário, guia dos stories, datas especiais */
+:root{
+  --bg:#FBF7F2; --card:#FFFFFF; --line:#E8DCCF; --fg:#3B2A22; --muted:#7D6A5E;
+  --vinho:#7A1F2B; --vinho-soft:#F3E3E2; --ouro:#C9A46A; --areia:#D9C4B0; --ok:#3F7A4E;
+  --serif:"Cormorant Garamond", Georgia, serif; --sans:"Montserrat", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1F1714; --card:#2A201C; --line:#43342D; --fg:#F3E9DF; --muted:#BBA797;
+  --vinho:#E07A86; --vinho-soft:#3A2224; --ouro:#D9B87F; --areia:#6B4F3F; --ok:#7CC08B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1F1714; --card:#2A201C; --line:#43342D; --fg:#F3E9DF; --muted:#BBA797;
+  --vinho:#E07A86; --vinho-soft:#3A2224; --ouro:#D9B87F; --areia:#6B4F3F; --ok:#7CC08B; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:26px}
+header{display:flex;flex-direction:column;gap:4px}
+.marca{font-family:var(--serif);font-style:italic;font-size:2.3rem;line-height:1;color:var(--vinho)}
+.marca b{font-family:var(--sans);font-style:normal;font-weight:600;font-size:.9rem;letter-spacing:.35em;color:var(--fg);margin-left:8px;vertical-align:middle}
+.sub{color:var(--muted);font-size:.85rem}
+h2{font-family:var(--serif);font-style:italic;font-weight:600;font-size:1.6rem;margin:0;color:var(--vinho);text-wrap:balance}
+.eyebrow{font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+section{display:flex;flex-direction:column;gap:12px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.tile .n{font-size:1.7rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--vinho);line-height:1.1}
+.tile .l{font-size:.78rem;font-weight:600}
+.tile .d{font-size:.72rem;color:var(--muted)}
+.dias{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dias button{font:inherit;font-size:.78rem;font-weight:600;padding:9px 0;border:1px solid var(--line);background:var(--card);color:var(--fg);border-radius:10px;cursor:pointer}
+.dias button[aria-pressed="true"]{background:var(--vinho);border-color:var(--vinho);color:var(--bg)}
+.dias button:focus-visible,.item:focus-within{outline:2px solid var(--ouro);outline-offset:2px}
+.resumo-dia{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.75rem;font-weight:600;padding:4px 10px;border-radius:99px;background:var(--vinho-soft);color:var(--vinho)}
+.lista{display:flex;flex-direction:column;gap:8px}
+.item{display:grid;grid-template-columns:auto 52px 1fr;gap:10px;align-items:start;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+.item input{width:22px;height:22px;margin:1px 0 0;accent-color:var(--vinho)}
+.hora{font-weight:700;font-variant-numeric:tabular-nums;font-size:.85rem;color:var(--vinho);padding-top:2px}
+.txt{min-width:0;display:flex;flex-direction:column;gap:3px}
+.txt strong{font-size:.95rem}
+.txt span{font-size:.82rem;color:var(--muted)}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.tag{font-size:.68rem;font-weight:600;padding:2px 8px;border-radius:99px;border:1px solid var(--areia);color:var(--fg)}
+.item.feito{opacity:.55}
+.item.feito strong{text-decoration:line-through}
+.progresso{font-size:.8rem;color:var(--muted)}
+.progresso b{color:var(--ok)}
+table{width:100%;border-collapse:collapse;font-size:.82rem;font-variant-numeric:tabular-nums}
+.tabela{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;padding-left:12px}
+thead th{font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+tfoot td{font-weight:700;color:var(--vinho);border-bottom:none}
+ol.stories{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px;counter-reset:s}
+ol.stories li{counter-increment:s;display:grid;grid-template-columns:28px 1fr;gap:10px;font-size:.86rem}
+ol.stories li::before{content:counter(s);width:24px;height:24px;border-radius:50%;border:1px solid var(--ouro);display:grid;place-items:center;font-size:.72rem;font-weight:700;color:var(--vinho)}
+ol.stories small{display:block;color:var(--muted)}
+.datas{display:flex;flex-direction:column;gap:8px}
+.data{display:grid;grid-template-columns:64px 1fr;gap:10px;font-size:.86rem;border-left:2px solid var(--ouro);padding-left:10px}
+.data b{color:var(--vinho);font-variant-numeric:tabular-nums}
+.nota{font-size:.82rem;color:var(--muted)}
+@media (max-width:380px){.tile .n{font-size:1.4rem}.item{grid-template-columns:auto 44px 1fr}}
+@media (prefers-reduced-motion:no-preference){.item{transition:opacity .2s}}
+html,body{margin:0}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.voltar{color:var(--vinho);font-weight:700;text-decoration:none}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <a class="voltar" href="./">‹ Voltar para o app</a>
+  <header>
+    <div class="marca">Dale <b>DAIA</b></div>
+    <div class="sub">Cronograma de postagens · 17/10 a 16/11/2026</div>
+  </header>
+
+  <section aria-labelledby="t-semana">
+    <div class="eyebrow">Por semana</div>
+    <h2 id="t-semana">Quanto postar</h2>
+    <div class="tiles">
+      <div class="tile"><span class="n">19</span><span class="l">TikTok</span><span class="d">3 por dia · domingo 1</span></div>
+      <div class="tile"><span class="n">10</span><span class="l">Reels</span><span class="d">1 ou 2 por dia</span></div>
+      <div class="tile"><span class="n">3</span><span class="l">Carrosséis</span><span class="d">ter · qui · sáb</span></div>
+      <div class="tile"><span class="n">21</span><span class="l">Shopee Vídeo</span><span class="d">3 por dia</span></div>
+      <div class="tile"><span class="n">39</span><span class="l">Stories</span><span class="d">6 por dia · domingo 3</span></div>
+      <div class="tile"><span class="n">7</span><span class="l">Episódios</span><span class="d">série de Natal, 21h</span></div>
+    </div>
+    <p class="nota">Um mesmo vídeo vale para Reels e TikTok: grave uma vez e poste nos dois.</p>
+  </section>
+
+  <section aria-labelledby="t-dia">
+    <div class="eyebrow" id="t-data">Hoje</div>
+    <h2 id="t-dia">O que fazer</h2>
+    <div class="dias" role="group" aria-label="Dia da semana" id="dias"></div>
+    <div class="resumo-dia" id="resumo"></div>
+    <div class="lista" id="lista"></div>
+    <div class="progresso" id="prog"></div>
+  </section>
+
+  <section aria-labelledby="t-tab">
+    <div class="eyebrow">A semana inteira</div>
+    <h2 id="t-tab">Quadro da semana</h2>
+    <div class="tabela">
+      <table>
+        <thead><tr><th>Dia</th><th>TikTok</th><th>Reels</th><th>Carr.</th><th>Shopee</th><th>Stories</th></tr></thead>
+        <tbody id="tbody"></tbody>
+        <tfoot><tr><td>Total</td><td>19</td><td>10</td><td>3</td><td>21</td><td>39</td></tr></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-st">
+    <div class="eyebrow">Instagram @daledaia</div>
+    <h2 id="t-st">Os 6 stories do dia</h2>
+    <ol class="stories">
+      <li><div>9h · Bom dia + enquete<small>“Qual você levaria?” com 2 produtos.</small></div></li>
+      <li><div>12h · Achado do almoço<small>Foto ou vídeo do produto com figurinha de link.</small></div></li>
+      <li><div>15h · Caixinha de perguntas<small>“O que falta na sua casa?” Vira ideia de conteúdo.</small></div></li>
+      <li><div>18h30 · Oferta ou cupom do dia<small>Use o botão Cupons da página de links.</small></div></li>
+      <li><div>20h · Aviso do episódio<small>“Hoje 21h tem episódio novo da árvore.”</small></div></li>
+      <li><div>21h · Repost do Reels + grupo VIP<small>Compartilhe o Reels e coloque o link do grupo.</small></div></li>
+    </ol>
+    <p class="nota">Domingo: só os stories 1, 5 e 6.</p>
+  </section>
+
+  <section aria-labelledby="t-datas">
+    <div class="eyebrow">Fique de olho</div>
+    <h2 id="t-datas">Datas especiais</h2>
+    <div class="datas">
+      <div class="data"><b>31/10</b><span>Meio do plano: veja no doc de métricas quais vídeos foram melhor e repita o formato.</span></div>
+      <div class="data"><b>05/11</b><span>Comece a avisar o 11.11 nos stories (“daqui a 6 dias tem promoção gigante”).</span></div>
+      <div class="data"><b>10 e 11/11</b><span>11.11 da Shopee: dobre os Shopee Vídeos (6 por dia) e faça 10 stories de ofertas.</span></div>
+      <div class="data"><b>16/11</b><span>Fim deste plano. Peça ao Claude o plano novo com Black Friday (27/11).</span></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const T={tt:"TikTok",rl:"Reels",ca:"Carrossel",sh:"Shopee Vídeo",st:"Stories"};
+const shopee={h:"Manhã",t:"3 Shopee Vídeos",d:"Os 3 vídeos do dia estão no app, card “Shopee Vídeo de hoje”. Marque o produto e o selo de IA.",g:["sh"]};
+const stA={h:"9h",t:"Stories 1 a 3",d:"Bom dia + enquete, achado com link, caixinha.",g:["st"]};
+const stB={h:"18h30",t:"Stories 4 a 6",d:"Oferta do dia, aviso do episódio e repost com grupo VIP.",g:["st"]};
+const reelCasa={h:"12h",t:"Vídeo de casa",d:"Achado de casa ou decoração. Pegue no Pack VIP, tópico Vídeo casa decoração.",g:["rl","tt"]};
+const carrossel={h:"12h",t:"Carrossel de achados",d:"Pegue o próximo na aba Prontos do app. No TikTok, poste as fotos no modo carrossel.",g:["ca","tt"]};
+const trend={h:"18h30",t:"Trend do dia",d:"Trend e áudio estão no doc “Métricas da Daia”, parte Faça hoje. Pode aparecer o rosto.",g:["tt"]};
+const serie={h:"21h",t:"Série “Minha Primeira Árvore”",d:"Episódio do dia, no app, aba Hoje. Use o Pack VIP, tópico Vídeo Natal.",g:["rl","tt"]};
+const DIAS=[
+ {k:"Dom",n:"Domingo",it:[shopee,{h:"18h",t:"Stories 1, 5 e 6",d:"Domingo leve: enquete, aviso do episódio e repost.",g:["st"]},serie],c:{tt:1,rl:1,ca:0,sh:3,st:3}},
+ {k:"Seg",n:"Segunda",it:[shopee,stA,reelCasa,trend,stB,serie],c:{tt:3,rl:2,ca:0,sh:3,st:6}},
+ {k:"Ter",n:"Terça",it:[shopee,stA,carrossel,trend,stB,serie],c:{tt:3,rl:1,ca:1,sh:3,st:6}},
+ {k:"Qua",n:"Quarta",it:[shopee,stA,reelCasa,trend,stB,serie],c:{tt:3,rl:2,ca:0,sh:3,st:6}},
+ {k:"Qui",n:"Quinta",it:[shopee,stA,carrossel,trend,stB,serie],c:{tt:3,rl:1,ca:1,sh:3,st:6}},
+ {k:"Sex",n:"Sexta",it:[shopee,stA,reelCasa,trend,stB,serie],c:{tt:3,rl:2,ca:0,sh:3,st:6}},
+ {k:"Sáb",n:"Sábado",it:[shopee,stA,carrossel,trend,stB,serie],c:{tt:3,rl:1,ca:1,sh:3,st:6}}
+];
+const hoje=new Date(); const hojeIdx=hoje.getDay();
+let sel=hojeIdx;
+function chave(i){const d=new Date(hoje);d.setDate(d.getDate()+(i-hojeIdx));return "dd-"+d.toISOString().slice(0,10)}
+function ler(k){try{return JSON.parse(localStorage.getItem(k)||"[]")}catch(e){return[]}}
+function gravar(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function render(){
+  const dia=DIAS[sel];
+  document.getElementById("t-data").textContent= sel===hojeIdx?"Hoje · "+dia.n:dia.n;
+  document.querySelectorAll("#dias button").forEach((b,i)=>b.setAttribute("aria-pressed",i===sel));
+  document.getElementById("resumo").innerHTML=Object.keys(T).filter(x=>dia.c[x]).map(x=>`<span class="chip">${dia.c[x]} ${T[x]}</span>`).join("");
+  const k=chave(sel), feitos=ler(k);
+  document.getElementById("lista").innerHTML=dia.it.map((it,i)=>`
+   <label class="item${feitos.includes(i)?" feito":""}">
+     <input type="checkbox" id="c${sel}-${i}" data-i="${i}" ${feitos.includes(i)?"checked":""}>
+     <span class="hora">${it.h}</span>
+     <span class="txt"><strong>${it.t}</strong><span>${it.d}</span>
+       <span class="tags">${it.g.map(g=>`<span class="tag">${T[g]}</span>`).join("")}</span></span>
+   </label>`).join("");
+  document.querySelectorAll("#lista input").forEach(c=>c.addEventListener("change",()=>{
+    let f=ler(k); const i=+c.dataset.i;
+    f=c.checked?[...new Set([...f,i])]:f.filter(x=>x!==i); gravar(k,f); render();
+  }));
+  const n=feitos.length, tot=dia.it.length;
+  document.getElementById("prog").innerHTML= n===tot?"<b>Tudo feito hoje. Parabéns!</b>":`<b>${n}</b> de ${tot} feitos`;
+}
+document.getElementById("dias").innerHTML=DIAS.map((d,i)=>`<button type="button" data-i="${i}">${d.k}</button>`).join("");
+document.querySelectorAll("#dias button").forEach(b=>b.addEventListener("click",()=>{sel=+b.dataset.i;render()}));
+const ordem=[1,2,3,4,5,6,0];
+document.getElementById("tbody").innerHTML=ordem.map(i=>{const d=DIAS[i],c=d.c;return `<tr><td>${d.n}</td><td>${c.tt}</td><td>${c.rl}</td><td>${c.ca||"–"}</td><td>${c.sh}</td><td>${c.st}</td></tr>`}).join("");
+render();
+</script>
+
+</body>
+</html>

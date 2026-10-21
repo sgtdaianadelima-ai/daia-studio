@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Daia Studio</title>
-<meta name="theme-color" content="#8E1B3A">
+<meta name="theme-color" content="#7A1F2B">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -15,16 +15,16 @@
 <style>
 /* Layout: app de uma coluna — cabeçalho do dia, conteúdo rolando, barra de abas fixa embaixo */
 :root{
-  --bg:#FBF5F6; --surface:#FFFFFF; --ink:#2B1D22; --muted:#7A666D; --line:#EBDDE1;
-  --wine:#8E1B3A; --wine-soft:#F6E3E8; --gold:#A87A2C; --gold-soft:#F7EEDC; --pine:#2E5E4C; --pine-soft:#E2EFE9;
+  --bg:#FBF7F2; --surface:#FFFFFF; --ink:#3B2A22; --muted:#7A6457; --line:#E6D7C8;
+  --wine:#7A1F2B; --wine-soft:#F4E6E3; --gold:#A87A2C; --gold-soft:#F7EEDC; --pine:#2E5E4C; --pine-soft:#E2EFE9;
   --on-accent:#FFFFFF;
   --display:"DM Serif Display",Georgia,"Times New Roman",serif;
   --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){:root{
-  --bg:#181114; --surface:#231A1E; --ink:#F5E9EC; --muted:#B49FA6; --line:#3A2C31;
-  --wine:#E0617F; --wine-soft:#3A1E27; --gold:#D9AE5F; --gold-soft:#36291A; --pine:#7CC3A5; --pine-soft:#1B2E27;
+  --bg:#1E1613; --surface:#2A201C; --ink:#F3E9DF; --muted:#C2AD9C; --line:#3E302A;
+  --wine:#D9667A; --wine-soft:#3A2023; --gold:#D9AE5F; --gold-soft:#36291A; --pine:#7CC3A5; --pine-soft:#1B2E27;
   --on-accent:#181114; color-scheme:dark}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg)}
@@ -155,6 +155,35 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .splash div{font-family:var(--display);font-size:40px}
 .splash.hide{opacity:0;pointer-events:none}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* Dalinha: botão do microfone (canto de baixo) e painel do assistente */
+.voz-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:40;width:58px;height:58px;border-radius:50%;border:0;background:var(--wine);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(122,31,43,.35)}
+.voz-fab svg,.voz-mic svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round}
+.voz-fab.on{display:none}
+.voz-box{position:fixed;left:0;right:0;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:39;max-width:560px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:22px 22px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.18);padding:14px max(16px,env(safe-area-inset-right,0px)) 14px max(16px,env(safe-area-inset-left,0px));display:grid;gap:10px;max-height:72vh}
+.voz-top{display:flex;justify-content:space-between;align-items:center}
+.voz-top b{font-family:var(--display);font-size:22px;color:var(--wine);font-weight:400}
+.voz-top span{font-family:var(--body);font-size:13px;color:var(--muted)}
+.voz-x{border:0;background:none;font-size:28px;line-height:1;color:var(--muted);padding:0 4px}
+.voz-chat{overflow-y:auto;display:grid;gap:8px;max-height:38vh;padding-right:2px}
+.voz-msg{padding:10px 12px;border-radius:16px;font-size:15px;max-width:88%;user-select:text;-webkit-user-select:text}
+.voz-msg ol{margin:6px 0 0;padding-left:18px}
+.voz-msg.ela{background:var(--wine-soft);border-bottom-left-radius:6px}
+.voz-msg.eu{background:var(--gold-soft);justify-self:end;border-bottom-right-radius:6px}
+.voz-msg .actions{margin-top:8px}
+.voz-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.voz-chips .chip{white-space:nowrap}
+.voz-form{display:flex;gap:8px;align-items:center}
+.voz-form .input{flex:1;min-width:0;min-height:0;height:48px;resize:none}
+.voz-mic{flex:0 0 48px;height:48px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--wine);display:grid;place-items:center}
+.voz-mic.on{background:var(--wine);color:#fff;animation:vozpulse 1.2s infinite}
+@keyframes vozpulse{0%{box-shadow:0 0 0 0 rgba(122,31,43,.45)}100%{box-shadow:0 0 0 14px rgba(122,31,43,0)}}
+@media (prefers-reduced-motion:reduce){.voz-mic.on{animation:none}}
+.voz-cfg{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
+.voz-cfg select{max-width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
+.voz-dica{margin:0;font-size:13px;color:var(--muted)}
+.voz-dica:empty{display:none}
+.card.recado{background:var(--wine);border-color:var(--wine);color:#fff}
+.card.recado p{margin:0;font-size:17px;font-weight:700}
 </style>
 </head>
 <body>
@@ -164,7 +193,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- HOJE -->
 <section id="tab-hoje">
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></div>
+    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
     <div class="dayrow">
       <h1 id="dayTitle">Hoje</h1>
       <div class="arrows"><button class="round" id="prev" aria-label="Dia anterior">‹</button><button class="round" id="next" aria-label="Próximo dia">›</button></div>
@@ -179,7 +208,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- PRONTOS -->
 <section id="tab-prontos" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></div>
+    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
     <h1>Posts <em>prontos</em></h1>
     <p class="sub">Para os dias sem gravar. Escolha, gere as imagens e poste no Instagram ou no TikTok (modo foto).</p>
   </header>
@@ -192,7 +221,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- PRODUTOS -->
 <section id="tab-produtos" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></div>
+    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
     <h1>Meus <em>produtos</em></h1>
     <p class="sub">Tudo que você tem ou comprou. Cada produto rende 3 vídeos diferentes.</p>
   </header>
@@ -215,7 +244,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- IDEIAS -->
 <section id="tab-ideias" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></div>
+    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
     <h1>Minhas <em>ideias</em></h1>
     <p class="sub">Escreva a ideia do jeito que vier, com foto se quiser. O Claude transforma em vídeo.</p>
   </header>
@@ -233,7 +262,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- EDITAR -->
 <section id="tab-editar" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></div>
+    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
     <h1>Editar <em>vídeo</em></h1>
     <p class="sub">Tira as pausas, coloca o título e devolve pronto. O vídeo não sai do seu celular.</p>
   </header>
@@ -283,5 +312,6 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <script src="plan.js"></script>
 <script src="prontos.js"></script>
 <script src="app.js"></script>
+<script src="voz.js"></script>
 </body>
 </html>

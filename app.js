@@ -1,5 +1,6 @@
 // Daia Studio — app (Hoje, Produtos, Ideias, Editar). Tudo fica salvo só neste celular.
-const DAYS = Object.keys(PLAN).sort();
+let DAYS = Object.keys(PLAN).sort();
+let PR = PRONTOS; // carrosséis: os do arquivo, ou os da planilha quando ela responde
 const CTA = {
   serie: "Final: \"Que nota vocês dão pra minha árvore hoje, de 0 a 10? Segue pra ver o próximo episódio.\"",
   casa: "Final: \"Comenta QUERO que eu te mando o link.\"",
@@ -86,13 +87,41 @@ function promptRoteiro(p){
 }
 
 // ---------- HOJE ----------
-let cur = PLAN[todayKey] ? todayKey : (todayKey < DAYS[0] ? DAYS[0] : DAYS[DAYS.length-1]);
+// O dia de hoje sempre existe na lista, mesmo quando o plano ainda não chegou nele.
+const rebuildDays = () => { DAYS = [...new Set(Object.keys(PLAN).concat(todayKey))].sort(); };
+rebuildDays();
+let cur = todayKey;
 const daysToXmas = k => { const d = fromKey(k); return Math.round((new Date(d.getFullYear(), 11, 25) - d) / 864e5); };
+// ---------- CONTEÚDO DA PLANILHA (abas "App - ..." na planilha do robô) ----------
+const PLANILHA = "https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7vyP75S87wBq-RuoiOyyJyU/edit";
+const conteudo = () => (state.ia && state.ia.conteudo) || {};
+function applyConteudo(){
+  const c = conteudo();
+  if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: "achados", c1: p.c1, c2: p.c2, capa: p.capa, fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
+    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto]), s: p.itens.map(i => [i.n, i.d])}));
+  if (c.plano && c.plano.length) {
+    const extra = {};
+    c.plano.forEach(r => { const m = String(r.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m || !r.t) return;
+      const k = m[3] + "-" + pad(m[2]) + "-" + pad(m[1]);
+      (extra[k] = extra[k] || []).push({h: r.h || "", k: LABEL[r.k] ? r.k : "casa", t: r.t, g: r.g || "", m: r.m || "", r: r.r && r.r.length ? r.r : null}); });
+    Object.assign(PLAN, extra); rebuildDays();
+  }
+}
+function recadoCard(){
+  const r = conteudo().recado;
+  return r ? '<article class="card recado"><p>' + esc(r) + '</p></article>' : '';
+}
+function editarCard(){
+  return '<article class="card"><div class="meta"><span class="tag trend">Mudar o conteúdo</span><span class="why">pela planilha</span></div>' +
+    '<p class="how">Recado do topo, respostas prontas, carrosséis e plano de postagens ficam na planilha, nas abas que começam com <b>App -</b>. Mudou lá, o app muda sozinho (feche e abra o app).</p>' +
+    '<div class="actions"><a class="btn" style="text-decoration:none" href="' + PLANILHA + '" target="_blank" rel="noopener">✏️ Abrir a planilha</a></div></article>';
+}
 function renderHoje(){
   const posts = PLAN[cur] || [];
   const dd = fmtDay(cur, {day:"numeric", month:"short"});
   $("dayTitle").innerHTML = (cur === todayKey ? "Hoje" : esc(fmtDay(cur, {weekday:"long"}))) + ", <em>" + esc(dd) + "</em>";
-  $("daySub").innerHTML = "<span>Faltam <b>" + daysToXmas(cur) + " dias</b> para o Natal</span><span>Série às 21h</span>";
+  const xm = daysToXmas(cur);
+  $("daySub").innerHTML = (xm > 0 ? "<span>Faltam <b>" + xm + " dias</b> para o Natal</span>" : "") + (posts.length ? "<span>" + posts.length + " posts no plano</span>" : "");
   const done = posts.filter((p, i) => state.done[cur+"-"+i]).length;
   $("barFill").style.width = (posts.length ? done/posts.length*100 : 0) + "%";
   $("progText").textContent = done === posts.length && posts.length ? "Dia completo!" : done + " de " + posts.length + " postados";
@@ -106,7 +135,9 @@ function renderHoje(){
   const prontoCard = '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Sem tempo pra gravar?</span><span class="why">post pronto</span></div>' +
     '<h3 class="title">' + esc(pr.c1 + " " + pr.c2) + '</h3><p class="how">Carrossel pronto, com legenda e hashtags. Serve para o Instagram e para o TikTok (modo foto).' + (prDone ? ' <b>Já postado ✓</b>' : '') + '</p>' +
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
-  $("cards").innerHTML = (cur === todayKey ? iaCards() + packsCard() + conversorCard() + respostasCard() : "") + prontoCard + posts.map((p, i) => {
+  COPY = [];
+  const semPlano = posts.length ? '' : '<article class="card"><div class="meta"><span class="tag trend">Plano de postagens</span></div><p class="how">Ainda não tem plano para este dia. Me peça um plano novo no Claude, ou escreva os posts na aba <b>App - Plano</b> da planilha.</p></article>';
+  $("cards").innerHTML = (cur === todayKey ? recadoCard() + iaCards() + packsCard() : "") + prontoCard + semPlano + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -120,7 +151,7 @@ function renderHoje(){
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
       '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
     '</article>';
-  }).join("");
+  }).join("") + (cur === todayKey ? conversorCard() + respostasCard() + editarCard() : "");
 }
 // ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
 const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
@@ -129,7 +160,6 @@ let COPY = [];
 const copyBtn = (txt, label, cls) => { COPY.push(txt); return '<button class="btn' + (cls ? " " + cls : "") + '" data-copy="' + (COPY.length-1) + '">' + label + '</button>'; };
 const respostaProduto = v => "Oi! 🤍 Aqui está o link do " + v.nome + ": " + v.link + "\nQualquer dúvida me chama! E no meu grupo VIP tem promoção todo dia: " + LINK_VIP;
 function iaCards(){
-  COPY = [];
   const ia = state.ia;
   if (!ia || !ia.videos || !ia.videos.length) return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Shopee Vídeo de hoje</span></div><p class="how">Buscando os 3 produtos de hoje… Se não aparecer, confira a internet e abra o app de novo.</p></article>';
   const feitos = ia.videos.filter(v => state.iaDone && state.iaDone[v.id]).length;
@@ -180,7 +210,8 @@ async function converter(){
   } catch(e) { out.innerHTML = '<p class="how">Não consegui converter: ' + esc(e.message) + '. Confira se é um link da Shopee.</p>'; }
 }
 function respostasCard(){
-  const r = [
+  const daPlanilha = (conteudo().respostas || []).map(x => [x.nome, String(x.texto).replace(/\{link\}/g, LINK_PAGINA).replace(/\{vip\}/g, LINK_VIP)]);
+  const r = daPlanilha.length ? daPlanilha : [
     ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: " + LINK_PAGINA + "\nE no grupo VIP eu mando as promoções do dia: " + LINK_VIP],
     ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: " + LINK_VIP],
     ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, o link está na minha bio."],
@@ -192,7 +223,8 @@ function respostasCard(){
 async function loadIA(tent){
   try {
     const r = await fetch(ROBO); const j = await r.json();
-    if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save(); if (novo && $("cards")) renderHoje(); }
+    if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save();
+      if (novo) { applyConteudo(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); const aba = document.querySelector('nav.tabs button[aria-selected="true"]')?.dataset.tab; if (aba === "hoje") renderHoje(); if (aba === "prontos") renderProntos(); } }
   } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
 }
 async function copyText(t){
@@ -454,7 +486,7 @@ $("vSave").addEventListener("click", () => {
 let openPronto = null, prFormat = "ig";
 const prOutputs = {}, prVideos = {};
 state.prontos = state.prontos || {};
-function prontoDoDia(k){ const i = Math.max(0, DAYS.indexOf(k)); return PRONTOS[i % PRONTOS.length]; }
+function prontoDoDia(k){ const i = Math.max(0, DAYS.indexOf(k)); return PR[i % PR.length]; }
 $("handle").value = state.handle || "";
 $("handle").addEventListener("change", () => { state.handle = $("handle").value.trim(); save(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); renderProntos(); });
 // Estilo Dale Daia: foto real em todas as imagens, texto branco, letra fina inclinada + letra grossa.
@@ -527,11 +559,11 @@ function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   }
   ctx.globalAlpha = 1;
 }
-function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = u; }); }
+function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); const i = new Image(); if (/^https?:\/\//.test(u) &&!u.startsWith(location.origin)) i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = () => res(null); i.src = u; }); }
 function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
 async function prontoImgs(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
-  if (p.tipo === "achados") { const capa = await loadImgURL("c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((_, i) => loadImgURL("p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
+  if (p.tipo === "achados") { const capa = await loadImgURL(p.capa || "c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((it, i) => loadImgURL(it[3] || "p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
   const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
   const dicas = await Promise.all(p.s.map((_, i) => loadImgURL("s-" + p.id + "-" + (i + 1) + ".jpg")));
   return [own || f1 || f2, f2 || f1].concat(dicas.map(d => d || f2 || f1));
@@ -572,10 +604,10 @@ async function buildVideo(p, onProgress){
   return new Blob(chunks, {type: mime.split(";")[0]});
 }
 async function renderProntos(){
-  $("prontoList").innerHTML = PRONTOS.map(p => {
+  $("prontoList").innerHTML = PR.map(p => {
     const open = openPronto === p.id, done = state.prontos[p.id];
     return '<article class="card" data-pid="' + p.id + '">' +
-      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="' + (p.tipo === "achados" ? "c-" + p.id + ".jpg" : "f-" + p.id + "-1.jpg") + '" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
+      '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="' + esc(p.tipo === "achados" ? (p.capa || "c-" + p.id + ".jpg") : "f-" + p.id + "-1.jpg") + '" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
       '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
       '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
       (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
@@ -590,12 +622,12 @@ async function renderProntos(){
         '<div class="field"><span class="lab">Quer vídeo?</span><p class="note">Os vídeos de IA dos produtos e os vídeos prontos dos seus packs ficam na tela Hoje.</p></div>' : '') +
     '</article>';
   }).join("");
-  for (const p of PRONTOS) {
+  for (const p of PR) {
     const own = await getPhoto("bg-" + p.id);
     if (own) { const el = document.querySelector('[data-cover="' + p.id + '"]'); if (el) el.src = URL.createObjectURL(own); }
   }
   if (openPronto) {
-    const p = PRONTOS.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
+    const p = PR.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
     if (!prOutputs[key]) prOutputs[key] = await buildPronto(p);
     const box = $("sl-" + p.id); if (!box) return;
     const urls = prOutputs[key].map(b => URL.createObjectURL(b));
@@ -605,13 +637,13 @@ async function renderProntos(){
 }
 $("prontoList").addEventListener("click", async e => {
   const b = e.target.closest("[data-pa]"); if (!b) return;
-  const pid = b.closest("[data-pid]").dataset.pid, p = PRONTOS.find(x => x.id === pid), a = b.dataset.pa;
+  const pid = b.closest("[data-pid]").dataset.pid, p = PR.find(x => x.id === pid), a = b.dataset.pa;
   if (a === "toggle") { openPronto = openPronto === pid ? null : pid; renderProntos(); return; }
   if (a === "fmt") { const v = e.target.closest("button[data-v]")?.dataset.v; if (v && v !== prFormat) { prFormat = v; renderProntos(); } return; }
   const blobs = prOutputs[pid + "-" + prFormat]; const text = p.leg + "\n\n" + p.tags;
   if (a === "copy") { try { await navigator.clipboard.writeText(text); toast("Legenda copiada."); } catch(_) { toast("Segure o texto da legenda para copiar."); } }
   if (a === "done") { state.prontos[pid] = !state.prontos[pid]; save(); renderProntos(); }
-  if (a === "links") { copyText("Oi! 🤍 Aqui estão os links:\n" + p.itens.map((it, i) => (i+1) + ". " + it[0] + ": https://s.shopee.com.br/" + it[2]).join("\n") + "\n\nE no meu grupo VIP tem promoção todo dia: " + LINK_VIP); return; }
+  if (a === "links") { copyText("Oi! 🤍 Aqui estão os links:\n" + p.itens.map((it, i) => (i+1) + ". " + it[0] + ": " + (/^https?:/.test(it[2]) ? it[2] : "https://s.shopee.com.br/" + it[2])).join("\n") + "\n\nE no meu grupo VIP tem promoção todo dia: " + LINK_VIP); return; }
   if (a === "video") {
     b.disabled = true; const st = $("vs-" + pid);
     let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch(_) {}
@@ -663,8 +695,16 @@ function show(t){
 }
 document.querySelector("nav.tabs").addEventListener("click", e => { const t = e.target.closest("button")?.dataset.tab; if (t) show(t); });
 let first = "hoje"; try { first = sessionStorage.getItem("daia-tab") || "hoje"; } catch(_) {}
+applyConteudo();
 show(first);
 loadIA();
 document.addEventListener("visibilitychange", () => { if (!document.hidden) loadIA(); });
 setTimeout(() => $("splash").classList.add("hide"), 500);
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+// Atualização: quando sobe uma versão nova no GitHub, o app avisa e atualiza com um toque.
+function avisoAtualizacao(){
+  const el = $("toast"); el.innerHTML = 'Atualizei o app ✨ <button class="btn wine" style="margin-left:8px" onclick="location.reload()">Ver agora</button>'; el.hidden = false; clearTimeout(toast.t);
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").then(reg => {
+  reg.addEventListener("updatefound", () => { const w = reg.installing; if (w) w.addEventListener("statechange", () => { if (w.state === "activated" && navigator.serviceWorker.controller) avisoAtualizacao(); }); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) reg.update().catch(() => {}); });
+}).catch(() => {});

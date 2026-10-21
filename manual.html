@@ -37,8 +37,8 @@ h2 small{display:block;font-family:var(--sans);font-style:normal;font-size:11px;
 h3{font-size:15px;margin:6px 0 0;font-weight:700}
 p{margin:0}
 ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:8px}
-ol.steps>li{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
-ol.steps>li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--vinho);color:var(--vinho-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
+ol.steps>li{counter-increment:s;position:relative;padding-left:40px;min-height:28px}
+ol.steps>li::before{position:absolute;left:0;top:0;content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--vinho);color:var(--vinho-ink);display:grid;place-items:center;font-weight:700;font-size:13px}
 ul{margin:0;padding-left:20px;display:grid;gap:4px}
 .path{display:inline;background:var(--tip);border:1px solid var(--line);border-radius:8px;padding:1px 7px;font-size:13px;font-weight:600;white-space:normal}
 .btn{display:inline;font-weight:700;color:var(--vinho)}
@@ -77,6 +77,9 @@ footer{text-align:center;color:var(--soft);font-size:12px}
   <li><a href="#links">Página de links e perfil</a></li>
   <li><a href="#voce">O que só você pode fazer</a></li>
   <li><a href="#onde">Onde fica cada coisa</a></li>
+  <li><a href="#dalinha">Falar com a Dalinha (assistente de voz)</a></li>
+  <li><a href="#planilha">Mudar o conteúdo do app pela planilha</a></li>
+  <li><a href="#computador">Mexer no app pelo computador</a></li>
   <li><a href="#problema">Deu problema? Faça isto</a></li>
 </ol></nav>
 
@@ -98,6 +101,7 @@ footer{text-align:center;color:var(--soft);font-size:12px}
     <li>Quando eu avisar que atualizei o app: feche o app (tire da tela de apps abertos) e abra de novo. Se ainda estiver antigo, espere 10 minutos e repita.</li>
   </ol>
   <p class="tip">Ficou com dúvida? Este manual fica dentro do app: toque em <b>📖 Manual</b>, no alto de qualquer tela. Funciona até sem internet.</p>
+  <p class="tip">Quer saber quanto postar? No app, toque em <b>🗓️ Cronograma</b>, no alto de qualquer tela. Ele mostra quantos TikToks, Reels, carrosséis, Shopee Vídeos e stories fazer em cada dia, com a lista por horário para marcar o que já fez.</p>
   <p class="tip">Tudo o que você marca no app (postado, ideias, produtos) fica salvo só no seu celular.</p>
 </section>
 
@@ -229,11 +233,69 @@ footer{text-align:center;color:var(--soft);font-size:12px}
   <p class="tip">Packs no Telegram (pasta Packs): vídeos em <b>PACK VIP STORYS/VIDEOS</b> (tópicos “*Vídeo* Natal” e “*Vídeo* casa decoração”); fotos em <b>PACK VIP DE FOTOS PARA CARROSSEL</b> (tópico CASA/DECORAÇÃO).</p>
 </section>
 
+<section id="dalinha">
+  <h2><small>Assistente</small>Falar com a Dalinha</h2>
+  <p>A Dalinha é a sua ajudante dentro do app. Ela entende o que você fala ou escreve e faz as coisas por você.</p>
+  <ol class="steps">
+    <li>Toque no botão redondo vinho com o <b>🎙️ microfone</b>, no canto de baixo de qualquer tela.</li>
+    <li>Toque no microfone do painel e fale. Na primeira vez, o celular pede permissão: toque em <b>Permitir</b>.</li>
+    <li>Ou escreva na caixinha e toque em <b>Enviar</b>. Também dá para tocar nas sugestões prontas.</li>
+  </ol>
+  <h3>Coisas que você pode falar</h3>
+  <ul>
+    <li>“O que eu faço hoje?” — ela conta o que falta (vídeos de IA, posts do plano, packs e o carrossel do dia).</li>
+    <li>“Qual carrossel eu posto hoje?” — ela sugere um que você ainda não postou e abre.</li>
+    <li>“Abre os carrosséis”, “abre o manual”, “abre o cronograma”, “abre a planilha”.</li>
+    <li>“Copia o link do grupo VIP” ou “copia meus links”.</li>
+    <li>“Anotar ideia: vídeo da árvore com pisca cascata” — ela salva na aba Ideias.</li>
+    <li>Cole um link da Shopee na caixinha — ela troca pelo SEU link e já copia.</li>
+    <li>“Como eu posto na Shopee Vídeo?” — ela procura a resposta neste manual.</li>
+    <li>“Pede pro Claude: …” — ela manda o pedido para o app do Claude.</li>
+  </ul>
+  <h3>Resposta falada</h3>
+  <ul>
+    <li>Ela só fala quando você pede. Diga <b>“responde em voz”</b> ou marque <b>🔊 Responder em voz</b>.</li>
+    <li>Para voltar a ser só texto: diga <b>“para de falar”</b> ou desmarque o 🔊.</li>
+    <li>Não gostou da voz? Toque em <b>Escolher a voz</b> e teste as vozes em português do seu celular.</li>
+  </ul>
+  <p class="tip">O microfone precisa de internet. Se o seu celular não deixar o app ouvir, toque no 🎤 do teclado e fale: a Dalinha entende do mesmo jeito.</p>
+</section>
+
+<section id="planilha">
+  <h2><small>Conteúdo</small>Mudar o conteúdo pela planilha</h2>
+  <p>Agora o conteúdo do app fica numa planilha. Você muda pelo app <b>Google Planilhas</b> no celular (ou no computador) e o app muda sozinho. Não precisa mais subir arquivo no GitHub para isso.</p>
+  <ol class="steps">
+    <li>No app, na tela <b>Hoje</b>, toque em <b>✏️ Abrir a planilha</b> (fica no fim da tela). Ou peça para a Dalinha: “abre a planilha”.</li>
+    <li>Mude só as abas que começam com <b>App -</b>.</li>
+    <li>Feche e abra o Daia Studio: a mudança aparece.</li>
+  </ol>
+  <ul>
+    <li><b>App - Recado:</b> a frase do topo da tela Hoje. Com data na coluna A, ela só aparece nesse dia.</li>
+    <li><b>App - Respostas:</b> os botões de respostas prontas. Escreva {link} para a página de links e {vip} para o grupo VIP.</li>
+    <li><b>App - Prontos:</b> um carrossel por linha (títulos da capa, foto da capa, legenda, hashtags). Para esconder um, escreva “não” na última coluna.</li>
+    <li><b>App - Itens:</b> os produtos de cada carrossel (ID do carrossel, ordem, nome, frase, seu link e foto).</li>
+    <li><b>App - Plano:</b> os posts de cada dia. Se você escrever um dia aqui, ele substitui o plano daquele dia no app.</li>
+  </ul>
+  <p class="tip">Foto pode ser o nome de um arquivo do app (ex.: c-a12057.jpg) ou um link de foto da Shopee. Link de produto: use sempre o SEU link (converta antes no app).</p>
+</section>
+
+<section id="computador">
+  <h2><small>Computador</small>Mexer no app pelo computador</h2>
+  <ul>
+    <li><b>Conteúdo</b> (recado, respostas, carrosséis, plano): abra a mesma planilha no computador. É igual ao celular.</li>
+    <li><b>Usar o app no computador:</b> abra <span class="path">sgtdaianadelima-ai.github.io/daia-studio</span> no Chrome. Funciona igual ao celular.</li>
+    <li><b>Código do app</b> (só quando eu pedir): ele fica salvo no GitHub, em <span class="path">github.com/sgtdaianadelima-ai/daia-studio</span>. Eu deixo a página aberta e você só sobe os arquivos.</li>
+    <li>Pelo celular também dá para mexer no GitHub com o app <b>GitHub</b>, mas não precisa: o dia a dia é todo pela planilha.</li>
+  </ul>
+</section>
+
 <section id="problema">
   <h2><small>14 · Ajuda</small>Deu problema? Faça isto</h2>
   <ul>
     <li><b>O app não mostra os produtos de hoje:</b> confira a internet, feche e abra o app. Antes das 6h aparecem os de ontem.</li>
     <li><b>Não entraram vídeos dos packs:</b> o computador estava desligado à meia-noite. Me peça: “pega os vídeos do pack de hoje”.</li>
+    <li><b>A Dalinha não ouve:</b> confira a internet e se o Microfone está permitido (cadeado › Permissões). Ou use o 🎤 do teclado.</li>
+    <li><b>Mudei a planilha e o app não mudou:</b> feche e abra o app. Confira se mudou numa aba que começa com “App -”.</li>
     <li><b>“Converter link” deu erro:</b> confira se é link da Shopee. Se continuar, me avise.</li>
     <li><b>O app está com cara antiga:</b> feche e abra de novo; espere 10 minutos.</li>
     <li><b>Qualquer outra coisa:</b> mande um print para mim no Claude.</li>
