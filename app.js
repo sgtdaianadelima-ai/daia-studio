@@ -179,16 +179,16 @@ function renderHoje(){
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
       '<h3 class="title">' + esc(p.t) + '</h3>' +
-      '<div class="say"><small>Comece dizendo</small>' + esc(p.g) + '</div>' +
-      '<p class="how">' + esc(p.m) + '</p>' +
-      (p.r ? '<ol class="script">' + p.r.map(l => '<li>' + esc(l) + '</li>').join("") + '</ol>' : '') +
-      '<p class="cta">' + esc(CTA[p.k]) + '</p>' +
-      '<details class="tips"><summary>Como editar e onde postar</summary><p>1) Aba Editar: escolha o vídeo e toque em Editar (tira as pausas). 2) Toque em Enviar para o TikTok. 3) No TikTok: Legendas, música e postar.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
+      '<div class="say det"><small>Comece dizendo</small>' + esc(p.g) + '</div>' +
+      '<p class="how det">' + esc(p.m) + '</p>' +
+      (p.r ? '<ol class="script det">' + p.r.map(l => '<li>' + esc(l) + '</li>').join("") + '</ol>' : '') +
+      '<p class="cta det">' + esc(CTA[p.k]) + '</p>' +
+      '<details class="tips det"><summary>Como editar e onde postar</summary><p>1) Aba Editar: escolha o vídeo e toque em Editar (tira as pausas). 2) Toque em Enviar para o TikTok. 3) No TikTok: Legendas, música e postar.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
       '<div class="actions"><button class="btn main" data-act="done">' + (d ? "Postado ✓" : "Marcar como postado") + '</button>' +
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
       '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
     '</article>';
-  }).join("") + (cur === todayKey ? semanaCard() + conversorCard() + respostasCard() + lembretesCard() + editarCard() : "");
+  }).join("") + (cur === todayKey ? semanaCard() + '<details class="card ferramentas"><summary>🧰 Ferramentas <small>converter link, respostas, lembretes e planilha</small></summary>' + conversorCard() + respostasCard() + lembretesCard() + editarCard() + '</details>' : "");
 }
 // ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
 const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
@@ -202,20 +202,20 @@ function iaCards(){
   const feitos = ia.videos.filter(v => state.iaDone && state.iaDone[v.id]).length;
   return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Shopee Vídeo de hoje</span><span class="why">' + feitos + ' de ' + ia.videos.length + ' postados</span></div>' +
     '<h3 class="title">3 vídeos de IA, um por produto</h3>' +
-    '<p class="how">O robô já escolheu produtos com comissão boa (10% ou mais) e que vendem. Faça um de cada vez, seguindo os passos.</p>' +
-    '<details class="tips"><summary>Dicas para a Shopee Vídeo entregar mais</summary><p>• Marque que o vídeo é feito com IA.<br>• Se o produto tiver outras cores, mostre ou escreva na legenda ("tem em outras cores").<br>• Coloque sua marca d\'água "Dale Daia" no canto (no YouTube Create: Texto).<br>• Entre pelo produto (Compartilhe para ganhar → Shopee Vídeo): assim o link já vai junto.<br>• Poste 3 por dia, todo dia.</p></details></article>' +
+    '<p class="how det">O robô já escolheu produtos com comissão boa (10% ou mais) e que vendem. Faça um de cada vez.</p>' +
+    '<details class="tips det"><summary>Dicas para a Shopee Vídeo entregar mais</summary><p>• Marque que o vídeo é feito com IA.<br>• Se o produto tiver outras cores, mostre ou escreva na legenda ("tem em outras cores").<br>• Coloque sua marca d\'água "Dale Daia" no canto (no YouTube Create: Texto).<br>• Entre pelo produto (Compartilhe para ganhar → Shopee Vídeo): assim o link já vai junto.<br>• Poste 3 por dia, todo dia.</p></details></article>' +
     ia.videos.map((v, n) => {
       const d = !!(state.iaDone && state.iaDone[v.id]);
       return '<article class="card' + (d ? " done" : "") + '" data-ia="' + esc(v.id) + '">' +
         '<div class="meta"><span class="tag casa">Vídeo ' + (n+1) + '</span><span class="why">' + esc(v.preco) + ' · comissão ' + esc(v.comissao) + ' · ' + esc(v.vendas) + ' vendidos</span></div>' +
         (v.foto ? '<img src="' + esc(v.foto) + '" alt="" loading="lazy" style="width:100%;max-height:260px;object-fit:contain;border-radius:12px;background:#fff">' : '') +
         '<h3 class="title">' + esc(v.nome) + '</h3>' +
-        '<ol class="script">' +
-          '<li><b>Foto:</b> toque em "Salvar foto do produto". Abra o ChatGPT (ou o Gemini), mande a foto e cole o pedido.<div class="actions">' + '<button class="btn" data-foto="' + n + '">Salvar foto do produto</button>' + copyBtn(v.pedidoFoto, "Copiar pedido da foto") + '</div></li>' +
-          '<li><b>Vídeo:</b> no YouTube Create, toque em Gerar vídeo, escolha a foto que o ChatGPT fez e cole o pedido. Depois: Usar vídeo → seta para cima → salvar no celular.<div class="actions">' + copyBtn(v.pedidoVideo, "Copiar pedido do vídeo") + '</div></li>' +
-          '<li><b>Postar:</b> abra o produto, toque em Compartilhe para ganhar → Shopee Vídeo, escolha o vídeo e cole a legenda.<div class="actions"><a class="btn" style="text-decoration:none" href="' + esc(v.link) + '" target="_blank" rel="noopener">Abrir o produto</a>' + copyBtn(v.legenda + "\n\n" + v.hashtags, "Copiar legenda") + '</div></li>' +
-          '<li><b>Comentaram "quero"?</b> Copie e mande no direct ou responda o comentário.<div class="actions">' + copyBtn(respostaProduto(v), "Copiar resposta com link") + '</div></li>' +
-        '</ol>' +
+        '<div class="passo"><b>1 · Foto bonita</b><span class="det">Manda a foto e o pedido juntos para o ChatGPT. Ele cria uma foto linda do produto: salve no celular.</span>' +
+          '<div class="actions"><button class="btn wine" data-gpt="' + n + '">📸 Fazer a foto no ChatGPT</button>' + copyBtn(v.pedidoFoto, "Só copiar o pedido") + '</div></div>' +
+        '<div class="passo"><b>2 · Vídeo</b><span class="det">No YouTube Create: Gerar vídeo › escolha a foto do ChatGPT › cole o pedido › Usar vídeo › seta para cima › salvar.</span>' +
+          '<div class="actions">' + copyBtn(v.pedidoVideo, "Copiar pedido do vídeo") + '</div></div>' +
+        '<div class="passo"><b>3 · Postar na Shopee Vídeo</b><span class="det">Abra o produto › Compartilhe para ganhar › Shopee Vídeo › escolha o vídeo › cole a legenda. Marque que é feito com IA.</span>' +
+          '<div class="actions"><a class="btn" style="text-decoration:none" href="' + esc(v.link) + '" target="_blank" rel="noopener">Abrir o produto</a>' + copyBtn(v.legenda + "\n\n" + v.hashtags, "Copiar legenda") + '</div></div>' +
         '<div class="actions"><button class="btn main" data-iadone="' + esc(v.id) + '">' + (d ? "Postado ✓" : "Marcar como postado") + '</button></div></article>';
     }).join("");
 }
@@ -268,6 +268,16 @@ async function copyText(t){
   try { await navigator.clipboard.writeText(t); toast("Copiado! Agora é só colar."); }
   catch(_) { const a = document.createElement("textarea"); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand("copy"); toast("Copiado! Agora é só colar."); } catch(__) { toast("Não consegui copiar."); } a.remove(); }
 }
+// Manda a foto do produto + o pedido juntos (o celular abre a lista: escolha o ChatGPT ou o Gemini).
+async function fotoNoChatGPT(v){
+  try { await navigator.clipboard.writeText(v.pedidoFoto); } catch(_) {}
+  try {
+    const b = await (await fetch(v.foto)).blob();
+    const f = new File([b], "produto.jpg", {type: b.type || "image/jpeg"});
+    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], text: v.pedidoFoto}); toast("Escolha o ChatGPT. Se o pedido não aparecer escrito, é só colar: ele já está copiado.", 6000); return; }
+  } catch(e) { if (e && e.name === "AbortError") return; }
+  toast("O pedido está copiado. Salve a foto e mande no ChatGPT junto com o pedido.", 6000); salvarFoto(v);
+}
 async function salvarFoto(v){
   try {
     const b = await (await fetch(v.foto)).blob();
@@ -280,6 +290,7 @@ async function salvarFoto(v){
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
+  const gb = e.target.closest("button[data-gpt]"); if (gb) { fotoNoChatGPT(state.ia.videos[Number(gb.dataset.gpt)]); return; }
   const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(state.ia.videos[Number(fb.dataset.foto)]); return; }
   const db = e.target.closest("button[data-iadone]"); if (db) { state.iaDone = state.iaDone || {}; state.iaDone[db.dataset.iadone] = state.iaDone[db.dataset.iadone] ? false : todayKey; save(); renderHoje(); return; }
   const pb = e.target.closest("button[data-pronto]");

@@ -22,10 +22,14 @@
   --body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root{
+@media (prefers-color-scheme: dark){:root:not(.tema-claro){
   --bg:#1E1613; --surface:#2A201C; --ink:#F3E9DF; --muted:#C2AD9C; --line:#3E302A;
   --wine:#D9667A; --wine-soft:#3A2023; --gold:#D9AE5F; --gold-soft:#36291A; --pine:#7CC3A5; --pine-soft:#1B2E27;
   --on-accent:#181114; color-scheme:dark}}
+:root.tema-escuro{
+  --bg:#1E1613; --surface:#2A201C; --ink:#F3E9DF; --muted:#C2AD9C; --line:#3E302A;
+  --wine:#D9667A; --wine-soft:#3A2023; --gold:#D9AE5F; --gold-soft:#36291A; --pine:#7CC3A5; --pine-soft:#1B2E27;
+  --on-accent:#181114; color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:var(--bg)}
 body{color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
@@ -40,7 +44,9 @@ img{max-width:100%}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--wine);outline-offset:2px}
 header.top{padding-block:18px 8px;display:grid;gap:4px}
-.brand{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--wine)}
+.brand{font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;color:var(--wine);display:flex;justify-content:space-between;align-items:center}
+.topo-bts{display:flex;gap:6px}
+.ico{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;font-size:17px;text-decoration:none;padding:0;letter-spacing:0}
 .dayrow{display:flex;align-items:center;justify-content:space-between;gap:8px}
 h1{font-family:var(--display);font-weight:400;font-size:30px;line-height:1.1;margin:0;text-wrap:balance}
 h1 em{color:var(--wine)}
@@ -182,7 +188,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .voz-cfg select{max-width:100%;padding:8px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:13px}
 .voz-dica{margin:0;font-size:13px;color:var(--muted)}
 .voz-dica:empty{display:none}
-.card.recado{background:var(--wine);border-color:var(--wine);color:#fff}
+.card.recado{background:var(--wine);border-color:var(--wine);color:var(--on-accent)}
 .card.recado p{margin:0;font-size:17px;font-weight:700}
 .semana{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
 .semana b{display:block;font-family:var(--display);font-size:28px;color:var(--wine);font-weight:400;line-height:1.1}
@@ -196,6 +202,35 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .voz-ditado textarea{min-height:140px}
 .voz-ditado .grande{justify-self:center;width:72px;height:72px;flex:none}
 .voz-ditado .grande svg{width:34px;height:34px}
+/* v13: Dalinha robozinho, temas, modo clean */
+.voz-fab .robo{width:44px;height:44px}
+.voz-fab{width:62px;height:62px}
+.voz-nome{display:flex;align-items:center;gap:8px}
+.voz-nome .robo{width:36px;height:36px;background:var(--wine);border-radius:50%;padding:3px}
+.robo .olhos{transform-box:fill-box;transform-origin:center;animation:piscar 5s infinite}
+@keyframes piscar{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@media (prefers-reduced-motion:reduce){.robo .olhos{animation:none}}
+.passo{display:grid;gap:4px;padding:10px 0;border-top:1px solid var(--line)}
+.passo b{font-size:15px}
+.passo .det{font-size:14px;color:var(--muted)}
+.ferramentas{display:block}
+.ferramentas>summary{font-weight:800;font-size:16px;cursor:pointer;list-style:none}
+.ferramentas>summary small{display:block;font-weight:600;color:var(--muted);font-size:13px}
+.ferramentas .card{border:0;padding:12px 0 0;border-top:1px solid var(--line);border-radius:0;margin-top:12px}
+body.clean .det{display:none}
+body.clean .card.aberto .det{display:revert}
+body.clean .card .title{cursor:pointer}
+body.clean .card:not(.aberto) .title::after{content:" ›";color:var(--muted);font-family:var(--body);font-size:.8em}
+body.letra-grande{font-size:18px}
+body.letra-grande .btn{font-size:16px}
+.tema-sec{display:grid;gap:8px}
+.tema-sec>small{font-weight:800;color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.08em}
+.tema-cores{display:flex;flex-wrap:wrap;gap:10px}
+.tema-cor{width:42px;height:42px;border-radius:50%;border:3px solid var(--surface);background:var(--c);box-shadow:0 0 0 1px var(--line);padding:0;position:relative;display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;cursor:pointer}
+.tema-cor[aria-pressed="true"]{box-shadow:0 0 0 3px var(--ink)}
+.tema-cor input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.tema-clean{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.tema-clean input{width:22px;height:22px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -205,7 +240,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- HOJE -->
 <section id="tab-hoje">
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <div class="dayrow">
       <h1 id="dayTitle">Hoje</h1>
       <div class="arrows"><button class="round" id="prev" aria-label="Dia anterior">‹</button><button class="round" id="next" aria-label="Próximo dia">›</button></div>
@@ -220,7 +255,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- PRONTOS -->
 <section id="tab-prontos" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Posts <em>prontos</em></h1>
     <p class="sub">Para os dias sem gravar. Escolha, gere as imagens e poste no Instagram ou no TikTok (modo foto).</p>
   </header>
@@ -233,7 +268,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- PRODUTOS -->
 <section id="tab-produtos" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Meus <em>produtos</em></h1>
     <p class="sub">Tudo que você tem ou comprou. Cada produto rende 3 vídeos diferentes.</p>
   </header>
@@ -256,7 +291,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- IDEIAS -->
 <section id="tab-ideias" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Minhas <em>ideias</em></h1>
     <p class="sub">Escreva a ideia do jeito que vier, com foto se quiser. O Claude transforma em vídeo.</p>
   </header>
@@ -274,7 +309,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <!-- EDITAR -->
 <section id="tab-editar" hidden>
   <header class="top">
-    <div class="brand" style="display:flex;justify-content:space-between;align-items:center">Daia Studio <span style="display:flex;gap:6px"><a href="cronograma.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">🗓️ Cronograma</a><a href="manual.html" style="font-size:12px;letter-spacing:.04em;text-transform:none;text-decoration:none;color:inherit;border:1px solid currentColor;border-radius:999px;padding:4px 12px;font-weight:700">📖 Manual</a></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Editar <em>vídeo</em></h1>
     <p class="sub">Tira as pausas, coloca o título e devolve pronto. O vídeo não sai do seu celular.</p>
   </header>
@@ -325,5 +360,6 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 <script src="prontos.js"></script>
 <script src="app.js"></script>
 <script src="voz.js"></script>
+<script src="tema.js"></script>
 </body>
 </html>

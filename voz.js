@@ -28,12 +28,13 @@
   let rec = null, ouvindo = false;
 
   // ---------- tela ----------
+  const ROBOZINHO = '<svg class="robo" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 9.5c-2.2-3-7-1.4-7 2.2 0 3 4 5.4 7 7.6 3-2.2 7-4.6 7-7.6 0-3.6-4.8-5.2-7-2.2z" fill="#F4A9B8"/><rect x="6" y="30" width="6" height="13" rx="3" fill="#F7EDE4"/><rect x="52" y="30" width="6" height="13" rx="3" fill="#F7EDE4"/><rect x="10" y="19" width="44" height="38" rx="17" fill="#FBF7F2"/><rect x="16" y="27" width="32" height="21" rx="10.5" fill="#3B2A22"/><g class="olhos"><circle cx="25.5" cy="36" r="3.4" fill="#fff"/><circle cx="38.5" cy="36" r="3.4" fill="#fff"/></g><path d="M28.5 41.5q3.5 2.6 7 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="20" cy="51" r="2.6" fill="#F4A9B8"/><circle cx="44" cy="51" r="2.6" fill="#F4A9B8"/></svg>';
   const fab = document.createElement("button");
-  fab.className = "voz-fab"; fab.setAttribute("aria-label", "Falar com a Dalinha"); fab.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  fab.className = "voz-fab"; fab.setAttribute("aria-label", "Falar com a Dalinha"); fab.innerHTML = ROBOZINHO;
   const box = document.createElement("section");
   box.className = "voz-box"; box.hidden = true; box.setAttribute("aria-label", "Assistente de voz");
   box.innerHTML =
-    '<div class="voz-top"><b>Dalinha <span>· sua ajudante</span></b><button class="voz-x" aria-label="Fechar">×</button></div>' +
+    '<div class="voz-top"><b class="voz-nome">' + ROBOZINHO + 'Dalinha <span>· sua ajudante</span></b><button class="voz-x" aria-label="Fechar">×</button></div>' +
     '<div class="voz-modos"><button type="button" class="chip" data-modo="pedir" aria-pressed="true">💬 Pedir</button><button type="button" class="chip" data-modo="ditado" aria-pressed="false">📝 Ditado</button></div>' +
     '<div class="voz-ditado" id="vozDitBox" hidden><textarea class="input" id="vozDit" placeholder="Toque no microfone e fale. O que você falar vira texto aqui, sem a Dalinha fazer nada."></textarea>' +
     '<button type="button" class="voz-mic grande" id="vozDitMic" aria-label="Ditar"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>' +
