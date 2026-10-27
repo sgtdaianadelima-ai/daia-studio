@@ -89,6 +89,7 @@ function doGet(e) {
   const q = (e && e.parameter) || {};
   const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
   try {
+    if (q.acao === 'extra') return json({ok: guardarExtra_(q)});
     if (q.link && q.acao === 'pack') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {ok: guardarPack_(q)} : {erro: 'chave errada'});
     if (q.link) return json({link: meuLink_(q.link)});
     if (q.pergunta) return json({resposta: perguntaDalinha_(String(q.pergunta).slice(0, 600), String(q.ctx || '').slice(0, 900))});
@@ -124,6 +125,8 @@ function conteudo_(hoje) {
   const outros = prontos.filter(p => !/^auto/.test(p.id));
   return {
     recado: recados.length ? recados[recados.length - 1][1] : '',
+    analise: (ler('App - Análise').slice(-1)[0] || [])[1] || '',
+    extras: ler('App - Extras').slice(-30).map(l => ({id: l[7], data: l[0], onde: l[2], tipo: l[3], t: l[4], link: l[5], claude: l[6]})),
     respostas: ler('App - Respostas').filter(l => l[0] && l[1]).map(l => ({nome: l[0], texto: l[1]})),
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
@@ -176,6 +179,29 @@ function chamar_(query, senha) {
 // Packs do Telegram: a tarefa da meia-noite manda os vídeos novos para a aba "Packs".
 // A chave fica guardada em Propriedades do script > PACK_CHAVE (não fica escrita no código).
 const PACK_CHAVE = PropertiesService.getScriptProperties().getProperty('PACK_CHAVE') || '';
+// "Postei algo extra" do app: guarda na aba "App - Extras" para o Claude analisar no dia seguinte.
+// Colunas: Data | Hora | Onde | Tipo | O que postou | Link | Comentário do Claude | id
+function guardarExtra_(q) {
+  const ss = SpreadsheetApp.getActive();
+  let a = ss.getSheetByName('App - Extras');
+  if (!a) { a = ss.insertSheet('App - Extras'); a.appendRow(['Data', 'Hora', 'Onde', 'Tipo', 'O que postou', 'Link', 'Comentário do Claude', 'id']); a.setFrozenRows(1); }
+  const corta = (s, n) => String(s || '').replace(/[\r\n]+/g, ' ').trim().slice(0, n);
+  const id = corta(q.id, 40), t = corta(q.t, 400);
+  if (!id || !t) return 'faltou o texto';
+  const n = a.getLastRow() - 1;
+  if (n > 0) {
+    const ids = a.getRange(2, 8, n, 1).getValues().map(r => String(r[0]));
+    const i = ids.indexOf(id);
+    if (q.apagar) { if (i >= 0) a.deleteRow(i + 2); return 'apagado'; }
+    if (i >= 0) return 'já tinha';
+  }
+  if (q.apagar) return 'apagado';
+  const agora = new Date(), tz = 'America/Sao_Paulo', hoje = Utilities.formatDate(agora, tz, 'dd/MM/yyyy');
+  if (n > 0 && a.getRange(2, 1, n, 1).getDisplayValues().filter(r => r[0] === hoje).length >= 40) return 'muitos hoje';
+  a.appendRow([hoje, Utilities.formatDate(agora, tz, 'HH:mm'), corta(q.onde, 30), corta(q.tipo, 30), t, corta(q.url, 300), '', id]);
+  return 'guardado';
+}
+
 function guardarPack_(p) {
   const ss = SpreadsheetApp.getActive();
   const aba = ss.getSheetByName('Packs') || ss.insertSheet('Packs');
