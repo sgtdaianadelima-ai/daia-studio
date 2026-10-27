@@ -439,8 +439,8 @@ function refazerFotosAuto_() {
       const p = escolherLimpo_(lista, new Set([String(l[5])]));
       if (p === undefined) return; // Gemini não respondeu: tenta na próxima vez
       if (!p) { aba.getRange(linha, 7).setValue('sem foto boa'); ruins++; return; }
-      const frase = String(l[3]).split(' · ')[0], preco = 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ',') + ' na Shopee';
-      aba.getRange(linha, 3, 1, 5).setValues([[nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), String(l[3]).indexOf(' · ') > 0 ? frase + ' · ' + preco : preco, p.offerLink, p.imageUrl, 'trocada']]);
+      const frase = String(l[3]).split(' · ')[0].replace(/R\$ ?[\d.,]+( na Shopee)?/, '').trim() || 'Achadinho da Shopee que vale a pena';
+      aba.getRange(linha, 3, 1, 5).setValues([[nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), frase, p.offerLink, p.imageUrl, 'trocada']]);
       trocadas++;
     });
   }
@@ -465,13 +465,13 @@ function carrosselDoDia() {
     const p = escolherLimpo_(lista, usados); // só entra produto com foto limpa
     if (!p) continue;
     usados.add(String(p.itemId));
-    itens.push({n: nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), d: 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ',') + ' na Shopee', link: p.offerLink, foto: p.imageUrl});
+    itens.push({n: nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), d: 'Achadinho da Shopee que vale a pena', link: p.offerLink, foto: p.imageUrl});
   }
   if (itens.length < 3) return 'poucos produtos hoje';
   let c1 = tema.c1, c2 = tema.c2, leg = tema.c1 + ' ' + tema.c2 + ' 🤍 Qual desses você levaria? Comenta QUERO que eu te mando os links!';
   const g = jsonDe_(gemini_('Crie a capa de um carrossel do Instagram de uma afiliada da Shopee (nicho casa, tom de amiga, fofo). Produtos: ' + itens.map(i => i.n).join('; ') +
     '. Responda SOMENTE com JSON: {"c1":"linha fina da capa, até 4 palavras","c2":"linha forte da capa, até 6 palavras, que dê vontade de arrastar","leg":"legenda de até 2 frases terminando com: Comenta QUERO que eu te mando os links!","frases":["frase curta de até 7 palavras para cada produto, na mesma ordem"]}', false));
-  if (g) { c1 = g.c1 || c1; c2 = g.c2 || c2; leg = g.leg || leg; (g.frases || []).forEach((f, k) => { if (itens[k] && f) itens[k].d = f + ' · ' + itens[k].d; }); }
+  if (g) { c1 = g.c1 || c1; c2 = g.c2 || c2; leg = g.leg || leg; (g.frases || []).forEach((f, k) => { if (itens[k] && f) itens[k].d = f; }); } // sem preço: o valor muda toda hora (pedido da Daia)
   abaP.appendRow([id, c1, c2, CAPAS[dia % CAPAS.length], tema.fim, leg, tema.tags + ' #achadinhosshopee #shopee', 'Robô: produtos da Shopee de ' + hoje, 'sim']);
   abaI.getRange(abaI.getLastRow() + 1, 1, itens.length, 6).setValues(itens.map((it, k) => [id, k + 1, it.n, it.d, it.link, it.foto]));
   return id + ' com ' + itens.length + ' produtos';
