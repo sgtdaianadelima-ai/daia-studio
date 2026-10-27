@@ -126,14 +126,15 @@ function resumoSemana(){
   const car = Object.values(state.prontos || {}).filter(v => typeof v === "string" && naSemana(v)).length;
   const postouNo = d => (PLAN[d] || []).some((p, i) => state.done[d + "-" + i]) || Object.values(state.iaDone || {}).includes(d) || Object.values(state.prontos || {}).includes(d);
   let seguidos = 0; for (let i = 0; i < 60; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = keyOf(d); if (postouNo(k)) seguidos++; else if (i > 0) break; }
-  const total = plano + ia + car;
+  const extras = extrasLista().filter(x => naSemana(x.data)).length;
+  const total = plano + ia + car + extras;
   const frase = total === 0 ? "Essa semana ainda está em branco. Bora começar hoje? Um post já conta! 🤍" : total < 7 ? "Você começou! Cada post te deixa mais perto das vendas. ✨" : total < 15 ? "Que semana boa! Continua assim. 💪" : "Você está voando! Semana incrível. 🎉";
-  return {plano, planoTotal, ia, car, seguidos, total, frase};
+  return {plano, planoTotal, ia, car, extras, seguidos, total, frase};
 }
 function semanaCard(){
   const r = resumoSemana();
   return '<article class="card"><div class="meta"><span class="tag casa">Sua semana</span><span class="why">últimos 7 dias</span></div>' +
-    '<div class="semana"><div><b>' + r.plano + '</b><small>de ' + r.planoTotal + ' posts do plano</small></div><div><b>' + r.ia + '</b><small>Shopee Vídeos</small></div><div><b>' + r.car + '</b><small>carrosséis</small></div><div><b>' + r.seguidos + '</b><small>' + (r.seguidos === 1 ? 'dia seguido' : 'dias seguidos') + '</small></div></div>' +
+    '<div class="semana"><div><b>' + r.plano + '</b><small>de ' + r.planoTotal + ' posts do plano</small></div><div><b>' + r.ia + '</b><small>Shopee Vídeos</small></div><div><b>' + r.car + '</b><small>carrosséis</small></div><div><b>' + r.extras + '</b><small>extras</small></div><div><b>' + r.seguidos + '</b><small>' + (r.seguidos === 1 ? 'dia seguido' : 'dias seguidos') + '</small></div></div>' +
     '<p class="how">' + esc(r.frase) + '</p></article>';
 }
 // ---------- LEMBRETES ----------
@@ -194,12 +195,14 @@ function renderHoje(){
   const iaFeitos = iaV.filter(v => state.iaDone && state.iaDone[efetivo(v).id]).length;
   const nPacks = hoje && state.ia && state.ia.packs ? state.ia.packs.length : 0;
   const resumoSem = hoje ? resumoSemana() : null;
+  const nExtras = hoje ? extrasLista().filter(x => x.data === todayKey).length : 0;
   $("cards").innerHTML = (hoje ? recadoCard() + pendentesCard() : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
     secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
-    (hoje ? secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, semanaCard()) +
+    (hoje ? secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
+      secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, analiseCard() + semanaCard()) +
       secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
@@ -210,6 +213,7 @@ function secao(id, emoji, titulo, sub, conta, ok, corpo){
     (conta ? '<span class="sec-conta">' + (ok ? "✓ " : "") + conta + '</span>' : '') + '<span class="sec-seta" aria-hidden="true"></span></summary>' +
     '<div class="sec-corpo">' + corpo + '</div></details>';
 }
+$("cards").addEventListener("input", e => { if (e.target.id === "xTxt" || e.target.id === "xLink") { rascunhoExtra(); save(); } });
 $("cards").addEventListener("toggle", e => {
   const d = e.target; if (!d.matches || !d.matches("details.secao")) return;
   state.secoes = state.secoes || {}; state.secoes[d.dataset.sec] = d.open; save();
@@ -352,25 +356,145 @@ async function converter(){
   try {
     const j = await (await fetch(ROBO + "?link=" + encodeURIComponent(v))).json();
     if (!j.link) throw new Error(j.erro || "não deu");
-    COPY.push(j.link);
+    COPY.push(j.link); state.ultimoLink = j.link; save();
     out.innerHTML = '<p class="how"><b>Seu link:</b> ' + esc(j.link) + '</p><div class="actions"><button class="btn main" data-copy="' + (COPY.length-1) + '">Copiar meu link</button></div>';
     copyText(j.link);
   } catch(e) { out.innerHTML = '<p class="how">Não consegui converter: ' + esc(e.message) + '. Confira se é um link da Shopee.</p>'; }
 }
+// ---------- RESPOSTAS PRONTAS (toca, vê a mensagem, ajusta e copia) ----------
+// {link} = página de links, {vip} = grupo VIP, {produto} = link do produto (o último que ela converteu).
+const RESP_BASE = [
+  ["🎵 TikTok", [
+    ["Comentário: pediu o link", "Oi! 🤍 É a opção A. O link está na minha bio, em “Achadinhos”. Se preferir, me chama no direct que eu te mando!"],
+    ["Direct: mandar o link", "Oi! 🤍 Aqui está o link da opção A:\n{produto}\n\n💡 O TikTok não deixa o link clicável. Copia e cola no WhatsApp (pode mandar pra você mesma) e toca nele: abre direto na Shopee."],
+    ["Comentário: qual é o produto?", "É a opção A! 🤍 Está na minha bio, em “Achadinhos”. Corre que costuma esgotar!"]]],
+  ["📸 Instagram", [
+    ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, olha em “Solicitações de mensagem” ou no link da minha bio."],
+    ["Direct: mandar o link", "Oi! 🤍 Aqui está o link da opção A:\n{produto}\n\nE todos os meus achados ficam aqui: {link}"],
+    ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: {link}\nE no grupo VIP eu mando as promoções do dia: {vip}"]]],
+  ["💬 WhatsApp", [
+    ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: {vip}"],
+    ["Mandar o link no WhatsApp", "Oi! 🤍 Esse é o link da opção A, é só tocar:\n{produto}"]]],
+  ["❓ Dúvidas", [
+    ["Perguntou se é bom", "É sim! Tem muitas avaliações boas e eu indico 🤍 O link está no meu perfil, e qualquer dúvida me chama aqui."],
+    ["Perguntou o preço", "O preço muda toda hora na Shopee e às vezes tem cupom 🤍 Confere no link da opção A: lá aparece o valor de agora!"],
+    ["Tem outras cores?", "Tem sim! 🤍 No link você escolhe a cor e o tamanho antes de comprar."],
+    ["Demora pra chegar?", "Depende da sua cidade 🤍 A Shopee mostra o prazo certinho antes de você finalizar a compra."],
+    ["É confiável?", "É sim 🤍 A compra é pela própria Shopee: se não chegar ou vier errado, você pede o dinheiro de volta pelo app."],
+    ["Comprou e agradeceu", "Ahh que bom! 🤍 Depois me conta o que achou. Se puder, me marca no story!"]]]
+];
+let RESP = [];
 function respostasCard(){
-  const daPlanilha = (conteudo().respostas || []).map(x => [x.nome, String(x.texto).replace(/\{link\}/g, LINK_PAGINA).replace(/\{vip\}/g, LINK_VIP)]);
-  const r = daPlanilha.length ? daPlanilha : [
-    ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: " + LINK_PAGINA + "\nE no grupo VIP eu mando as promoções do dia: " + LINK_VIP],
-    ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: " + LINK_VIP],
-    ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, o link está na minha bio."],
-    ["Perguntou se é bom", "É sim! Tem muitas avaliações boas e eu indico 🤍 O link está no meu perfil, e qualquer dúvida me chama aqui."]
-  ];
-  return '<article class="card"><div class="meta"><span class="tag trend">Respostas prontas</span><span class="why">copie e cole</span></div>' +
-    '<p class="how">Para comentários e directs do Instagram e do TikTok.</p><div class="actions" style="flex-wrap:wrap">' + r.map(x => copyBtn(x[1], x[0])).join("") + '</div></article>';
+  const daPlanilha = {}; (conteudo().respostas || []).forEach(x => { daPlanilha[x.nome] = x.texto; });
+  RESP = [];
+  const usados = {};
+  const grupo = (titulo, lista) => '<p class="resp-grupo">' + titulo + '</p><div class="actions" style="flex-wrap:wrap">' +
+    lista.map(x => { usados[x[0]] = 1; RESP.push({nome: x[0], texto: daPlanilha[x[0]] || x[1]}); return '<button class="btn" data-resp="' + (RESP.length - 1) + '">' + esc(x[0]) + '</button>'; }).join("") + '</div>';
+  let html = RESP_BASE.map(g => grupo(g[0], g[1])).join("");
+  const minhas = Object.keys(daPlanilha).filter(n => !usados[n]).map(n => [n, daPlanilha[n]]);
+  if (minhas.length) html += grupo("⭐ Minhas", minhas);
+  return '<article class="card"><div class="meta"><span class="tag trend">Respostas prontas</span><span class="why">toque para ver</span></div>' +
+    '<p class="how">Toque numa resposta: ela aparece aqui embaixo. Você pode mudar o texto antes de copiar.</p>' + html + '<div id="respPrev"></div></article>';
+}
+function montaResp(t){
+  const prod = state.ultimoLink || "[cole aqui o link do produto]";
+  return String(t).replace(/\{link\}/g, LINK_PAGINA).replace(/\{vip\}/g, LINK_VIP).replace(/\{produto\}/g, prod);
+}
+function abrirResp(i){
+  const r = RESP[i], box = $("respPrev"); if (!r || !box) return;
+  const txt = montaResp(r.texto), temOpcao = /opção [A-E]\b/.test(txt), temProd = /\{produto\}/.test(r.texto);
+  box.innerHTML = '<div class="resp-prev"><b>' + esc(r.nome) + '</b>' +
+    (temOpcao ? '<div class="chips" aria-label="Qual opção">' + "ABCDE".split("").map(l => '<button type="button" class="chip" data-letra="' + l + '" aria-pressed="' + (txt.indexOf("opção " + l) >= 0) + '">Opção ' + l + '</button>').join("") + '</div>' : '') +
+    '<textarea class="input" id="respTxt" rows="6" aria-label="Mensagem">' + esc(txt) + '</textarea>' +
+    (temProd ? '<p class="how nota">' + (state.ultimoLink ? '🔗 Usei o último link que você converteu. Se for outro produto, toque em “Colar outro link”.' : '🔗 Converta o link do produto em “Converter link” (aqui em cima) ou toque em “Colar outro link”.') + '</p>' : '') +
+    '<div class="actions"><button class="btn main" data-respcopiar="1">📋 Copiar</button>' +
+    (temProd ? '<button class="btn" data-respcolar="1">Colar outro link</button>' : '') +
+    '<button class="btn" data-respfechar="1">Fechar</button></div></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+async function colarLinkResp(){
+  const ta = $("respTxt"); if (!ta) return;
+  let novo = "";
+  try { novo = (await navigator.clipboard.readText()).trim(); } catch(_) {}
+  if (!/^https?:\/\//.test(novo)) { toast("Copie o link do produto primeiro e toque de novo. Ou apague e cole no texto.", 5000); return; }
+  const velho = state.ultimoLink || "[cole aqui o link do produto]";
+  ta.value = ta.value.split(velho).join(novo);
+  if (/s\.shopee|shopee\.com/.test(novo)) { state.ultimoLink = novo; save(); }
+  toast("Link colocado na mensagem.");
+}
+// ---------- POSTEI ALGO EXTRA (fora do plano) ----------
+const X_ONDE = ["TikTok", "Reels", "Story", "Carrossel/foto", "Shopee Vídeo", "WhatsApp"];
+const X_TIPO = ["Trend", "Achadinho", "Ideia minha", "Bastidores", "Outro"];
+function extrasLista(){
+  const srv = conteudo().extras || [], porId = {};
+  srv.forEach(x => { if (x.id) porId[x.id] = x; });
+  const locais = (state.extras || []).map(x => Object.assign({}, x, {claude: porId[x.id] ? porId[x.id].claude : ""}));
+  const ids = {}; locais.forEach(x => { ids[x.id] = 1; });
+  const deFora = srv.filter(x => x.id && !ids[x.id] && !(state.extrasApagados || {})[x.id]).map(x => {
+    const m = String(x.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    return {id: x.id, data: m ? m[3] + "-" + pad(m[2]) + "-" + pad(m[1]) : "", onde: String(x.onde || "").split(", ").filter(Boolean), tipo: x.tipo, t: x.t, link: x.link, claude: x.claude, env: true};
+  });
+  return locais.concat(deFora).sort((a, b) => String(b.data).localeCompare(String(a.data)));
+}
+function extrasCard(){
+  const r = state.extraRasc || {onde: [], tipo: ""};
+  const chip = (attr, v, on) => '<button type="button" class="chip" ' + attr + '="' + esc(v) + '" aria-pressed="' + !!on + '">' + esc(v) + '</button>';
+  const lista = extrasLista().slice(0, 10);
+  return '<article class="card"><p class="how">Postou uma trend, um achado ou uma ideia sua que não estava no plano? Anote aqui. No dia seguinte o Claude olha os números e diz se está no caminho certo.</p>' +
+    '<div class="field"><span class="lab">Onde você postou?</span><div class="chips" id="xOnde">' + X_ONDE.map(v => chip("data-xonde", v, r.onde.indexOf(v) >= 0)).join("") + '</div></div>' +
+    '<div class="field"><span class="lab">O que foi?</span><div class="chips" id="xTipo">' + X_TIPO.map(v => chip("data-xtipo", v, r.tipo === v)).join("") + '</div></div>' +
+    '<div class="field"><label for="xTxt">O que você postou?</label><textarea class="input" id="xTxt" rows="3" placeholder="Ex.: trend do “parece caro” com o pisca-pisca da sala">' + esc(r.t || "") + '</textarea></div>' +
+    '<div class="field"><label for="xLink">Link do post (se quiser)</label><input class="input" id="xLink" type="url" inputmode="url" placeholder="Cole o link do TikTok ou do Instagram" value="' + esc(r.link || "") + '"></div>' +
+    '<div class="actions"><button class="btn main" data-xsalvar="1">✅ Salvar o que postei</button></div>' +
+    (lista.length ? '<p class="resp-grupo">Seus extras</p>' + lista.map(x => '<div class="extra-item"><div><b>' + esc(x.data ? fmtDay(x.data, {day: "numeric", month: "short"}) : "") + ' · ' + esc((x.onde || []).join(", ") || "—") + (x.tipo ? ' · ' + esc(x.tipo) : '') + '</b>' +
+      '<p>' + esc(x.t) + '</p>' + (x.link ? '<a href="' + esc(x.link) + '" target="_blank" rel="noopener">Ver o post</a>' : '') +
+      (x.claude ? '<p class="extra-claude">💬 ' + esc(x.claude) + '</p>' : '<small>' + (x.env ? 'O Claude analisa amanhã.' : 'Vai para o Claude quando tiver internet.') + '</small>') + '</div>' +
+      '<button class="btn mini" data-xapagar="' + esc(x.id) + '" aria-label="Apagar">✕</button></div>').join("") : '') + '</article>';
+}
+function rascunhoExtra(){
+  state.extraRasc = state.extraRasc || {onde: [], tipo: ""};
+  if ($("xTxt")) state.extraRasc.t = $("xTxt").value;
+  if ($("xLink")) state.extraRasc.link = $("xLink").value;
+  return state.extraRasc;
+}
+async function enviarExtra(x){
+  const q = new URLSearchParams({acao: "extra", id: x.id, onde: (x.onde || []).join(", "), tipo: x.tipo || "", t: x.t, url: x.link || ""});
+  if (x.apagar) q.set("apagar", "1");
+  try { const j = await (await fetch(ROBO + "?" + q)).json(); return !!(j && j.ok); } catch(_) { return false; }
+}
+async function salvarExtra(){
+  const r = rascunhoExtra(), t = String(r.t || "").trim();
+  if (!t) { toast("Escreva o que você postou."); $("xTxt")?.focus(); return; }
+  if (!r.onde.length) { toast("Toque onde você postou."); return; }
+  const x = {id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), data: todayKey, onde: r.onde.slice(), tipo: r.tipo || "", t: t, link: String(r.link || "").trim(), env: false};
+  state.extras = [x].concat(state.extras || []).slice(0, 60);
+  state.extraRasc = {onde: [], tipo: ""}; save(); renderHoje();
+  toast("Anotado! 🤍 Amanhã o Claude te conta como foi.");
+  x.env = await enviarExtra(x); save();
+  if (!x.env) toast("Salvei aqui no celular. Mando para o Claude quando a internet voltar.", 5000);
+  else renderHoje();
+}
+async function apagarExtra(id){
+  const x = extrasLista().find(e => e.id === id); if (!x) return;
+  state.extras = (state.extras || []).filter(e => e.id !== id);
+  state.extrasApagados = state.extrasApagados || {}; state.extrasApagados[id] = 1;
+  save(); renderHoje(); toast("Apagado.");
+  if (x.env) enviarExtra({id: id, t: "-", apagar: true});
+}
+async function reenviarExtras(){
+  const pend = (state.extras || []).filter(x => !x.env);
+  for (const x of pend) { x.env = await enviarExtra(x); }
+  if (pend.length) save();
+}
+function analiseCard(){
+  const a = conteudo().analise;
+  if (!a) return "";
+  return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Como estou indo</span><span class="why">o Claude olhou seus números</span></div><p class="how" style="white-space:pre-line">' + esc(a) + '</p></article>';
 }
 async function loadIA(tent){
   try {
     const r = await fetch(ROBO); const j = await r.json();
+    reenviarExtras();
     if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save();
       if (novo) { applyConteudo(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); const aba = document.querySelector('nav.tabs button[aria-selected="true"]')?.dataset.tab; if (aba === "hoje") renderHoje(); if (aba === "prontos") renderProntos(); } }
   } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
@@ -400,6 +524,15 @@ async function salvarFoto(v){
 
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  const rb = e.target.closest("button[data-resp]"); if (rb) { abrirResp(Number(rb.dataset.resp)); return; }
+  const lb = e.target.closest("button[data-letra]"); if (lb) { const ta = $("respTxt"); ta.value = ta.value.replace(/opção [A-E]\b/g, "opção " + lb.dataset.letra); lb.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === lb)); return; }
+  if (e.target.closest("button[data-respcopiar]")) { copyText($("respTxt").value); return; }
+  if (e.target.closest("button[data-respcolar]")) { colarLinkResp(); return; }
+  if (e.target.closest("button[data-respfechar]")) { $("respPrev").innerHTML = ""; return; }
+  const xo = e.target.closest("button[data-xonde]"); if (xo) { const r = rascunhoExtra(), v = xo.dataset.xonde, i = r.onde.indexOf(v); if (i >= 0) r.onde.splice(i, 1); else r.onde.push(v); xo.setAttribute("aria-pressed", i < 0); save(); return; }
+  const xt = e.target.closest("button[data-xtipo]"); if (xt) { const r = rascunhoExtra(); r.tipo = r.tipo === xt.dataset.xtipo ? "" : xt.dataset.xtipo; xt.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.xtipo === r.tipo)); save(); return; }
+  if (e.target.closest("button[data-xsalvar]")) { salvarExtra(); return; }
+  const xa = e.target.closest("button[data-xapagar]"); if (xa) { apagarExtra(xa.dataset.xapagar); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
   const gb = e.target.closest("button[data-gpt]"); if (gb) { fotoNoChatGPT(vid(Number(gb.dataset.gpt))); return; }
   const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(vid(Number(fb.dataset.foto))); return; }
