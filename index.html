@@ -225,6 +225,21 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .opcao>div{min-width:0;display:grid;gap:2px}
 .opcao small{color:var(--muted)}
 .link-btn{background:none;border:0;padding:0;color:var(--wine);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.secao{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.secao>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent}
+.secao>summary::-webkit-details-marker{display:none}
+.sec-emoji{font-size:24px;width:44px;height:44px;border-radius:14px;background:var(--wine-soft);display:grid;place-items:center;flex:none}
+.sec-txt{display:grid;gap:2px;min-width:0;flex:1}
+.sec-txt b{font-size:17px}
+.sec-txt small{font-size:13px;color:var(--muted)}
+.sec-conta{font-size:13px;font-weight:800;color:var(--wine);background:var(--wine-soft);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.secao.ok .sec-conta{color:#2f7a45;background:color-mix(in srgb,#2f7a45 14%,var(--surface))}
+.sec-seta{width:10px;height:10px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);transition:transform .2s;flex:none;margin:0 4px 4px}
+.secao[open] .sec-seta{transform:rotate(-135deg);margin:4px 4px 0}
+.secao[open]>summary{border-bottom:1px solid var(--line)}
+.sec-corpo{display:grid;gap:12px;padding:12px}
+.sec-corpo .card{box-shadow:none}
+.how.nota{margin:0;padding:0 4px}
 .ferramentas{display:block}
 .ferramentas>summary{font-weight:800;font-size:16px;cursor:pointer;list-style:none}
 .ferramentas>summary small{display:block;font-weight:600;color:var(--muted);font-size:13px}

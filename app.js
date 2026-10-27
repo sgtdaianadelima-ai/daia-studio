@@ -174,7 +174,7 @@ function renderHoje(){
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
   COPY = [];
   const semPlano = posts.length ? '' : '<article class="card"><div class="meta"><span class="tag trend">Plano de postagens</span></div><p class="how">Ainda não tem plano para este dia. Me peça um plano novo no Claude, ou escreva os posts na aba <b>App - Plano</b> da planilha.</p></article>';
-  $("cards").innerHTML = (cur === todayKey ? recadoCard() + pendentesCard() + iaCards() + packsCard() : "") + prontoCard + semPlano + posts.map((p, i) => {
+  const videos = semPlano + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -188,8 +188,32 @@ function renderHoje(){
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
       '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
     '</article>';
-  }).join("") + (cur === todayKey ? semanaCard() + '<details class="card ferramentas"><summary>🧰 Ferramentas <small>converter link, respostas, lembretes e planilha</small></summary>' + conversorCard() + respostasCard() + lembretesCard() + editarCard() + '</details>' : "");
+  }).join("");
+  const hoje = cur === todayKey;
+  const iaV = hoje && state.ia && state.ia.videos ? state.ia.videos : [];
+  const iaFeitos = iaV.filter(v => state.iaDone && state.iaDone[efetivo(v).id]).length;
+  const nPacks = hoje && state.ia && state.ia.packs ? state.ia.packs.length : 0;
+  const resumoSem = hoje ? resumoSemana() : null;
+  $("cards").innerHTML = (hoje ? recadoCard() + pendentesCard() : "") +
+    (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
+    secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos +
+      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
+    secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
+    (hoje ? secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, semanaCard()) +
+      secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
+// Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
+function secao(id, emoji, titulo, sub, conta, ok, corpo){
+  const aberto = state.secoes && state.secoes[id];
+  return '<details class="secao' + (ok ? " ok" : "") + '" data-sec="' + id + '"' + (aberto ? " open" : "") + '>' +
+    '<summary><span class="sec-emoji" aria-hidden="true">' + emoji + '</span><span class="sec-txt"><b>' + titulo + '</b><small>' + esc(sub) + '</small></span>' +
+    (conta ? '<span class="sec-conta">' + (ok ? "✓ " : "") + conta + '</span>' : '') + '<span class="sec-seta" aria-hidden="true"></span></summary>' +
+    '<div class="sec-corpo">' + corpo + '</div></details>';
+}
+$("cards").addEventListener("toggle", e => {
+  const d = e.target; if (!d.matches || !d.matches("details.secao")) return;
+  state.secoes = state.secoes || {}; state.secoes[d.dataset.sec] = d.open; save();
+}, true);
 // ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
 const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
 const LINK_PAGINA = "https://daledaia.github.io", LINK_VIP = "https://chat.whatsapp.com/E6jfFnVCMfN9Byt4p1nEtm";
