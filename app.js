@@ -98,7 +98,7 @@ const conteudo = () => (state.ia && state.ia.conteudo) || {};
 function applyConteudo(){
   const c = conteudo();
   if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: p.tipo === "cobra" ? "cobra" : "achados", c1: p.c1, c2: p.c2, capa: p.capa || (p.itens[0] && p.itens[0].foto) || "", fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
-    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto, i.antes || ""]), s: p.itens.map(i => [i.n, i.d])}));
+    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto, i.antes || "", i.prod || ""]), s: p.itens.map(i => [i.n, i.d])}));
   if (c.plano && c.plano.length) {
     const extra = {};
     c.plano.forEach(r => { const m = String(r.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m || !r.t) return;
@@ -947,6 +947,20 @@ function drawHandle(ctx, W, H, extra){
 }
 // "A casa te cobra / A casa te poupa": capa e páginas = antes (em cima) e depois (embaixo); última = chamada
 const totalSlides = p => p.tipo === "cobra" ? p.s.length + 1 : p.s.length + 2;
+// Textos de cada imagem: o padrão, ou o que a Daia editou (state.prEd[id][n] = {t, b, off})
+function textosPadrao(p, n, total){
+  if (n === total - 1) return {t: p.fim, b: p.tipo === "cobra" ? "digita CASA que eu te mando os links" : p.tipo === "achados" ? "comenta QUERO que eu te mando os links" : "salva pra não esquecer"};
+  if (p.tipo === "cobra") { const [l1, l2] = String(p.itens[n][1] || "").split("|").map(s => s.trim()).concat(["a casa te cobra", "a casa te poupa"]).filter(Boolean); return {t: l1, b: l2}; }
+  if (n === 0) return {t: p.c1, b: p.c2};
+  const [nome0, frase0] = p.s[n-1];
+  const nomeCurto = String(nome0 || "").replace(/^(kit|conjunto)\s+[\d\/]+\s*(unidades|pe[çc]as)?\s*(de\s+)?/i, "").replace(/\s*[-–]\s*\d+\s*(ml|g)\b.*$/i, "").split(/\s+/).slice(0, 4).join(" ");
+  const achado = p.tipo === "achados" && frase0;
+  return {t: achado ? String(frase0).replace(/\s*·.*$/, "") : nome0, b: achado ? nomeCurto.toLowerCase() : (frase0 || "")};
+}
+function edicao(p, n, total){
+  const e = (state.prEd && state.prEd[p.id] && state.prEd[p.id][n]) || {}, d = textosPadrao(p, n, total);
+  return {t: e.t != null ? e.t : d.t, b: e.b != null ? e.b : d.b, off: !!e.off};
+}
 function fotoEm(ctx, img, x, y, w, h, zoom){
   ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
   ctx.fillStyle = "#1A1114"; ctx.fillRect(x, y, w, h);
@@ -954,85 +968,85 @@ function fotoEm(ctx, img, x, y, w, h, zoom){
   ctx.restore();
 }
 function drawCobra(ctx, W, H, p, n, total, imgs, opt){
-  const a = opt.a == null ? 1 : opt.a;
+  const a = opt.a == null ? 1 : opt.a, ed = edicao(p, n, total), over = imgs.over || {}, overA = imgs.overA || {};
   if (n < total - 1) {
-    const [antes, depois] = imgs.pares[n] || [], meio = Math.round(H / 2), linha = Math.max(3, Math.round(W * 0.004));
+    const [antes0, depois0] = imgs.pares[n] || [], antes = overA[n] || antes0, depois = over[n] || depois0;
+    const meio = Math.round(H / 2), linha = Math.max(3, Math.round(W * 0.004));
     fotoEm(ctx, antes, 0, 0, W, meio - linha / 2, opt.zoom); fotoEm(ctx, depois, 0, meio + linha / 2, W, H - meio - linha / 2, opt.zoom);
     ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, meio - linha / 2, W, linha);
-    // véu suave só onde fica a frase, para ler bem
     let g = ctx.createLinearGradient(0, 0, 0, H * 0.2); g.addColorStop(0, "rgba(20,12,14,0.35)"); g.addColorStop(1, "rgba(20,12,14,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.2);
     g = ctx.createLinearGradient(0, H * 0.8, 0, H); g.addColorStop(0, "rgba(20,12,14,0)"); g.addColorStop(1, "rgba(20,12,14,0.4)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.8, W, H * 0.2);
-    const [l1, l2] = String(p.itens[n][1] || "").split("|").map(s => s.trim()).concat(["a casa te cobra", "a casa te poupa"]).filter(Boolean).slice(0, 2);
     const s = Math.round(W * 0.07); ctx.globalAlpha = a; shadowOn(ctx, W);
     ctx.font = "italic " + s + "px " + SERIF; ctx.fillStyle = "#FFFFFF";
-    ctx.textAlign = "left"; ctx.fillText(l1, W * 0.07, H * 0.085 + s * 0.4);
-    ctx.textAlign = "right"; ctx.fillText(l2, W * 0.93, H * 0.93);
+    ctx.textAlign = "left"; if (ed.t) ctx.fillText(ed.t, W * 0.07, H * 0.085 + s * 0.4);
+    ctx.textAlign = "right"; if (ed.b) ctx.fillText(ed.b, W * 0.93, H * 0.93);
     shadowOff(ctx); ctx.textAlign = "center";
-    delicado(ctx, [state.handle || "", opt.video ? "" : (n === 0 ? "arrasta →" : (n + 1) + "/" + total)].filter(Boolean).join("  ·  "), W / 2, H * 0.975, W * 0.02, 0.75);
+    delicado(ctx, [state.handle || "", opt.video ? "" : (n === 0 ? "arrasta →" : "")].filter(Boolean).join("  ·  "), W / 2, H * 0.975, W * 0.02, 0.75);
     ctx.globalAlpha = 1;
     return;
   }
-  // última: foto do último "depois", a frase final e a chamada delicada
   const ult = imgs.pares[imgs.pares.length - 1] || [];
-  paintPhoto(ctx, W, H, ult[1] || ult[0], 0.6, opt.zoom, opt.dx, opt.dy);
+  paintPhoto(ctx, W, H, over[n] || ult[1] || ult[0], 0.6, opt.zoom, opt.dx, opt.dy);
   ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.fillStyle = "#FFFFFF"; shadowOn(ctx, W);
   const s1 = Math.round(W * 0.075); ctx.font = "italic " + s1 + "px " + SERIF;
-  const ls = wrapText(ctx, p.fim, W * 0.8, 3); let y = H * 0.55 - (ls.length * s1 * 1.1) / 2;
+  const ls = wrapText(ctx, ed.t || "", W * 0.8, 3); let y = H * 0.55 - (ls.length * s1 * 1.1) / 2;
   ls.forEach(l => { y += s1 * 1.1; ctx.fillText(l, W / 2, y); });
   shadowOff(ctx);
-  delicado(ctx, "digita CASA que eu te mando os links", W / 2, y + W * 0.075, W * 0.03, 0.9);
-  drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
+  if (ed.b) delicado(ctx, ed.b, W / 2, y + W * 0.075, W * 0.03, 0.9);
+  drawHandle(ctx, W, H, "");
   ctx.globalAlpha = 1;
 }
 // a = quanto do texto já apareceu (0 a 1), usado no vídeo
 function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
   if (p.tipo === "cobra") return drawCobra(ctx, W, H, p, n, total, imgs, opt);
+  const ed = edicao(p, n, total), over = imgs.over || {};
   // imgs = [capa, final, dica 1, dica 2, ...]: cada imagem do carrossel tem a sua foto
-  const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
+  const img = over[n] || (n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]));
   paintPhoto(ctx, W, H, img, n === 0 ? 0 : (p.tipo === "achados" && n < total - 1 ? 0.15 : 0.6), opt.zoom, opt.dx, opt.dy);
   ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
   // Identidade Dale Daia, minimalista: só o texto principal (letra fina inclinada + letra grossa na capa);
-  // o resto pequeno, fino e espaçado. Sem preço (o valor muda toda hora).
+  // o resto pequeno, fino e espaçado. Sem preço e sem numeração.
   const mw = W * 0.8, rise = (1 - a) * W * 0.03;
   ctx.textAlign = "center";
   if (n === 0) {
     const s1 = Math.round(W*0.082), s2 = Math.round(W*0.066);
-    ctx.font = "italic " + s1 + "px " + SERIF; const l1 = wrapText(ctx, p.c1, mw, 2);
-    ctx.font = "800 " + s2 + "px " + SANS; const l2 = wrapText(ctx, p.c2, mw, 2);
+    ctx.font = "italic " + s1 + "px " + SERIF; const l1 = ed.t ? wrapText(ctx, ed.t, mw, 2) : [];
+    ctx.font = "800 " + s2 + "px " + SANS; const l2 = ed.b ? wrapText(ctx, ed.b, mw, 2) : [];
     const blockH = l1.length*s1*1.08 + l2.length*s2*1.12;
     let y = H*0.80 - blockH + rise;
     ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
     ctx.font = "800 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.12; ctx.fillText(l, W/2, y); });
     shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : "arrasta →");
   } else if (n < total - 1) {
-    // texto principal = a frase bonita; o nome do produto vai pequeno embaixo (curto, sem números de kit)
-    const [nome0, frase0] = p.s[n-1];
-    const nomeCurto = String(nome0 || "").replace(/^(kit|conjunto)\s+[\d\/]+\s*(unidades|pe[çc]as)?\s*(de\s+)?/i, "").replace(/\s*[-–]\s*\d+\s*(ml|g)\b.*$/i, "").split(/\s+/).slice(0, 4).join(" ");
-    const achado = p.tipo === "achados" && frase0;
-    const t = achado ? String(frase0).replace(/\s*·.*$/, "") : nome0, body = achado ? nomeCurto.toLowerCase() : frase0;
     const st = Math.round(W*0.064), sb = Math.round(W*0.03);
-    ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 2);
-    ctx.font = "300 " + sb + "px " + SANS; const lb = body ? wrapText(ctx, body, mw, 2) : [];
+    ctx.font = "italic " + st + "px " + SERIF; const lt = ed.t ? wrapText(ctx, ed.t, mw, 2) : [];
+    ctx.font = "300 " + sb + "px " + SANS; const lb = ed.b ? wrapText(ctx, ed.b, mw, 2) : [];
     const blockH = lt.length*st*1.1 + (lb.length ? W*0.025 + lb.length*sb*1.5 : 0);
     let y = H*0.885 - blockH + rise; // texto embaixo, para a foto respirar
     ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.1; ctx.fillText(l, W/2, y); });
     shadowOff(ctx);
     if (lb.length) { y += W*0.025; lb.forEach(l => { y += sb*1.5; delicado(ctx, l, W/2, y, sb, 0.9); }); }
-    drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
+    drawHandle(ctx, W, H, "");
   } else {
     const s1 = Math.round(W*0.075); ctx.font = "italic " + s1 + "px " + SERIF;
-    const ls = wrapText(ctx, p.fim, mw, 3); let y = H*0.55 - (ls.length*s1*1.1)/2 + rise;
+    const ls = ed.t ? wrapText(ctx, ed.t, mw, 3) : []; let y = H*0.55 - (ls.length*s1*1.1)/2 + rise;
     ls.forEach(l => { y += s1*1.1; ctx.fillText(l, W/2, y); });
     shadowOff(ctx);
-    delicado(ctx, p.tipo === "achados" ? "comenta QUERO que eu te mando os links" : "salva pra não esquecer", W/2, y + W*0.075, W*0.03, 0.9);
-    drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
+    if (ed.b) delicado(ctx, ed.b, W/2, y + W*0.075, W*0.03, 0.9);
+    drawHandle(ctx, W, H, "");
   }
   ctx.globalAlpha = 1;
 }
 function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); const i = new Image(); if (/^https?:\/\//.test(u) &&!u.startsWith(location.origin)) i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = () => res(null); i.src = u; }); }
 function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
+// fotos trocadas pela Daia ficam no celular: "sl-<id>-<n>" (foto principal / de baixo) e "sla-<id>-<n>" (de cima, no antes/depois)
 async function prontoImgs(p){
+  const base = await prontoImgsBase(p), total = totalSlides(p); base.over = {}; base.overA = {};
+  for (let n = 0; n < total; n++) { const f = await getPhoto("sl-" + p.id + "-" + n); if (f) base.over[n] = await loadImg(f); const fa = await getPhoto("sla-" + p.id + "-" + n); if (fa) base.overA[n] = await loadImg(fa); }
+  return base;
+}
+async function prontoImgsBase(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
   if (p.tipo === "cobra") return {pares: await Promise.all(p.itens.map(it => Promise.all([loadImgURL(it[4]), loadImgURL(it[3])])))};
   if (p.tipo === "achados") { const capa = await loadImgURL(p.capa || "c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((it, i) => loadImgURL(it[3] || "p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
@@ -1136,7 +1150,8 @@ $("prontoList").addEventListener("click", async e => {
     toast("Vídeo salvo na pasta Downloads. A legenda está copiada."); return;
   }
   if (!blobs) return;
-  const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"}));
+  // as imagens que a Daia tirou do carrossel não vão
+  const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"})).filter((_, i) => !edicao(p, i, totalSlides(p)).off);
   if (a === "share") {
     try { await navigator.clipboard.writeText(text); } catch(_) {}
     if (navigator.canShare && navigator.canShare({files})) {
@@ -1152,12 +1167,68 @@ $("prontoList").addEventListener("click", async e => {
   }
 });
 function baixarArquivo(f){ const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); }
-// Mostra as imagens com um botão ⬇ em cada uma
+// Mostra as imagens com ⬇ (baixar) e ✏️ (editar texto, trocar foto, foto com IA ou tirar do carrossel)
+function fotoProduto(p, n, total){
+  const i = p.tipo === "cobra" ? n : n - 1, it = p.itens && p.itens[i];
+  if (!it || n === total - 1 || (p.tipo !== "cobra" && n === 0)) return "";
+  if (it[5]) return it[5];
+  if (/susercontent|shopee/.test(it[3] || "")) return it[3];
+  if (/^a\d/.test(p.id)) return "p-" + p.id + "-" + (i + 1) + ".jpg";
+  return "";
+}
 function mostrarBaixar(pid, files){
   const box = $("sl-" + pid); if (!box) return;
+  const p = PR.find(x => x.id === pid), total = totalSlides(p);
   box.classList.add("com-baixar");
-  box.innerHTML = files.map((f, i) => '<div class="sl-item"><img src="' + URL.createObjectURL(f) + '" alt="Imagem ' + (i+1) + '"><button type="button" class="btn mini" data-baixar="' + i + '" aria-label="Baixar imagem ' + (i+1) + '">⬇ ' + (i+1) + '</button></div>').join("");
-  box.onclick = e => { const b = e.target.closest("[data-baixar]"); if (!b) return; baixarArquivo(files[Number(b.dataset.baixar)]); b.textContent = "✓ " + (Number(b.dataset.baixar) + 1); };
+  box.innerHTML = files.map((f, i) => { const off = edicao(p, i, total).off;
+    return '<div class="sl-item' + (off ? ' sl-off' : '') + '"><img src="' + URL.createObjectURL(f) + '" alt="Imagem ' + (i+1) + '">' +
+      (off ? '<small>fora do carrossel</small>' : '') +
+      '<div class="sl-bts"><button type="button" class="btn mini" data-baixar="' + i + '" aria-label="Baixar imagem ' + (i+1) + '"' + (off ? ' disabled' : '') + '>⬇</button>' +
+      '<button type="button" class="btn mini" data-editar="' + i + '" aria-label="Editar imagem ' + (i+1) + '">✏️</button></div></div>'; }).join("") +
+    '<div class="sl-editor" id="ed-' + pid + '" hidden></div>';
+  box.onclick = async e => {
+    const b = e.target.closest("[data-baixar]"); if (b) { baixarArquivo(files[Number(b.dataset.baixar)]); b.textContent = "✓"; return; }
+    const ed = e.target.closest("[data-editar]"); if (ed) { abrirEditor(p, Number(ed.dataset.editar), total); return; }
+  };
+}
+function abrirEditor(p, n, total){
+  const box = $("ed-" + p.id); if (!box) return;
+  const e = edicao(p, n, total), prod = fotoProduto(p, n, total), cobraPar = p.tipo === "cobra" && n < total - 1;
+  box.hidden = false;
+  box.innerHTML = '<b>Editar esta imagem</b>' +
+    '<div class="field"><label for="edt-' + p.id + '">' + (cobraPar ? "Frase de cima" : "Texto grande") + '</label><input class="input" id="edt-' + p.id + '" value="' + esc(e.t || "") + '" placeholder="Deixe vazio para não ter"></div>' +
+    '<div class="field"><label for="edb-' + p.id + '">' + (cobraPar ? "Frase de baixo" : "Texto pequeno") + '</label><input class="input" id="edb-' + p.id + '" value="' + esc(e.b || "") + '" placeholder="Deixe vazio para não ter"></div>' +
+    '<div class="actions"><button class="btn main" data-ed="salvar">Salvar texto</button><button class="btn" data-ed="padrao">Voltar ao original</button></div>' +
+    '<div class="actions"><label class="btn" style="cursor:pointer">📷 ' + (cobraPar ? "Trocar foto de baixo" : "Trocar a foto") + '<input type="file" accept="image/*" data-ed="foto" hidden></label>' +
+    (cobraPar ? '<label class="btn" style="cursor:pointer">📷 Trocar foto de cima<input type="file" accept="image/*" data-ed="fotoa" hidden></label>' : '') +
+    (prod ? '<button class="btn wine" data-ed="ia">✨ Foto com IA</button>' : '') + '</div>' +
+    (prod ? '<p class="how nota">✨ Foto com IA: envia a foto do produto e o pedido para o Gemini ou o ChatGPT. Eles criam uma foto bonita do mesmo produto, sem texto. Salve a foto e toque em <b>Trocar a foto</b>.</p>' : '') +
+    '<div class="actions"><button class="btn" data-ed="tirar">' + (e.off ? "↩️ Voltar para o carrossel" : "🗑️ Tirar do carrossel") + '</button><button class="btn" data-ed="fechar">Fechar</button></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+  const guardar = obj => { state.prEd = state.prEd || {}; state.prEd[p.id] = state.prEd[p.id] || {}; if (obj === null) delete state.prEd[p.id][n]; else state.prEd[p.id][n] = Object.assign({}, state.prEd[p.id][n], obj); save(); };
+  const refazer = msg => { delete prOutputs[p.id + "-ig"]; delete prOutputs[p.id + "-tt"]; renderProntos(); if (msg) toast(msg); };
+  box.onclick = async ev => {
+    const a = ev.target.closest("button[data-ed]")?.dataset.ed; if (!a) return;
+    if (a === "fechar") { box.hidden = true; return; }
+    if (a === "salvar") { guardar({t: $("edt-" + p.id).value.trim(), b: $("edb-" + p.id).value.trim()}); refazer("Texto atualizado."); }
+    if (a === "padrao") { guardar(null); await putPhoto("sl-" + p.id + "-" + n, null); await putPhoto("sla-" + p.id + "-" + n, null); refazer("Voltou ao original."); }
+    if (a === "tirar") { guardar({off: !e.off}); refazer(e.off ? "A imagem voltou para o carrossel." : "Tirada. Ela não vai quando você postar ou salvar."); }
+    if (a === "ia") fotoComIA(prod);
+  };
+  box.onchange = async ev => {
+    const inp = ev.target.closest("input[data-ed]"); if (!inp || !inp.files || !inp.files[0]) return;
+    await putPhoto((inp.dataset.ed === "fotoa" ? "sla-" : "sl-") + p.id + "-" + n, await shrink(inp.files[0], 1600));
+    refazer("Foto trocada.");
+  };
+}
+const PEDIDO_FOTO_IA = "Crie uma foto realista e elegante deste MESMO produto (não mude o produto: mesma cor, formato e detalhes), sendo usado numa casa bonita e aconchegante. Luz natural quente, estilo minimalista, tons neutros, foto vertical 4:5 com cara de foto de celular de verdade. Sem nenhum texto, logo, preço, selo ou marca d'água.";
+async function fotoComIA(url){
+  try { await navigator.clipboard.writeText(PEDIDO_FOTO_IA); } catch(_) {}
+  try {
+    const b = await (await fetch(url)).blob(), f = new File([b], "produto.jpg", {type: b.type || "image/jpeg"});
+    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], text: PEDIDO_FOTO_IA}); toast("Escolha o Gemini ou o ChatGPT. Se o pedido não aparecer, é só colar: ele já está copiado.", 7000); return; }
+  } catch(err) { if (err && err.name === "AbortError") return; }
+  window.open(url, "_blank"); toast("O pedido está copiado. Salve a foto do produto e mande no Gemini ou no ChatGPT junto com o pedido.", 7000);
 }
 $("prontoList").addEventListener("change", async e => {
   if (e.target.dataset.pa !== "bg") return;
