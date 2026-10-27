@@ -116,6 +116,7 @@ function doGet(e) {
   const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
   try {
     if (q.acao === 'extra') return json({ok: guardarExtra_(q)});
+    if (q.acao === 'busca') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? buscaProduto_(String(q.q || '')) : {erro: 'chave errada'});
     if (q.acao === 'notafotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {notas: notasFotos_(String(q.urls || '').split(' ').filter(Boolean).slice(0, 8))} : {erro: 'chave errada'});
     if (q.acao === 'refazerfotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? refazerFotosAuto_() : {erro: 'chave errada'});
     if (q.link && q.acao === 'pack') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {ok: guardarPack_(q)} : {erro: 'chave errada'});
@@ -145,12 +146,12 @@ function conteudo_(hoje) {
   const recados = ler('App - Recado').filter(l => l[1] && (!l[0] || l[0] === hoje));
   const itens = ler('App - Itens');
   const prontos = ler('App - Prontos').filter(l => l[0] && !/^n/i.test(l[8] || 'sim')).map(l => ({
-    id: l[0].trim(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
-    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5]}))
+    id: l[0].trim(), tipo: String(l[9] || '').trim().toLowerCase(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
+    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5], antes: i[7] || ''}))
   })).filter(p => p.itens.length >= 3);
   // carrosséis novos do robô primeiro (os 20 mais recentes), depois os outros
-  const autos = prontos.filter(p => /^auto/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
-  const outros = prontos.filter(p => !/^auto/.test(p.id));
+  const autos = prontos.filter(p => /^(auto|cobra)/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
+  const outros = prontos.filter(p => !/^(auto|cobra)/.test(p.id));
   return {
     recado: recados.length ? recados[recados.length - 1][1] : '',
     analise: (ler('App - Análise').slice(-1)[0] || [])[1] || '',
@@ -611,3 +612,11 @@ function instalarTudo() {
   Logger.log('Horários ligados. Tópico dos lembretes: ' + props.getProperty('NTFY_TOPICO'));
 }
 function testeGemini() { Logger.log('modelo: ' + modeloGemini_(PropertiesService.getScriptProperties().getProperty('GEMINI_KEY') || '') + ' | resposta: ' + perguntaDalinha_('Me dá uma dica rápida de post de casa para hoje', '')); }
+
+// Busca um produto bom (equilíbrio de vendas e comissão) para a tarefa diária montar carrosséis "A casa te cobra".
+function buscaProduto_(palavra) {
+  if (!palavra) return {erro: 'sem palavra'};
+  const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
+  const lista = buscar_(palavra, senha).map(p => ({p: p, nota: oportunidade_(p)})).filter(x => x.nota > 0).sort((a, b) => b.nota - a.nota).slice(0, 5);
+  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, vendas: x.p.sales, com: x.p.commissionRate, id: x.p.itemId}))};
+}
