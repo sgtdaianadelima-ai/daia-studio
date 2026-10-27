@@ -196,9 +196,14 @@ function renderHoje(){
   const nPacks = hoje && state.ia && state.ia.packs ? state.ia.packs.length : 0;
   const resumoSem = hoje ? resumoSemana() : null;
   const nExtras = hoje ? extrasLista().filter(x => x.data === todayKey).length : 0;
-  $("cards").innerHTML = (hoje ? recadoCard() + pendentesCard() : "") +
+  const meta = hoje ? metaDoDia(posts, done, iaFeitos, !!prDone, nExtras) : null;
+  if (meta) { $("barFill").style.width = (meta.feitos / meta.total * 100) + "%"; $("progText").textContent = meta.feitos >= meta.total ? "Meta batida! 🎉" : meta.feitos + " de " + meta.total + " da meta"; }
+  const extrasDoDia = extrasLista().filter(x => x.data === cur);
+  const extrasNoPlano = extrasDoDia.map(x => '<article class="card done extra-plano"><div class="meta"><span class="tag trend">Extra</span><span class="why">' + esc((x.onde || []).join(", ")) + '</span></div><h3 class="title">' + esc(x.t) + '</h3>' +
+    (x.claude ? '<p class="how extra-claude">💬 ' + esc(x.claude) + '</p>' : '') + '<div class="actions"><span class="why">✓ Postado fora do plano</span></div></article>').join("");
+  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
-    secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos +
+    secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
     secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
     (hoje ? secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
@@ -206,6 +211,27 @@ function renderHoje(){
       secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
+// ---------- META DO DIA (quanto falta postar hoje) ----------
+function metaDoDia(posts, feitosPlano, iaFeitos, prDone, nExtras){
+  const nShopee = 3, fShopee = Math.min(iaFeitos, nShopee);
+  const total = posts.length + nShopee + 1, feitos = feitosPlano + fShopee + (prDone ? 1 : 0);
+  const falta = [], f1 = nShopee - fShopee, f2 = posts.length - feitosPlano;
+  if (f1) falta.push(f1 + (f1 === 1 ? " Shopee Vídeo" : " Shopee Vídeos"));
+  if (f2) falta.push(f2 + (f2 === 1 ? " vídeo do plano (TikTok/Reels)" : " vídeos do plano (TikTok/Reels)"));
+  if (!prDone) falta.push("1 carrossel no Instagram");
+  return {total, feitos, falta, extras: nExtras};
+}
+function metaCard(m){
+  if (!m) return "";
+  const pronto = m.feitos >= m.total;
+  const frase = pronto ? "Meta de hoje batida! Você é demais. 🎉" :
+    m.feitos === 0 ? "Hoje você tem que postar " + m.total + " vezes. Bora começar pelo mais fácil? 🤍" :
+    "Você já postou " + m.feitos + ". Faltam " + (m.total - m.feitos) + ". Tá quase! 💪";
+  return '<article class="card meta-dia' + (pronto ? " ok" : "") + '"><div class="meta-topo"><b>🎯 Meta de hoje</b><span>' + m.feitos + ' de ' + m.total + '</span></div>' +
+    '<div class="meta-barra"><i style="width:' + Math.min(100, m.feitos / m.total * 100) + '%"></i></div>' +
+    '<p>' + esc(frase) + '</p>' + (m.falta.length ? '<p class="meta-falta"><b>Falta:</b> ' + esc(m.falta.join(" · ")) + '</p>' : '') +
+    (m.extras ? '<p class="meta-falta">✨ + ' + m.extras + (m.extras === 1 ? ' post extra' : ' posts extras') + ' fora do plano. Bônus!</p>' : '') + '</article>';
+}
 function secao(id, emoji, titulo, sub, conta, ok, corpo){
   const aberto = state.secoes && state.secoes[id];
   return '<details class="secao' + (ok ? " ok" : "") + '" data-sec="' + id + '"' + (aberto ? " open" : "") + '>' +
