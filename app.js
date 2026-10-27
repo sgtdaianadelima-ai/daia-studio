@@ -97,8 +97,8 @@ const PLANILHA = "https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7v
 const conteudo = () => (state.ia && state.ia.conteudo) || {};
 function applyConteudo(){
   const c = conteudo();
-  if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: "achados", c1: p.c1, c2: p.c2, capa: p.capa, fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
-    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto]), s: p.itens.map(i => [i.n, i.d])}));
+  if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: p.tipo === "cobra" ? "cobra" : "achados", c1: p.c1, c2: p.c2, capa: p.capa || (p.itens[0] && p.itens[0].foto) || "", fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
+    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto, i.antes || ""]), s: p.itens.map(i => [i.n, i.d])}));
   if (c.plano && c.plano.length) {
     const extra = {};
     c.plano.forEach(r => { const m = String(r.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m || !r.t) return;
@@ -945,9 +945,49 @@ function drawHandle(ctx, W, H, extra){
   const h = state.handle || "";
   ctx.textAlign = "center"; delicado(ctx, [h, extra].filter(Boolean).join("  ·  "), W/2, H*0.955, W*0.022, 0.7);
 }
+// "A casa te cobra / A casa te poupa": capa e páginas = antes (em cima) e depois (embaixo); última = chamada
+const totalSlides = p => p.tipo === "cobra" ? p.s.length + 1 : p.s.length + 2;
+function fotoEm(ctx, img, x, y, w, h, zoom){
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.fillStyle = "#1A1114"; ctx.fillRect(x, y, w, h);
+  if (img) { const s = Math.max(w / img.width, h / img.height) * (zoom || 1), dw = img.width * s, dh = img.height * s; ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
+  ctx.restore();
+}
+function drawCobra(ctx, W, H, p, n, total, imgs, opt){
+  const a = opt.a == null ? 1 : opt.a;
+  if (n < total - 1) {
+    const [antes, depois] = imgs.pares[n] || [], meio = Math.round(H / 2), linha = Math.max(3, Math.round(W * 0.004));
+    fotoEm(ctx, antes, 0, 0, W, meio - linha / 2, opt.zoom); fotoEm(ctx, depois, 0, meio + linha / 2, W, H - meio - linha / 2, opt.zoom);
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, meio - linha / 2, W, linha);
+    // véu suave só onde fica a frase, para ler bem
+    let g = ctx.createLinearGradient(0, 0, 0, H * 0.2); g.addColorStop(0, "rgba(20,12,14,0.35)"); g.addColorStop(1, "rgba(20,12,14,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.2);
+    g = ctx.createLinearGradient(0, H * 0.8, 0, H); g.addColorStop(0, "rgba(20,12,14,0)"); g.addColorStop(1, "rgba(20,12,14,0.4)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.8, W, H * 0.2);
+    const [l1, l2] = String(p.itens[n][1] || "").split("|").map(s => s.trim()).concat(["a casa te cobra", "a casa te poupa"]).filter(Boolean).slice(0, 2);
+    const s = Math.round(W * 0.07); ctx.globalAlpha = a; shadowOn(ctx, W);
+    ctx.font = "italic " + s + "px " + SERIF; ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "left"; ctx.fillText(l1, W * 0.07, H * 0.085 + s * 0.4);
+    ctx.textAlign = "right"; ctx.fillText(l2, W * 0.93, H * 0.93);
+    shadowOff(ctx); ctx.textAlign = "center";
+    delicado(ctx, [state.handle || "", opt.video ? "" : (n === 0 ? "arrasta →" : (n + 1) + "/" + total)].filter(Boolean).join("  ·  "), W / 2, H * 0.975, W * 0.02, 0.75);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  // última: foto do último "depois", a frase final e a chamada delicada
+  const ult = imgs.pares[imgs.pares.length - 1] || [];
+  paintPhoto(ctx, W, H, ult[1] || ult[0], 0.6, opt.zoom, opt.dx, opt.dy);
+  ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.fillStyle = "#FFFFFF"; shadowOn(ctx, W);
+  const s1 = Math.round(W * 0.075); ctx.font = "italic " + s1 + "px " + SERIF;
+  const ls = wrapText(ctx, p.fim, W * 0.8, 3); let y = H * 0.55 - (ls.length * s1 * 1.1) / 2;
+  ls.forEach(l => { y += s1 * 1.1; ctx.fillText(l, W / 2, y); });
+  shadowOff(ctx);
+  delicado(ctx, "digita CASA que eu te mando os links", W / 2, y + W * 0.075, W * 0.03, 0.9);
+  drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
+  ctx.globalAlpha = 1;
+}
 // a = quanto do texto já apareceu (0 a 1), usado no vídeo
 function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
+  if (p.tipo === "cobra") return drawCobra(ctx, W, H, p, n, total, imgs, opt);
   // imgs = [capa, final, dica 1, dica 2, ...]: cada imagem do carrossel tem a sua foto
   const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
   paintPhoto(ctx, W, H, img, n === 0 ? 0 : (p.tipo === "achados" && n < total - 1 ? 0.15 : 0.6), opt.zoom, opt.dx, opt.dy);
@@ -994,6 +1034,7 @@ function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); co
 function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
 async function prontoImgs(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
+  if (p.tipo === "cobra") return {pares: await Promise.all(p.itens.map(it => Promise.all([loadImgURL(it[4]), loadImgURL(it[3])])))};
   if (p.tipo === "achados") { const capa = await loadImgURL(p.capa || "c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((it, i) => loadImgURL(it[3] || "p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
   const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
   const dicas = await Promise.all(p.s.map((_, i) => loadImgURL("s-" + p.id + "-" + (i + 1) + ".jpg")));
@@ -1002,7 +1043,7 @@ async function prontoImgs(p){
 async function fontsReady(){ try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'"), document.fonts.load("700 30px 'Nunito Sans'"), document.fonts.load("800 30px 'Nunito Sans'")]); } catch(_) {} }
 async function buildPronto(p){
   await fontsReady();
-  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = p.s.length + 2, imgs = await prontoImgs(p);
+  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = totalSlides(p), imgs = await prontoImgs(p);
   const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
   const blobs = [];
   for (let n = 0; n < total; n++) { drawProntoSlide(ctx, W, H, p, n, total, imgs); blobs.push(await new Promise(r => c.toBlob(r, "image/jpeg", 0.9))); }
@@ -1012,7 +1053,7 @@ async function buildPronto(p){
 async function buildVideo(p, onProgress){
   await fontsReady();
   const mime = pickMime(); if (!mime) throw new Error("sem gravador");
-  const W = 720, H = 1280, total = p.s.length + 2, imgs = await prontoImgs(p), per = 2.4, fps = 30;
+  const W = 720, H = 1280, total = totalSlides(p), imgs = await prontoImgs(p), per = 2.4, fps = 30;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
   drawProntoSlide(ctx, W, H, p, 0, total, imgs, {a:0, zoom:1, video:true});
   const stream = c.captureStream(fps), rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: 5000000});
@@ -1039,7 +1080,7 @@ async function renderProntos(){
     const open = openPronto === p.id, done = state.prontos[p.id];
     return '<article class="card" data-pid="' + p.id + '">' +
       '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="' + esc(p.tipo === "achados" ? (p.capa || "c-" + p.id + ".jpg") : "f-" + p.id + "-1.jpg") + '" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
-      '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
+      '<p class="note">' + totalSlides(p) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
       '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
       (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
         '<button type="button" class="chip" data-v="ig" aria-pressed="' + (prFormat === "ig") + '">Instagram (4:5)</button>' +
@@ -1049,7 +1090,7 @@ async function renderProntos(){
         '<div class="leg sel">' + esc(p.leg + "\n\n" + p.tags) + '</div>' +
         '<div class="actions"><button class="btn wine" data-pa="share">Postar (envia as imagens)</button><button class="btn" data-pa="copy">Copiar legenda</button><button class="btn" data-pa="save">Salvar imagens</button>' +
         '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' +
-        (p.itens ? '<div class="field"><span class="lab">Alguém comentou QUERO?</span><p class="note">Copie e mande no direct: já vai com os 5 links, todos SEUS links de afiliada. (Fotos dos produtos: Telegram › PACK VIP DE FOTOS PARA CARROSSEL › CASA/DECORAÇÃO › ' + esc(p.album) + '.)</p><button class="btn" data-pa="links">Copiar resposta com os links</button></div>' : '') +
+        (p.itens ? '<div class="field"><span class="lab">Alguém comentou ' + (p.tipo === "cobra" ? "CASA" : "QUERO") + '?</span><p class="note">Copie e mande no direct: já vai com todos os links, todos SEUS links de afiliada.' + (/^a\d/.test(p.id) && p.album ? ' (Fotos dos produtos: Telegram › PACK VIP DE FOTOS PARA CARROSSEL › CASA/DECORAÇÃO › ' + esc(p.album) + '.)' : '') + '</p><button class="btn" data-pa="links">Copiar resposta com os links</button></div>' : '') +
         '<div class="field"><span class="lab">Quer vídeo?</span><p class="note">Os vídeos de IA dos produtos e os vídeos prontos dos seus packs ficam na tela Hoje.</p></div>' : '') +
     '</article>';
   }).join("");
