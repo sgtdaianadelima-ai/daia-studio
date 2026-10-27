@@ -925,18 +925,25 @@ function paintPhoto(ctx, W, H, img, dark, zoom, dx, dy){
     const z = zoom || 1, s = Math.max(W / img.width, H / img.height) * z, dw = img.width * s, dh = img.height * s;
     ctx.drawImage(img, (W - dw) / 2 + (dx || 0) * W, (H - dh) / 2 + (dy || 0) * H, dw, dh);
   }
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "rgba(15,8,10," + (0.10 + dark*0.2) + ")");
-  g.addColorStop(0.45, "rgba(15,8,10," + (0.18 + dark*0.35) + ")");
-  g.addColorStop(1, "rgba(15,8,10," + (0.55 + dark*0.3) + ")");
+  // minimalista: a foto aparece inteira; só um véu suave embaixo, onde fica o texto
+  const g = ctx.createLinearGradient(0, H*0.45, 0, H);
+  g.addColorStop(0, "rgba(20,12,14,0)");
+  g.addColorStop(0.6, "rgba(20,12,14," + (0.22 + dark*0.18) + ")");
+  g.addColorStop(1, "rgba(20,12,14," + (0.48 + dark*0.2) + ")");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (dark > 0.3) { ctx.fillStyle = "rgba(20,12,14," + (dark*0.25) + ")"; ctx.fillRect(0, 0, W, H); }
 }
-function shadowOn(ctx, W){ ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = W*0.02; ctx.shadowOffsetY = W*0.003; }
+function shadowOn(ctx, W){ ctx.shadowColor = "rgba(0,0,0,0.28)"; ctx.shadowBlur = W*0.018; ctx.shadowOffsetY = 0; }
 function shadowOff(ctx){ ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; }
+// texto pequeno e delicado, com letras espaçadas
+function delicado(ctx, txt, x, y, size, alpha){
+  ctx.save(); ctx.font = "300 " + Math.round(size) + "px " + SANS; ctx.fillStyle = "rgba(255,255,255," + (alpha || 0.85) + ")";
+  try { ctx.letterSpacing = Math.round(size*0.12) + "px"; } catch(_) {}
+  ctx.fillText(txt, x, y); ctx.restore();
+}
 function drawHandle(ctx, W, H, extra){
   const h = state.handle || "";
-  ctx.font = "700 " + Math.round(W*0.03) + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.textAlign = "center"; ctx.fillText([h, extra].filter(Boolean).join("   ·   "), W/2, H*0.95);
+  ctx.textAlign = "center"; delicado(ctx, [h, extra].filter(Boolean).join("  ·  "), W/2, H*0.955, W*0.022, 0.7);
 }
 // a = quanto do texto já apareceu (0 a 1), usado no vídeo
 function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
@@ -945,38 +952,41 @@ function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
   paintPhoto(ctx, W, H, img, n === 0 ? 0 : (p.tipo === "achados" && n < total - 1 ? 0.15 : 0.6), opt.zoom, opt.dx, opt.dy);
   ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
-  const mw = W * 0.84, rise = (1 - a) * W * 0.03;
+  // Identidade Dale Daia, minimalista: só o texto principal (letra fina inclinada + letra grossa na capa);
+  // o resto pequeno, fino e espaçado. Sem preço (o valor muda toda hora).
+  const mw = W * 0.8, rise = (1 - a) * W * 0.03;
+  ctx.textAlign = "center";
   if (n === 0) {
-    ctx.textAlign = "center";
-    const s1 = Math.round(W*0.105), s2 = Math.round(W*0.092);
+    const s1 = Math.round(W*0.082), s2 = Math.round(W*0.066);
     ctx.font = "italic " + s1 + "px " + SERIF; const l1 = wrapText(ctx, p.c1, mw, 2);
-    ctx.font = "900 " + s2 + "px " + SANS; const l2 = wrapText(ctx, p.c2, mw, 3);
-    const blockH = l1.length*s1*1.05 + l2.length*s2*1.08;
-    let y = H*0.70 - blockH/2 + rise;
-    ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.05; ctx.fillText(l, W/2, y); });
-    ctx.font = "900 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.08; ctx.fillText(l, W/2, y); });
+    ctx.font = "800 " + s2 + "px " + SANS; const l2 = wrapText(ctx, p.c2, mw, 2);
+    const blockH = l1.length*s1*1.08 + l2.length*s2*1.12;
+    let y = H*0.80 - blockH + rise;
+    ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
+    ctx.font = "800 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.12; ctx.fillText(l, W/2, y); });
     shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : "arrasta →");
   } else if (n < total - 1) {
-    const [t, body] = p.s[n-1];
-    ctx.textAlign = "center";
-    const sn = Math.round(W*0.06), st = Math.round(W*0.088), sb = Math.round(W*0.05);
-    ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 3);
-    ctx.font = "600 " + sb + "px " + SANS; const lb = wrapText(ctx, body, mw*0.95, 5);
-    const blockH = sn*1.3 + lt.length*st*1.08 + W*0.03 + lb.length*sb*1.35;
-    let y = H*0.885 - blockH - (p.tipo === "achados" ? W*0.075 : 0) + rise; // texto embaixo, para o produto aparecer na foto
-    ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText((p.tipo === "achados" ? "Achado " : "") + String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
-    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.08; ctx.fillText(l, W/2, y); });
-    y += W*0.03; ctx.font = "600 " + sb + "px " + SANS; lb.forEach(l => { y += sb*1.35; ctx.fillText(l, W/2, y); });
-    if (p.tipo === "achados") { ctx.font = "800 " + Math.round(W*0.034) + "px " + SANS; ctx.fillStyle = "#F1D29A"; ctx.fillText("Comenta QUERO que eu te mando o link", W/2, y + W*0.065); }
-    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
+    // texto principal = a frase bonita; o nome do produto vai pequeno embaixo (curto, sem números de kit)
+    const [nome0, frase0] = p.s[n-1];
+    const nomeCurto = String(nome0 || "").replace(/^(kit|conjunto)\s+[\d\/]+\s*(unidades|pe[çc]as)?\s*(de\s+)?/i, "").replace(/\s*[-–]\s*\d+\s*(ml|g)\b.*$/i, "").split(/\s+/).slice(0, 4).join(" ");
+    const achado = p.tipo === "achados" && frase0;
+    const t = achado ? String(frase0).replace(/\s*·.*$/, "") : nome0, body = achado ? nomeCurto.toLowerCase() : frase0;
+    const st = Math.round(W*0.064), sb = Math.round(W*0.03);
+    ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 2);
+    ctx.font = "300 " + sb + "px " + SANS; const lb = body ? wrapText(ctx, body, mw, 2) : [];
+    const blockH = lt.length*st*1.1 + (lb.length ? W*0.025 + lb.length*sb*1.5 : 0);
+    let y = H*0.885 - blockH + rise; // texto embaixo, para a foto respirar
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.1; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx);
+    if (lb.length) { y += W*0.025; lb.forEach(l => { y += sb*1.5; delicado(ctx, l, W/2, y, sb, 0.9); }); }
+    drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
   } else {
-    ctx.textAlign = "center";
-    const s1 = Math.round(W*0.1); ctx.font = "italic " + s1 + "px " + SERIF;
-    const ls = wrapText(ctx, p.fim, mw, 4); let y = H*0.55 - (ls.length*s1*1.08)/2 + rise;
-    ls.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
-    ctx.font = "800 " + Math.round(W*0.042) + "px " + SANS; ctx.fillStyle = "#F1D29A";
-    ctx.fillText("Promoções reais no grupo · link na bio", W/2, y + W*0.1);
-    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
+    const s1 = Math.round(W*0.075); ctx.font = "italic " + s1 + "px " + SERIF;
+    const ls = wrapText(ctx, p.fim, mw, 3); let y = H*0.55 - (ls.length*s1*1.1)/2 + rise;
+    ls.forEach(l => { y += s1*1.1; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx);
+    delicado(ctx, p.tipo === "achados" ? "comenta QUERO que eu te mando os links" : "salva pra não esquecer", W/2, y + W*0.075, W*0.03, 0.9);
+    drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
   }
   ctx.globalAlpha = 1;
 }
@@ -1051,9 +1061,9 @@ async function renderProntos(){
     const p = PR.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
     if (!prOutputs[key]) prOutputs[key] = await buildPronto(p);
     const box = $("sl-" + p.id); if (!box) return;
-    const urls = prOutputs[key].map(b => URL.createObjectURL(b));
-    box.innerHTML = urls.map(u => '<img src="' + u + '" alt="">').join("");
-    const cv = document.querySelector('[data-cover="' + p.id + '"]'); if (cv) cv.src = urls[0];
+    const arqs = prOutputs[key].map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type: "image/jpeg"}));
+    mostrarBaixar(p.id, arqs);
+    const cv = document.querySelector('[data-cover="' + p.id + '"]'); if (cv) cv.src = URL.createObjectURL(arqs[0]);
   }
 }
 $("prontoList").addEventListener("click", async e => {
@@ -1093,10 +1103,21 @@ $("prontoList").addEventListener("click", async e => {
     } else toast("Este celular não deixou enviar direto. Use Salvar imagens.");
   }
   if (a === "save") {
-    for (const f of files) { const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); await new Promise(r => setTimeout(r, 300)); }
-    toast("Imagens salvas na pasta Downloads.");
+    // O Chrome do celular bloqueia vários downloads seguidos: baixa uma por uma com pausa
+    // e mostra um botão ⬇ em cada imagem (cada toque baixa uma, sem bloqueio).
+    for (const f of files) { baixarArquivo(f); await new Promise(r => setTimeout(r, 900)); }
+    mostrarBaixar(pid, files);
+    toast("Se só baixou a primeira, toque em ⬇ em cada imagem (ou em Permitir, quando o Chrome perguntar).", 7000);
   }
 });
+function baixarArquivo(f){ const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); }
+// Mostra as imagens com um botão ⬇ em cada uma
+function mostrarBaixar(pid, files){
+  const box = $("sl-" + pid); if (!box) return;
+  box.classList.add("com-baixar");
+  box.innerHTML = files.map((f, i) => '<div class="sl-item"><img src="' + URL.createObjectURL(f) + '" alt="Imagem ' + (i+1) + '"><button type="button" class="btn mini" data-baixar="' + i + '" aria-label="Baixar imagem ' + (i+1) + '">⬇ ' + (i+1) + '</button></div>').join("");
+  box.onclick = e => { const b = e.target.closest("[data-baixar]"); if (!b) return; baixarArquivo(files[Number(b.dataset.baixar)]); b.textContent = "✓ " + (Number(b.dataset.baixar) + 1); };
+}
 $("prontoList").addEventListener("change", async e => {
   if (e.target.dataset.pa !== "bg") return;
   const f = e.target.files && e.target.files[0]; if (!f) return;

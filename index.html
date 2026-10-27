@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
 <style>
 /* Layout: app de uma coluna — cabeçalho do dia, conteúdo rolando, barra de abas fixa embaixo */
 :root{
@@ -161,6 +161,8 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .pr-head .info{min-width:0;display:grid;gap:4px}
 .slides{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .slides img{width:120px;flex-shrink:0;border-radius:10px;border:1px solid var(--line)}
+.slides .sl-item{display:grid;gap:6px;justify-items:center;flex-shrink:0}
+.slides.com-baixar img{width:140px}
 .leg{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
 .splash{position:fixed;inset:0;background:var(--wine);color:var(--on-accent);display:grid;place-items:center;z-index:20;transition:opacity .4s}
 .splash div{font-family:var(--display);font-size:40px}
