@@ -682,7 +682,7 @@ $("vFile").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   vfile = f; if (vurl) URL.revokeObjectURL(vurl); vurl = URL.createObjectURL(f);
   $("pickText").textContent = f.name; $("pickInfo").textContent = "Lendo o áudio do vídeo...";
-  ["s2","s3","s4"].forEach(id => $(id).classList.add("off")); analysis = null;
+  ["s2","s3","s4"].forEach(id => $(id).classList.add("off")); analysis = null; legVez++; legendas = null; legPromessa = null; mostrarLegendas(); legStatus("");
   try {
     analysis = await analyzeAudio(f);
     if (analysis.duration > 185) { $("pickInfo").textContent = "Esse vídeo tem mais de 3 minutos. Escolha um mais curto."; return; }
@@ -692,6 +692,7 @@ $("vFile").addEventListener("change", async e => {
     $("pickInfo").textContent = "Não consegui ler o áudio. O vídeo vai sair só com o título, sem tirar pausas.";
   }
   $("s2").classList.remove("off"); $("s3").classList.remove("off"); showPlan();
+  $("legBox").hidden = !$("vLeg").checked; transcrever();
 });
 function videoDuration(u){ return new Promise((res, rej) => { const v = document.createElement("video"); v.preload = "metadata"; v.onloadedmetadata = () => res(v.duration); v.onerror = rej; v.src = u; }); }
 async function analyzeAudio(f){
@@ -702,7 +703,103 @@ async function analyzeAudio(f){
   const chans = []; for (let c = 0; c < audio.numberOfChannels; c++) chans.push(audio.getChannelData(c));
   const env = new Float32Array(n);
   for (let i = 0; i < n; i++) { let s = 0; const a = i * win; for (let j = 0; j < win; j++) { let x = 0; for (const ch of chans) x += ch[a+j]; x /= chans.length; s += x*x; } env[i] = 10 * Math.log10(s / win + 1e-10); }
-  return {duration: audio.duration, env, step: 0.02};
+  let wav = null; try { wav = await wav16k(audio); } catch(_) {}
+  return {duration: audio.duration, env, step: 0.02, wav};
+}
+// ---------- LEGENDA AUTOMÁTICA ----------
+// O som vai (WAV 16 kHz, mono) para o robô do Google, que pede ao Gemini o texto.
+// O tempo de cada pedaço é calculado aqui, pelos trechos em que ela está falando.
+async function wav16k(audio){
+  const sr = 16000, len = Math.max(1, Math.ceil(audio.duration * sr));
+  const oc = new OfflineAudioContext(1, len, sr), s = oc.createBufferSource();
+  s.buffer = audio; s.connect(oc.destination); s.start();
+  const d = (await oc.startRendering()).getChannelData(0);
+  const out = new ArrayBuffer(44 + d.length * 2), v = new DataView(out);
+  const txt = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  txt(0, "RIFF"); v.setUint32(4, 36 + d.length * 2, true); txt(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); txt(36, "data"); v.setUint32(40, d.length * 2, true);
+  for (let i = 0; i < d.length; i++) { const x = Math.max(-1, Math.min(1, d[i])); v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7FFF, true); }
+  return new Uint8Array(out);
+}
+function base64De(u8){ let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+let legendas = null, legPromessa = null, legVez = 0, legEstilo = "branca";
+// Espalha os pedaços de texto pelos momentos de fala (proporcional ao tamanho de cada pedaço).
+// Cada frase (termina em . ! ? …) fica entre as maiores pausas da fala.
+function alinharLegenda(falas, an){
+  const runs = an.env ? segmentsFor(an, "forte") : [{s: 0, e: an.duration}];
+  let grupos = [], g = [];
+  falas.forEach(f => { g.push(f); if (/[.!?…]["”'»)]?$/.test(f.t.trim())) { grupos.push(g); g = []; } });
+  if (g.length) grupos.push(g);
+  let regioes;
+  if (grupos.length > 1 && runs.length >= grupos.length) {
+    const cortes = runs.slice(1).map((r, i) => ({i, d: r.s - runs[i].e})).sort((a, b) => b.d - a.d).slice(0, grupos.length - 1).map(x => x.i).sort((a, b) => a - b);
+    regioes = []; let ini = 0;
+    cortes.forEach(i => { regioes.push(runs.slice(ini, i + 1)); ini = i + 1; });
+    regioes.push(runs.slice(ini));
+  } else { grupos = [falas]; regioes = [runs]; }
+  const out = [];
+  grupos.forEach((gr, k) => out.push(...espalhar(gr, regioes[k])));
+  return out;
+}
+// Espalha os pedaços pelos trechos de fala, proporcional ao tamanho de cada pedaço.
+function espalhar(falas, runs){
+  const total = runs.reduce((a, r) => a + r.e - r.s, 0);
+  const pesos = falas.map(f => Math.max(4, f.t.replace(/[^\p{L}\p{N}]/gu, "").length + 2));
+  const soma = pesos.reduce((a, b) => a + b, 0);
+  const em = x => { let falta = x * total; for (const r of runs) { const d = r.e - r.s; if (falta <= d + 1e-6) return r.s + falta; falta -= d; } return runs[runs.length - 1].e; };
+  let acc = 0;
+  return falas.map((f, i) => { const s = em(acc / soma); acc += pesos[i]; return {s, e: em(acc / soma), t: f.t}; });
+}
+function mostrarLegendas(){
+  const box = $("legLista"); if (!box) return;
+  box.innerHTML = (legendas || []).map((l, i) => '<label><small>' + fmt(l.s) + '</small><input class="input" data-leg="' + i + '" value="' + esc(l.t) + '" aria-label="Legenda ' + (i + 1) + '"></label>').join("");
+}
+function legStatus(t, err){ $("legStatus").textContent = t; $("legStatus").className = "status" + (err ? " err" : ""); }
+async function transcrever(){
+  if (!analysis || !$("vLeg").checked) return;
+  if (!analysis.wav) { legStatus("Não consegui ler o som deste vídeo. Ele vai sair sem legenda.", true); return; }
+  const vez = ++legVez; legendas = null; mostrarLegendas();
+  const t0 = Date.now(), relogio = setInterval(() => { if (vez !== legVez || legendas) return clearInterval(relogio); const s = Math.round((Date.now() - t0) / 1000); legStatus(s > 90 ? "O robô demorou. Tentando de novo… " + s + " s" : "Escrevendo a legenda… " + s + " s (leva até 1 minuto). Pode ir escolhendo o resto."); }, 1000);
+  legStatus("Escrevendo a legenda… leva até 1 minuto. Pode ir escolhendo o resto.");
+  legPromessa = (async () => {
+    try {
+      const corpo = JSON.stringify({acao: "legenda", mime: "audio/wav", audio: base64De(analysis.wav)});
+      // às vezes o Gemini trava: espera até 90 s e tenta mais uma vez
+      let j = null;
+      for (let tent = 0; tent < 2 && !j; tent++) {
+        const ctl = new AbortController(), limite = setTimeout(() => ctl.abort(), 90000);
+        try { j = await (await fetch(ROBO, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: corpo, signal: ctl.signal})).json(); }
+        catch (e) { if (tent === 1 || vez !== legVez) throw e; }
+        finally { clearTimeout(limite); }
+      }
+      if (vez !== legVez) return;
+      if (!j.falas) throw new Error(j.erro || "sem resposta");
+      if (!j.falas.length) { legStatus("Não ouvi fala neste vídeo. Ele vai sair sem legenda."); return; }
+      legendas = alinharLegenda(j.falas, analysis); mostrarLegendas();
+      legStatus("Legenda pronta! Toque numa linha para corrigir. Apague o texto para tirar a linha.");
+    } catch (e) { if (vez === legVez) legStatus("Não consegui fazer a legenda (" + (/fetch|abort/i.test(e.message || "") || !e.message ? "a internet caiu ou o robô demorou demais" : e.message) + "). Tente de novo desmarcando e marcando a caixa.", true); }
+    finally { clearInterval(relogio); }
+  })();
+  return legPromessa;
+}
+$("vLeg").addEventListener("change", () => { $("legBox").hidden = !$("vLeg").checked; if ($("vLeg").checked && !legendas) transcrever(); });
+$("legLista").addEventListener("input", e => { const i = e.target.dataset.leg; if (i != null && legendas && legendas[i]) legendas[i].t = e.target.value; });
+chipGroup($("legEstilo"), v => { legEstilo = v; });
+function legendaEm(t){ if (!legendas) return ""; for (const l of legendas) if (t >= l.s && t < l.e) return l.t.trim(); return ""; }
+function drawLegenda(ctx, W, H, text){
+  if (!text) return;
+  const size = Math.round(W * 0.072);
+  ctx.font = "900 " + size + "px 'Nunito Sans', system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lines = wrapLines(ctx, text, W * 0.86), lh = size * 1.2, y0 = H * 0.72 - (lines.length - 1) * lh / 2;
+  if (legEstilo === "vinho") {
+    const padX = size * 0.5, padY = size * 0.3, boxW = Math.min(W * 0.94, Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2), boxH = lines.length * lh + padY * 2;
+    const x = (W - boxW) / 2, y = y0 - lh / 2 - padY, r = size * 0.4;
+    ctx.fillStyle = "rgba(142,27,58,0.92)"; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+boxW,y,x+boxW,y+boxH,r); ctx.arcTo(x+boxW,y+boxH,x,y+boxH,r); ctx.arcTo(x,y+boxH,x,y,r); ctx.arcTo(x,y,x+boxW,y,r); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#FFFFFF"; lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + lh * i));
+    return;
+  }
+  ctx.lineJoin = "round"; ctx.lineWidth = size * 0.2; ctx.strokeStyle = "#000000"; ctx.fillStyle = legEstilo === "amarela" ? "#FFE14D" : "#FFFFFF";
+  lines.forEach((l, i) => { ctx.strokeText(l, W / 2, y0 + lh * i); ctx.fillText(l, W / 2, y0 + lh * i); });
 }
 function segmentsFor(an, lv){
   const L = LEVELS[lv];
@@ -752,6 +849,7 @@ $("vGo").addEventListener("click", async () => {
   outExt = mime.startsWith("video/mp4") ? "mp4" : "webm";
   $("vGo").disabled = true; $("vBarBox").hidden = false; $("s4").classList.add("off");
   let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch(_) {}
+  if ($("vLeg").checked && legPromessa && !legendas) { vSetStatus("Esperando a legenda ficar pronta…"); await legPromessa; }
   try {
     outBlob = await render(segmentsFor(analysis, level), $("vTitle").value.trim(), $("vZoom").checked, mime);
     $("vOut").src = URL.createObjectURL(outBlob); $("s4").classList.remove("off");
@@ -761,6 +859,7 @@ $("vGo").addEventListener("click", async () => {
   $("vGo").disabled = false;
 });
 async function render(segs, title, zoom, mime){
+  const comLegenda = $("vLeg").checked && legendas && legendas.length;
   try { await document.fonts.load("900 40px 'Nunito Sans'"); } catch(_) {}
   const v = document.createElement("video"); v.playsInline = true; v.preload = "auto"; v.src = vurl;
   await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = rej; });
@@ -774,7 +873,7 @@ async function render(segs, title, zoom, mime){
   const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   const stopped = new Promise(res => rec.onstop = res);
   let segIndex = 0, running = true;
-  const draw = () => { if (!running) return; const z = zoom && segIndex % 2 === 1 ? 1.12 : 1, dw = W*z, dh = H*z; ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.drawImage(v, (W-dw)/2, (H-dh)*0.42, dw, dh); drawTitle(ctx, W, H, title); requestAnimationFrame(draw); };
+  const draw = () => { if (!running) return; const z = zoom && segIndex % 2 === 1 ? 1.12 : 1, dw = W*z, dh = H*z; ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.drawImage(v, (W-dw)/2, (H-dh)*0.42, dw, dh); drawTitle(ctx, W, H, title); drawLegenda(ctx, W, H, comLegenda ? legendaEm(v.currentTime) : ""); requestAnimationFrame(draw); };
   const total = segs.reduce((a, r) => a + r.e - r.s, 0); let done = 0;
   const seek = t => new Promise(res => { v.onseeked = () => res(); v.currentTime = t; });
   await seek(segs[0].s); requestAnimationFrame(draw);

@@ -127,6 +127,11 @@ textarea.input{min-height:96px;resize:vertical}
 .seg3 .chip{padding:10px 4px}
 .check{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:700}
 .check input{width:22px;height:22px;accent-color:var(--wine)}
+.leg-box{display:grid;gap:10px}
+.leg-lista{display:grid;gap:6px;max-height:320px;overflow-y:auto;padding-right:4px}
+.leg-lista label{display:flex;gap:8px;align-items:center}
+.leg-lista small{color:var(--muted);font-size:12px;min-width:34px}
+.leg-lista input{flex:1;min-width:0;padding:8px 10px}
 .stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:15px;font-variant-numeric:tabular-nums}
 .stats b{font-size:20px;color:var(--pine)}
 .timeline{position:relative;height:22px;border-radius:8px;background:var(--wine-soft);overflow:hidden}
@@ -359,7 +364,7 @@ body.letra-grande .btn{font-size:16px}
   <header class="top">
     <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Editar <em>vídeo</em></h1>
-    <p class="sub">Tira as pausas, coloca o título e devolve pronto. O vídeo não sai do seu celular.</p>
+    <p class="sub">Tira as pausas, coloca o título e a legenda e devolve pronto. O vídeo fica no seu celular (para a legenda, só o som vai para o seu robô do Google).</p>
   </header>
   <section class="step" id="s1">
     <h3>1. Vídeo</h3>
@@ -373,6 +378,15 @@ body.letra-grande .btn{font-size:16px}
       <button type="button" class="chip" data-v="normal" aria-pressed="true">Normal</button>
       <button type="button" class="chip" data-v="forte" aria-pressed="false">Ritmo rápido</button></div></div>
     <label class="check" for="vZoom"><input type="checkbox" id="vZoom" checked> Zoom alternado a cada corte</label>
+    <label class="check" for="vLeg"><input type="checkbox" id="vLeg" checked> Legenda automática (escreve o que você fala)</label>
+    <div id="legBox" class="leg-box" hidden>
+      <div class="field"><span class="lab">Cor da legenda</span><div class="seg3" id="legEstilo">
+        <button type="button" class="chip" data-v="branca" aria-pressed="true">Branca</button>
+        <button type="button" class="chip" data-v="amarela" aria-pressed="false">Amarela</button>
+        <button type="button" class="chip" data-v="vinho" aria-pressed="false">Fundo vinho</button></div></div>
+      <p class="status" id="legStatus"></p>
+      <div id="legLista" class="leg-lista"></div>
+    </div>
     <div class="stats" id="vStats"></div>
     <div class="timeline" id="vTimeline" hidden></div>
   </section>
@@ -388,7 +402,7 @@ body.letra-grande .btn{font-size:16px}
     <video id="vOut" controls playsinline></video>
     <div class="actions"><button class="btn wine" id="vShare">Enviar para o TikTok</button><button class="btn" id="vSave">Salvar no celular</button></div>
     <p class="status" id="vSaveStatus"></p>
-    <div class="after"><b>No TikTok:</b><ol><li>Toque em <b>Legendas</b> (legenda automática).</li><li>Escolha a música.</li><li>Poste. Use o mesmo vídeo no Reels.</li></ol></div>
+    <div class="after"><b>No TikTok:</b><ol><li>Se você não usou a legenda do app, toque em <b>Legendas</b>.</li><li>Escolha a música.</li><li>Poste. Use o mesmo vídeo no Reels.</li></ol></div>
   </section>
   <canvas id="cv"></canvas>
 </section>
