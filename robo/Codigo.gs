@@ -116,6 +116,8 @@ function doGet(e) {
   const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
   try {
     if (q.acao === 'extra') return json({ok: guardarExtra_(q)});
+    if (q.acao === 'notafotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {notas: notasFotos_(String(q.urls || '').split(' ').filter(Boolean).slice(0, 8))} : {erro: 'chave errada'});
+    if (q.acao === 'refazerfotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? refazerFotosAuto_() : {erro: 'chave errada'});
     if (q.link && q.acao === 'pack') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {ok: guardarPack_(q)} : {erro: 'chave errada'});
     if (q.link) return json({link: meuLink_(q.link)});
     if (q.pergunta) return json({resposta: perguntaDalinha_(String(q.pergunta).slice(0, 600), String(q.ctx || '').slice(0, 900))});
@@ -144,8 +146,8 @@ function conteudo_(hoje) {
   const itens = ler('App - Itens');
   const prontos = ler('App - Prontos').filter(l => l[0] && !/^n/i.test(l[8] || 'sim')).map(l => ({
     id: l[0].trim(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
-    itens: itens.filter(i => i[0].trim() === l[0].trim()).sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5]}))
-  })).filter(p => p.itens.length);
+    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5]}))
+  })).filter(p => p.itens.length >= 3);
   // carrosséis novos do robô primeiro (os 20 mais recentes), depois os outros
   const autos = prontos.filter(p => /^auto/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
   const outros = prontos.filter(p => !/^auto/.test(p.id));
@@ -379,6 +381,73 @@ const TEMAS_CARROSSEL = [
   {c1: 'Decoração de Natal', c2: 'para a porta e a sala', fim: 'Por qual você começaria?', tags: '#decoracaodenatal #natal2026', busca: ['guirlanda natal', 'capa de almofada natal', 'papai noel decorativo', 'enfeite porta natal', 'cortina de luz led']},
   {c1: 'Black Friday:', c2: 'achados de casa com desconto', fim: 'Corre que acaba!', tags: '#blackfriday #achadinhosshopee', busca: ['air fryer', 'aspirador portatil', 'jogo de panelas', 'organizador closet', 'luminaria led']}
 ];
+// ---------- Foto limpa (pedido da Daia em 27/10/2026: nada de foto de vendedor com texto, preço ou selo) ----------
+const miniatura_ = u => /_tn$/.test(u) ? u : u + '_tn';
+// Dá nota de 0 a 10 para cada foto (10 = só o produto, sem nada escrito por cima). null se o Gemini não responder.
+function notasFotos_(urls) {
+  const partes = [];
+  urls.forEach((u, i) => {
+    try {
+      const r = UrlFetchApp.fetch(miniatura_(u), {muteHttpExceptions: true});
+      if (r.getResponseCode() !== 200) throw new Error('foto');
+      partes.push({text: 'Foto ' + (i + 1) + ':'});
+      partes.push({inline_data: {mime_type: String(r.getHeaders()['Content-Type'] || 'image/jpeg').split(';')[0], data: Utilities.base64Encode(r.getContent())}});
+    } catch (e) { partes.push({text: 'Foto ' + (i + 1) + ': (não abriu, nota 0)'}); }
+  });
+  const prompt = 'Você é uma editora de Instagram muito exigente. Olhe com atenção cada uma destas ' + urls.length + ' fotos de produtos da Shopee, inclusive os cantos. Para cada foto responda: ' +
+    '"texto": tem QUALQUER letra, número ou palavra colocada por cima da foto (propaganda, preço, medida, nome do produto, "kit", quantidade, marca d\'água)? Só não conta o que está impresso no próprio produto ou na embalagem. ' +
+    '"logo": tem logotipo ou nome de loja em qualquer canto, selo, faixa, seta, ícone, círculo de destaque ou moldura? ' +
+    '"colagem": é uma montagem com mais de uma foto, detalhe ampliado em círculo/quadro, várias cores lado a lado ou fundo dividido? ' +
+    '"bonita": nota de 0 a 10 de quão bonita, nítida e elegante é a foto para um post (luz boa, produto inteiro e bem enquadrado). ' +
+    'Na dúvida, responda true. Responda SÓ com JSON: {"fotos":[{"texto":false,"logo":false,"colagem":false,"bonita":8}, ...]} uma por foto, na ordem.';
+  const j = jsonDe_(gemini_(prompt, false, partes, {temperature: 0, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 1024}}));
+  if (!j || !Array.isArray(j.fotos)) return null;
+  // nota final: 0 se tiver texto, logo ou colagem; senão a nota de beleza
+  return urls.map((_, i) => { const f = j.fotos[i] || {}; return f.texto === false && f.logo === false && f.colagem === false ? Number(f.bonita) || 0 : 0; });
+}
+// Entre os melhores produtos da busca, escolhe o que tem a foto mais limpa (nota 7 ou mais).
+// Devolve undefined se o Gemini não respondeu (aí não dá para saber).
+function escolherLimpo_(lista, usados) {
+  const cand = lista.filter(x => Number(x.commissionRate) >= COMISSAO_MIN && Number(x.sales) >= VENDAS_MIN && x.imageUrl && !usados.has(String(x.itemId)) && !usados.has(x.imageUrl))
+    .sort((a, b) => Number(b.sales) * Number(b.commissionRate) - Number(a.sales) * Number(a.commissionRate)).slice(0, 8);
+  if (!cand.length) return null;
+  const notas = notasFotos_(cand.map(x => x.imageUrl));
+  if (!notas) return undefined;
+  let melhor = null, nota = 6.5;
+  cand.forEach((x, i) => { if (notas[i] > nota) { nota = notas[i]; melhor = x; } });
+  return melhor;
+}
+
+// Refaz as fotos dos carrosséis do robô: confere cada foto e troca o produto se a foto tiver texto, preço ou selo.
+// Coluna G da aba "App - Itens": ok / trocada / sem foto boa (essa linha some do app).
+function refazerFotosAuto_() {
+  const ini = Date.now(), ss = SpreadsheetApp.getActive(), aba = ss.getSheetByName('App - Itens');
+  const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
+  if (aba.getRange(1, 7).getValue() !== 'Foto conferida') aba.getRange(1, 7).setValue('Foto conferida');
+  const n = aba.getLastRow() - 1, dados = aba.getRange(2, 1, n, 7).getValues();
+  const pend = [];
+  dados.forEach((l, i) => { if (/^auto/.test(String(l[0])) && /^https?:/.test(String(l[5])) && !l[6]) pend.push(i); });
+  let ok = 0, trocadas = 0, ruins = 0;
+  for (let k = 0; k < pend.length && Date.now() - ini < 240000; k += 6) {
+    const grupo = pend.slice(k, k + 6), notas = notasFotos_(grupo.map(i => String(dados[i][5])));
+    if (!notas) break;
+    grupo.forEach((i, g) => {
+      const l = dados[i], linha = i + 2;
+      if (notas[g] >= 7) { aba.getRange(linha, 7).setValue('ok'); ok++; return; }
+      if (Date.now() - ini > 270000) return;
+      let lista = []; try { lista = buscar_(String(l[2]), senha); } catch (e) {}
+      const p = escolherLimpo_(lista, new Set([String(l[5])]));
+      if (p === undefined) return; // Gemini não respondeu: tenta na próxima vez
+      if (!p) { aba.getRange(linha, 7).setValue('sem foto boa'); ruins++; return; }
+      const frase = String(l[3]).split(' · ')[0], preco = 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ',') + ' na Shopee';
+      aba.getRange(linha, 3, 1, 5).setValues([[nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), String(l[3]).indexOf(' · ') > 0 ? frase + ' · ' + preco : preco, p.offerLink, p.imageUrl, 'trocada']]);
+      trocadas++;
+    });
+  }
+  const falta = aba.getRange(2, 1, n, 7).getValues().filter(l => /^auto/.test(String(l[0])) && /^https?:/.test(String(l[5])) && !l[6]).length;
+  return {ok: ok, trocadas: trocadas, semFotoBoa: ruins, faltam: falta};
+}
+
 function carrosselDoDia() {
   const ss = SpreadsheetApp.getActive();
   const agora = new Date(), id = 'auto' + Utilities.formatDate(agora, TZ, 'yyMMdd'), hoje = hojeBR_(agora);
@@ -393,8 +462,7 @@ function carrosselDoDia() {
   for (const palavra of tema.busca) {
     let lista = [];
     try { lista = buscar_(palavra, senha); } catch (e) { continue; }
-    const p = lista.filter(x => Number(x.commissionRate) >= COMISSAO_MIN && Number(x.sales) >= VENDAS_MIN && x.imageUrl && !usados.has(String(x.itemId)))
-      .sort((a, b) => Number(b.sales) * Number(b.commissionRate) - Number(a.sales) * Number(a.commissionRate))[0];
+    const p = escolherLimpo_(lista, usados); // só entra produto com foto limpa
     if (!p) continue;
     usados.add(String(p.itemId));
     itens.push({n: nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), d: 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ',') + ' na Shopee', link: p.offerLink, foto: p.imageUrl});
