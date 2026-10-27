@@ -84,6 +84,32 @@ function pedidoVideo_(cena, nome) {
   return 'Vídeo vertical ultrarrealista de 8 segundos a partir desta foto. ' + cena + '. O produto (' + nome + ') continua igual e em destaque, sendo usado ou arrumado por mãos femininas. Movimento lento de câmera se aproximando, luz quente, clima aconchegante, sem texto na tela.';
 }
 
+// O app manda o áudio do vídeo (WAV 16 kHz) e recebe a legenda com os tempos (Gemini).
+function doPost(e) {
+  const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const q = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (q.acao === 'legenda') return json(legendar_(q));
+    return json({erro: 'ação desconhecida'});
+  } catch (err) { return json({erro: String(err.message || err)}); }
+}
+function legendar_(q) {
+  const audio = String(q.audio || '');
+  if (!audio) return {erro: 'sem áudio'};
+  if (audio.length > 15000000) return {erro: 'vídeo longo demais para a legenda'};
+  const prompt = 'Transcreva este áudio em português do Brasil, palavra por palavra, exatamente como a pessoa falou (pode corrigir só a pontuação e escrever números por extenso como foram falados). ' +
+    'Divida em pedaços curtos de legenda de TikTok, de 2 a 5 palavras cada, na ordem, sem pular nada. ' +
+    'Para cada pedaço dê o início "s" e o fim "e" em segundos (com décimos) contados do começo do áudio. ' +
+    'Responda SÓ com JSON assim: {"falas":[{"s":0.4,"e":1.6,"t":"Gente, olha esse"}]}. Se ninguém falar, responda {"falas":[]}.';
+  const txt = gemini_(prompt, false, [{inline_data: {mime_type: q.mime || 'audio/wav', data: audio}}], {temperature: 0, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+  if (!txt) return {erro: 'o Gemini não respondeu (confira a GEMINI_KEY)'};
+  const j = jsonDe_(txt);
+  if (!j || !Array.isArray(j.falas)) return {erro: 'não consegui entender o áudio'};
+  const falas = j.falas.map(f => ({s: Number(f.s), e: Number(f.e), t: String(f.t || '').trim().slice(0, 80)}))
+    .filter(f => f.t && isFinite(f.s) && isFinite(f.e) && f.e > f.s).sort((a, b) => a.s - b.s);
+  return {falas: falas};
+}
+
 // O app Daia Studio lê daqui os 3 vídeos do dia (Implantar > App da Web).
 function doGet(e) {
   const q = (e && e.parameter) || {};
@@ -254,7 +280,7 @@ const APP_URL = 'https://sgtdaianadelima-ai.github.io/daia-studio/';
 const hojeBR_ = (d) => Utilities.formatDate(d || new Date(), TZ, 'dd/MM/yyyy');
 
 // ---------- Gemini ----------
-function gemini_(prompt, comBusca) {
+function gemini_(prompt, comBusca, partes, config) {
   const props = PropertiesService.getScriptProperties();
   const key = props.getProperty('GEMINI_KEY');
   if (!key) return null;
@@ -268,8 +294,9 @@ function gemini_(prompt, comBusca) {
   for (const modelo of ordem.slice(0, 6)) {
     for (const busca of (comBusca ? [true, false] : [false])) {
       if (busca && cache.get('SEM_BUSCA')) continue;
-      const body = {contents: [{role: 'user', parts: [{text: prompt}]}], generationConfig: {temperature: 0.8}};
+      const body = {contents: [{role: 'user', parts: (partes || []).concat([{text: prompt}])}], generationConfig: config || {temperature: 0.8}};
       if (busca) body.tools = [{google_search: {}}];
+      const t0 = Date.now();
       const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent',
         {method: 'post', contentType: 'application/json', headers: {'x-goog-api-key': key}, payload: JSON.stringify(body), muteHttpExceptions: true});
       const cod = r.getResponseCode();
@@ -277,6 +304,7 @@ function gemini_(prompt, comBusca) {
         const j = JSON.parse(r.getContentText());
         const c = ((j.candidates || [])[0] || {}).content;
         const txt = c && c.parts ? c.parts.map(p => p.text || '').join('').trim() : '';
+        Logger.log('Gemini ok ' + modelo + ' em ' + (Date.now() - t0) + ' ms');
         if (txt) { if (modelo !== salvo) props.setProperty('GEMINI_MODELO', modelo); return txt; }
       } else {
         Logger.log('Gemini ' + cod + ' (' + modelo + ', busca=' + busca + '): ' + r.getContentText().slice(0, 160));
