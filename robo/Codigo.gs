@@ -147,7 +147,7 @@ function conteudo_(hoje) {
   const itens = ler('App - Itens');
   const prontos = ler('App - Prontos').filter(l => l[0] && !/^n/i.test(l[8] || 'sim')).map(l => ({
     id: l[0].trim(), tipo: String(l[9] || '').trim().toLowerCase(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
-    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5], antes: i[7] || ''}))
+    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5], antes: i[7] || '', prod: i[8] || ''}))
   })).filter(p => p.itens.length >= 3);
   // carrosséis novos do robô primeiro (os 20 mais recentes), depois os outros
   const autos = prontos.filter(p => /^(auto|cobra)/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
@@ -474,7 +474,7 @@ function carrosselDoDia() {
     '. Responda SOMENTE com JSON: {"c1":"linha fina da capa, até 4 palavras","c2":"linha forte da capa, até 6 palavras, que dê vontade de arrastar","leg":"legenda de até 2 frases terminando com: Comenta QUERO que eu te mando os links!","frases":["frase curta de até 7 palavras para cada produto, na mesma ordem"]}', false));
   if (g) { c1 = g.c1 || c1; c2 = g.c2 || c2; leg = g.leg || leg; (g.frases || []).forEach((f, k) => { if (itens[k] && f) itens[k].d = f; }); } // sem preço: o valor muda toda hora (pedido da Daia)
   abaP.appendRow([id, c1, c2, CAPAS[dia % CAPAS.length], tema.fim, leg, tema.tags + ' #achadinhosshopee #shopee', 'Robô: produtos da Shopee de ' + hoje, 'sim']);
-  abaI.getRange(abaI.getLastRow() + 1, 1, itens.length, 6).setValues(itens.map((it, k) => [id, k + 1, it.n, it.d, it.link, it.foto]));
+  abaI.getRange(abaI.getLastRow() + 1, 1, itens.length, 9).setValues(itens.map((it, k) => [id, k + 1, it.n, it.d, it.link, it.foto, '', '', it.foto])); // coluna I = foto original do produto (para a Foto com IA)
   return id + ' com ' + itens.length + ' produtos';
 }
 
@@ -618,5 +618,5 @@ function buscaProduto_(palavra) {
   if (!palavra) return {erro: 'sem palavra'};
   const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
   const lista = buscar_(palavra, senha).map(p => ({p: p, nota: oportunidade_(p)})).filter(x => x.nota > 0).sort((a, b) => b.nota - a.nota).slice(0, 5);
-  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, vendas: x.p.sales, com: x.p.commissionRate, id: x.p.itemId}))};
+  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, img: x.p.imageUrl, vendas: x.p.sales, com: x.p.commissionRate, id: x.p.itemId}))};
 }
