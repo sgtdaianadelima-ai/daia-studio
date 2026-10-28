@@ -39,7 +39,7 @@ O código do robô fica no Google (Extensões > Apps Script da planilha). Depois
 ## Capas e imagens sob pedido (desde 27/10/2026)
 Quando a Daia mandar uma foto e pedir "faz uma capa" (Reels, TikTok, post, story...), fazer **direto, sem perguntar**, na identidade visual Dale Daia, a mesma dos carrosséis do app (`drawProntoSlide` no `app.js`):
 - Foto real dela ocupando tudo + degradê escuro de baixo para cima.
-- **Sempre editar a foto antes** (pedido da Daia, 28/10/2026): o Instagram dela é de fotos "instagramáveis, estilo Pinterest" — luz quente dourada, aconchegante, cantos mais escuros (como a foto da árvore). Print: cortar as bordas pretas primeiro. Depois `python3 capas/embelezar.py foto.jpg saida.jpg` (tira o cinza/azul, luz quente, brilho suave, poucas luzinhas desfocadas nas bordas, vinheta). Conferir o antes/depois: sem exagero. Não há gerador de imagem por IA aqui: é edição; se ela quiser uma foto refeita por IA, dizer isso com clareza.
+- **NÃO editar a foto** (28/10/2026: a Daia achou horrível a edição de luz/cor). Ela mesma traz a foto pronta (feita por IA, estilo Pinterest): só cortar bordas pretas de print e colocar o texto. Se a foto for mais larga que 9:16, avisar que as laterais cortam no Reels.
 - Linha pequena em cima em **dourado #F1D29A**, maiúsculas espaçadas, com tracinhos dos lados (ex.: "OPERAÇÃO NATAL").
 - Título em 2 linhas: **DM Serif Display itálico** (fina) + **Nunito Sans 900 MAIÚSCULO** (grossa), branco com sombra.
 - Frase curta embaixo (Nunito Sans 700) com uma palavra em dourado. "@daledaia" no rodapé.
