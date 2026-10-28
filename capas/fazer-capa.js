@@ -1,11 +1,11 @@
 // Gera capa no estilo Dale Daia (foto real + degradê escuro embaixo + letra fina inclinada + letra grossa + dourado).
-// Uso: node capas/fazer-capa.js foto.jpg saida.png "TAG" "linha fina" "LINHA GROSSA" "frase com *destaque*" [story|feed|tiktok]
+// Uso: [TOPO=1400] node capas/fazer-capa.js foto.jpg saida.png "TAG" "linha fina" "LINHA GROSSA" "frase com *destaque*" [story|feed|tiktok]
 // story/tiktok = 1080x1920 (texto fica no meio, aparece no quadradinho do perfil); feed = 1080x1350.
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
 const [foto, saida, tag = '', fina = '', grossa = '', frase = '', fmt = 'story'] = process.argv.slice(2);
 if (!foto || !saida) { console.log('Uso: node capas/fazer-capa.js foto saida.png TAG fina GROSSA frase [story|feed|tiktok]'); process.exit(1); }
-const W = 1080, H = fmt === 'feed' ? 1350 : 1920, topo = fmt === 'feed' ? 760 : 1150;
+const W = 1080, H = fmt === 'feed' ? 1350 : 1920, topo = Number(process.env.TOPO) || (fmt === 'feed' ? 760 : 1150); // TOPO=1400 desce o texto quando o principal da foto fica no meio
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const fraseHtml = esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>');
 const img = 'data:image/' + (/\.png$/i.test(foto) ? 'png' : 'jpeg') + ';base64,' + fs.readFileSync(foto).toString('base64');
@@ -27,5 +27,7 @@ ${frase ? `<div class="p">${fraseHtml}</div>` : ''}</div><div class="h">@daledai
 (async () => {
   const b = await chromium.launch(), p = await b.newPage({ viewport: { width: W, height: H } });
   await p.setContent(html, { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
+  // palavra comprida (ex.: TRANSFORMAÇÃO): diminui a letra até caber
+  await p.evaluate(() => document.querySelectorAll('.s,.b').forEach(e => { e.style.whiteSpace = 'nowrap'; let f = parseFloat(getComputedStyle(e).fontSize); while (e.scrollWidth > e.clientWidth && f > 50) e.style.fontSize = (f -= 2) + 'px'; }));
   await (await p.$('#c')).screenshot({ path: path.resolve(saida) }); await b.close(); console.log('ok', saida);
 })();
