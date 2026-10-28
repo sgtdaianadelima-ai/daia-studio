@@ -169,6 +169,10 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .slides .sl-off small{font-size:12px;color:var(--muted)}
 .sl-editor{flex-basis:100%;display:grid;gap:10px;margin-top:8px;padding:12px;border:2px solid var(--wine);border-radius:16px;background:var(--wine-soft)}
 .sl-editor .input{background:var(--surface)}
+.ia-apps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ia-app{display:grid;gap:2px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);text-decoration:none}
+.ia-app b{font-size:17px;color:var(--wine)}
+.ia-app small{font-size:13px;color:var(--muted)}
 .leg{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
 .splash{position:fixed;inset:0;background:var(--wine);color:var(--on-accent);display:grid;place-items:center;z-index:20;transition:opacity .4s}
 .splash div{font-family:var(--display);font-size:40px}
@@ -368,7 +372,15 @@ body.letra-grande .btn{font-size:16px}
 </section>
 
 <!-- EDITAR -->
-<section id="tab-editar" hidden>
+<section id="tab-ia" hidden>
+  <header class="top">
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
+    <h1>Criar com <em>IA</em></h1>
+    <p class="sub">Abra a IA que quiser ou use um pedido pronto. Escreva o tema, toque no pedido, confira e envie.</p>
+  </header>
+  <div id="iaBox"></div>
+</section>
+<section id="tab-editar" hidden aria-hidden="true" style="display:none"><!-- editor antigo, desligado (v22) -->
   <header class="top">
     <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Editar <em>vídeo</em></h1>
@@ -422,7 +434,7 @@ body.letra-grande .btn{font-size:16px}
   <button role="tab" data-tab="prontos" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="14" height="18" rx="2"/><path d="M21 7v12a2 2 0 0 1-2 2"/><path d="M7 8h6M7 12h6"/></svg>Prontos</button>
   <button role="tab" data-tab="produtos" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Produtos</button>
   <button role="tab" data-tab="ideias" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Ideias</button>
-  <button role="tab" data-tab="editar" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Editar</button>
+  <button role="tab" data-tab="ia" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>IA</button>
 </nav>
 <div class="toast" id="toast" hidden></div>
 

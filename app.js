@@ -184,10 +184,10 @@ function renderHoje(){
       '<p class="how det">' + esc(p.m) + '</p>' +
       (p.r ? '<ol class="script det">' + p.r.map(l => '<li>' + esc(l) + '</li>').join("") + '</ol>' : '') +
       '<p class="cta det">' + esc(CTA[p.k]) + '</p>' +
-      '<details class="tips det"><summary>Como editar e onde postar</summary><p>1) Aba Editar: escolha o vídeo e toque em Editar (tira as pausas). 2) Toque em Enviar para o TikTok. 3) No TikTok: Legendas, música e postar.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
+      '<details class="tips det"><summary>Como editar e onde postar</summary><p>1) Grave. 2) No TikTok ou no CapCut: toque em Legendas (automáticas) e escolha a música. 3) Poste. Precisa de ideia, gancho ou legenda? Toque em ✨ Ideias com IA.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
       '<div class="actions"><button class="btn main" data-act="done">' + (d ? "Postado ✓" : "Marcar como postado") + '</button>' +
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
-      '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
+      '<button class="btn" data-act="editar">✨ Ideias com IA</button></div>' +
     '</article>';
   }).join("");
   const hoje = cur === todayKey;
@@ -573,7 +573,7 @@ $("cards").addEventListener("click", e => {
   const i = Number(b.closest(".card").dataset.i), p = PLAN[cur][i], k = cur + "-" + i;
   if (b.dataset.act === "done") { state.done[k] = !state.done[k]; save(); renderHoje(); }
   if (b.dataset.act === "roteiro") askClaude(promptRoteiro(p));
-  if (b.dataset.act === "editar") { $("vTitle").value = p.k === "serie" ? p.t.split(" — ")[0].replace("Ep.", "MINHA PRIMEIRA ÁRVORE — EP.").toUpperCase() : p.t.toUpperCase(); show("editar"); }
+  if (b.dataset.act === "editar") { state.iaTema = p.t; save(); show("ia"); }
 });
 $("arrived").addEventListener("click", e => { const id = e.target.closest("button[data-ask]")?.dataset.ask; if (id) askProduct(id); });
 $("prev").onclick = () => { const i = DAYS.indexOf(cur); if (i > 0) { cur = DAYS[i-1]; renderHoje(); } };
@@ -1239,10 +1239,70 @@ $("prontoList").addEventListener("change", async e => {
   renderProntos(); toast("Foto colocada na capa.");
 });
 
+// ---------- CRIAR COM IA (no lugar do editor de vídeo, desde a v22) ----------
+// Atalhos para as IAs e pedidos prontos (baseados nos prompts que a Daia mandou). {tema} = o que ela escrever.
+const IA_APPS = [
+  ["Gemini", "https://gemini.google.com/app", "fotos e vídeos com IA"],
+  ["ChatGPT", "https://chatgpt.com/", "fotos e textos"],
+  ["Claude", "https://claude.ai/new", "ideias, roteiros e legendas"],
+  ["CapCut", "https://www.capcut.com/", "música e legenda no vídeo"]
+];
+const IA_CTX = "Sou a Daia, afiliada da Shopee (perfil @daledaia), nicho casa, decoração e achadinhos. Meu estilo é minimalista, aconchegante e elegante; meu público são mulheres que amam casa bonita e organizada gastando pouco. Português do Brasil, simples, tom de amiga. Nunca cite preço.";
+const IA_PEDIDOS = [
+  {id: "virais", nome: "✨ 5 ideias que viralizam", ias: "txt", p: "Você é um estrategista de redes sociais especialista em crescimento acelerado. Analise as tendências virais recentes do Instagram e do TikTok no nicho de achadinhos de casa sobre {tema} e crie 5 ideias curtas, explosivas e com alto potencial de compartilhamento. Seja específico e prático: para cada ideia, diga o formato, o gancho dos 3 primeiros segundos e o que mostrar."},
+  {id: "ganchos", nome: "🪝 10 ganchos de vídeo", ias: "txt", p: "Liste as 10 maiores dores que o meu público sente sobre {tema}. Transforme cada dor em um gancho de até 10 palavras, pronto para Reels e TikTok. Evite clichês, seja direto e provocador."},
+  {id: "roteiro", nome: "🎬 Roteiro de Reels de 30 s", ias: "txt", p: "Crie um roteiro de 30 segundos para Reels sobre {tema}. Estrutura: 1) gancho irresistível; 2) história curta e envolvente; 3) chamada para comentar ou salvar. Diga o que aparece em cada parte. Frases curtas e simples. Nenhuma enrolação."},
+  {id: "carrossel", nome: "📌 Carrossel que todo mundo salva", ias: "txt", p: "Liste 5 dicas práticas e pouco conhecidas sobre {tema}. Cada dica com no máximo 12 palavras, clara e fácil de aplicar. Objetivo: um carrossel impossível de não salvar. Dê também a frase da capa (até 6 palavras) e a frase do último slide."},
+  {id: "cobra", nome: "🏠 Carrossel \"a casa te cobra\"", ias: "txt", p: "Monte um carrossel no formato antes e depois \"a casa te cobra / a casa te poupa\" (ou \"isso irrita / isso traz paz\") sobre {tema}: 5 cantinhos da casa; para cada um, diga a foto de antes (bagunça), a foto de depois (organizado) e o achado da Shopee que resolve. Termine com uma pergunta para gerar comentários e a legenda com \"Digita CASA que eu te mando os links!\"."},
+  {id: "legenda", nome: "💬 Legenda e hashtags", ias: "txt", p: "Escreva 3 opções de legenda curta (até 2 frases) para um post sobre {tema}, terminando com \"Comenta QUERO que eu te mando o link\". Depois, 5 hashtags que estão funcionando no nicho de casa e achadinhos."},
+  {id: "cta", nome: "📣 10 chamadas para comentar", ias: "txt", p: "Crie 10 chamadas (CTAs) curtas, criativas e diretas que incentivem comentários ou salvamentos em posts sobre {tema}. Evite frases genéricas; use curiosidade e ação imediata."},
+  {id: "reaproveitar", nome: "♻️ Transformar em 3 posts", ias: "txt", p: "Transforme este conteúdo em: 1) roteiro de Reels de 7 segundos; 2) carrossel de 5 slides; 3) post com uma frase de impacto. Adapte a linguagem para cada formato.\n\nConteúdo: {tema}"},
+  {id: "foto", nome: "📸 Foto bonita do produto (mande a foto junto)", ias: "img", p: "Crie uma foto realista e elegante deste MESMO produto da foto (não mude o produto: mesma cor, formato e detalhes), sendo usado numa casa bonita e aconchegante. Luz natural quente, estilo minimalista, tons neutros, foto vertical 4:5 com cara de foto de celular de verdade. Sem nenhum texto, logo, preço, selo ou marca d’água. Produto: {tema}."},
+  {id: "video", nome: "🎥 Vídeo de 8 s da foto (mande a foto junto)", ias: "img", p: "Transforme esta foto em um vídeo vertical 9:16 de 8 segundos, ultrarrealista: câmera se aproximando devagar, mãos femininas usando o produto com calma, luz quente de fim de tarde, casa aconchegante. O produto continua exatamente igual. Sem texto na tela. Produto: {tema}."}
+];
+let iaAberto = null;
+function textoPedido(ped){ const tema = (state.iaTema || "").trim() || "achadinhos de casa da Shopee"; return (ped.ias === "txt" ? IA_CTX + "\n\n" : "") + ped.p.split("{tema}").join(tema); }
+function renderIA(){
+  const box = $("iaBox"); if (!box) return;
+  box.innerHTML = '<article class="card"><div class="meta"><span class="tag trend">Abrir uma IA</span></div><div class="ia-apps">' +
+      IA_APPS.map(a => '<a class="ia-app" href="' + a[1] + '" target="_blank" rel="noopener"><b>' + a[0] + '</b><small>' + esc(a[2]) + '</small></a>').join("") + '</div></article>' +
+    '<article class="card"><div class="meta"><span class="tag casa">Pedidos prontos</span><span class="why">toque para ver</span></div>' +
+      '<div class="field"><label for="iaTema">Tema ou produto</label><input class="input" id="iaTema" placeholder="Ex.: cozinha organizada, pisca-pisca de Natal" value="' + esc(state.iaTema || "") + '"></div>' +
+      '<div class="actions" style="flex-wrap:wrap">' + IA_PEDIDOS.map(p => '<button class="btn" data-iaped="' + p.id + '">' + esc(p.nome) + '</button>').join("") + '</div>' +
+      '<div id="iaPrev"></div></article>' +
+    '<article class="card"><div class="meta"><span class="tag serie">Dica</span></div><p class="how">📸 e 🎥 com foto: no Gemini ou no ChatGPT, toque no <b>+</b>, escolha a foto do produto e cole o pedido. O Claude escreve muito bem, mas não cria imagens.<br>🎵 Legenda e música do vídeo: use as legendas automáticas do TikTok ou do CapCut.</p></article>';
+  if (iaAberto) abrirPedido(iaAberto);
+}
+function abrirPedido(id){
+  const ped = IA_PEDIDOS.find(p => p.id === id), box = $("iaPrev"); if (!ped || !box) return;
+  iaAberto = id;
+  const img = ped.ias === "img";
+  box.innerHTML = '<div class="resp-prev"><b>' + esc(ped.nome) + '</b><textarea class="input" id="iaTxt" rows="8" aria-label="Pedido">' + esc(textoPedido(ped)) + '</textarea>' +
+    '<div class="actions"><button class="btn main" data-iaacao="copiar">📋 Copiar</button>' +
+    (img ? '' : '<button class="btn" data-iaacao="claude">Enviar ao Claude</button>') +
+    '<button class="btn" data-iaacao="chatgpt">Enviar ao ChatGPT</button><button class="btn" data-iaacao="gemini">Abrir o Gemini</button><button class="btn" data-iaacao="fechar">Fechar</button></div>' +
+    '<p class="how nota">' + (img ? 'Copie, abra o Gemini ou o ChatGPT, mande a foto do produto e cole o pedido.' : 'No Claude e no ChatGPT o pedido já vai escrito. No Gemini, é só colar (ele já fica copiado).') + '</p></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+function abrirLink(u){ const l = document.createElement("a"); l.href = u; l.target = "_blank"; l.rel = "noopener"; document.body.appendChild(l); l.click(); l.remove(); }
+$("iaBox").addEventListener("input", e => { if (e.target.id === "iaTema") { state.iaTema = e.target.value; save(); const t = $("iaTxt"); if (t && iaAberto) t.value = textoPedido(IA_PEDIDOS.find(p => p.id === iaAberto)); } });
+$("iaBox").addEventListener("click", async e => {
+  const pb = e.target.closest("button[data-iaped]"); if (pb) { abrirPedido(pb.dataset.iaped); return; }
+  const a = e.target.closest("button[data-iaacao]")?.dataset.iaacao; if (!a) return;
+  if (a === "fechar") { iaAberto = null; $("iaPrev").innerHTML = ""; return; }
+  const txt = $("iaTxt").value;
+  try { await navigator.clipboard.writeText(txt); } catch(_) {}
+  if (a === "copiar") { toast("Copiado! Agora é só colar na IA."); return; }
+  if (a === "claude") abrirLink("https://claude.ai/new?q=" + encodeURIComponent(txt));
+  if (a === "chatgpt") abrirLink("https://chatgpt.com/?q=" + encodeURIComponent(txt));
+  if (a === "gemini") { toast("Pedido copiado. No Gemini, toque e segure na caixa de texto e cole.", 5000); abrirLink("https://gemini.google.com/app"); }
+});
+
 // ---------- abas ----------
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["hoje","prontos","produtos","ideias","editar"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
+  if (t === "ia") renderIA();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}
