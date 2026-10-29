@@ -205,12 +205,92 @@ function renderHoje(){
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
+    (hoje ? secao("crescer", "🔥", "Crescer no TikTok", "gancho e roteiro prontos · meta 2.000", state.tkEp > 1 ? "Ep. " + (state.tkEp - 1) + " ✓" : "", false, tiktokCrescer()) : "") +
     secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
     (hoje ? secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
       secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, analiseCard() + semanaCard()) +
       secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
+// ---------- CRESCER NO TIKTOK (meta de 2.000 seguidores) ----------
+// Tudo pronto todo dia: gancho, roteiro e legenda do achadinho (com o produto da Shopee de hoje) e da Operação Natal.
+const TK_META = 2000;
+const TK_GANCHOS = [
+  "Achei na Shopee por {r} e parece de loja cara",
+  "Não compre {p} antes de ver isso",
+  "Esse achadinho de {r} mudou minha casa",
+  "Testei o {p} que todo mundo comenta: vale ou não?",
+  "Gente, isso custou só {r} 😱",
+  "Para de rolar: achado de casa que vale cada centavo",
+  "Minha casa antes e depois de gastar {r}",
+  "O achadinho que todo mundo me pergunta onde comprei",
+  "Se a sua casa é pequena, você precisa disso",
+  "Comprei com medo… olha o que chegou",
+  "Ninguém acredita que isso é da Shopee",
+  "Achadinho de {r} que eu compraria de novo"
+];
+const TK_NATAL = [
+  ["Minha árvore era capenga assim… 😭", "Mostre o \"antes\" por 2 segundos e corte para hoje."],
+  ["Dia {e} tentando salvar minha árvore", "Mostre o que você mudou hoje, de perto."],
+  ["Dá nota de 0 a 10 pra minha árvore hoje?", "Mostre a árvore acesa, devagar, de baixo para cima."],
+  ["Gastei pouco e olha a diferença", "Mostre o enfeite na mão e depois na árvore."],
+  ["Errei nisso e você não precisa errar", "Mostre o erro e como ficou certo."],
+  ["Operação Natal: o detalhe que deixou tudo mais cheio", "Mostre o detalhe de perto e depois a árvore inteira."]
+];
+const tkDia = () => Math.floor(fromKey(todayKey).getTime() / 864e5);
+const tkPreenche = (t, v) => t.replace(/\{p\}/g, v ? v.nome : "esse achadinho").replace(/\{r\}/g, v ? v.preco : "pouquinho");
+function tkSeguidores(){
+  const s = state.seg || {}, ks = Object.keys(s).sort(), ult = ks.length ? s[ks[ks.length - 1]] : null;
+  let txt = "Escreva quantos seguidores você tem hoje. O app mostra quanto falta.";
+  if (ult != null) {
+    const falta = Math.max(0, TK_META - ult), cresc = ks.length > 1 ? ult - s[ks[0]] : 0;
+    txt = falta ? "Faltam <b>" + falta.toLocaleString("pt-BR") + "</b> para 2.000." : "<b>Você chegou nos 2.000! 🎉</b>";
+    if (ks.length > 1) txt += " " + (cresc >= 0 ? "+" : "") + cresc.toLocaleString("pt-BR") + " desde " + esc(fmtDay(ks[0], {day:"numeric", month:"short"})) + ".";
+  }
+  const pct = ult != null ? Math.min(100, ult / TK_META * 100) : 0;
+  return '<article class="card"><div class="meta"><span class="tag serie">Meta: 2.000 seguidores</span><span class="why">' + (ult != null ? ult.toLocaleString("pt-BR") + " agora" : "") + '</span></div>' +
+    '<div class="meta-barra"><i style="width:' + pct + '%"></i></div><p class="how">' + txt + '</p>' +
+    '<div class="actions"><input class="input" id="tkSeg" type="number" inputmode="numeric" min="0" placeholder="Seguidores hoje" value="' + (s[todayKey] != null ? s[todayKey] : "") + '" style="flex:1;min-width:0"><button class="btn wine" data-tkseg="1">Salvar</button></div></article>';
+}
+function tkAchadinho(){
+  const vs = state.ia && state.ia.videos ? state.ia.videos : [];
+  const g = (state.tkGira && state.tkGira[todayKey]) || 0;
+  const v = vs.length ? efetivo(vs[(tkDia() + g) % vs.length]) : null;
+  const gancho = tkPreenche(TK_GANCHOS[(tkDia() + g) % TK_GANCHOS.length], v);
+  const tags = "#achadinhosshopee #achadinhos #casadecorada #decoracao #shopee";
+  const legenda = gancho + " ✨\nComenta QUERO que eu te mando o link 🤍\n\n" + tags;
+  return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag casa">Vídeo 1 · Achadinho</span><span class="why">faz vender</span></div>' +
+    (v ? '<h3 class="title">' + esc(v.nome) + '</h3><p class="how">' + esc(v.preco) + ' · produto da Shopee Vídeo de hoje</p>' : '<h3 class="title">Um achadinho da sua casa</h3>') +
+    '<div class="say"><small>Escreva na tela e fale (primeiros 2 segundos)</small>' + esc(gancho) + '</div>' +
+    '<ol class="script"><li><b>0 a 2 s:</b> comece pelo resultado bonito, já pronto. Nunca pela caixa.</li><li><b>2 a 8 s:</b> o produto de perto, na sua mão.</li><li><b>8 a 15 s:</b> usando na sua casa. Mostre 1 detalhe que surpreende.</li><li><b>Final:</b> "Comenta QUERO que eu te mando o link. Segue pra ver o próximo achado."</li></ol>' +
+    '<p class="how det">Grave de 7 a 15 segundos. Pode usar o vídeo de IA da Shopee Vídeo de hoje: é só colocar o gancho como texto na tela.</p>' +
+    '<div class="actions">' + copyBtn(gancho, "Copiar gancho") + copyBtn(legenda, "Copiar legenda", "wine") + (v ? '<a class="btn" style="text-decoration:none" href="' + esc(v.link) + '" target="_blank" rel="noopener">Abrir o produto</a>' : '') + '<button class="btn" data-tkgira="1">🔀 Outro</button></div></article>';
+}
+function tkNatal(){
+  const ep = state.tkEp || 1, g = (state.tkGiraN && state.tkGiraN[todayKey]) || 0;
+  const [h0, mostra] = TK_NATAL[(tkDia() + g) % TK_NATAL.length], gancho = h0.replace("{e}", ep);
+  const legenda = "Operação Natal · Ep. " + ep + " 🎄 " + gancho + "\nSegue pra ver o próximo episódio 🤍\n\n#operacaonatal #decoracaodenatal #arvoredenatal #natal2026 #achadinhosshopee";
+  return '<article class="card"><div class="meta"><span class="tag serie">Vídeo 2 · Operação Natal</span><span class="why">faz seguir</span></div>' +
+    '<h3 class="title">Ep. ' + ep + '</h3>' +
+    '<div class="say"><small>Escreva na tela e fale</small>' + esc(gancho) + '</div>' +
+    '<p class="how">' + esc(mostra) + ' Escreva "Ep. ' + ep + '" no canto do vídeo.</p>' +
+    '<p class="cta">Final: "Segue pra ver o Ep. ' + (ep + 1) + ' amanhã."</p>' +
+    '<div class="actions">' + copyBtn(gancho, "Copiar gancho") + copyBtn(legenda, "Copiar legenda", "wine") + '<button class="btn" data-tkgiran="1">🔀 Outro</button></div>' +
+    '<div class="actions"><button class="btn main" data-tkep="1">Postei o Ep. ' + ep + ' ✓</button></div></article>';
+}
+const TK_AQUECE = ["10 minutos vendo vídeos de casa e Natal (curta e salve os que gostar)", "Comentar em 5 vídeos de perfis grandes de casa e decoração", "Responder os comentários dos seus vídeos (de preferência com vídeo)"];
+function tkAquece(){
+  const a = (state.tkAq && state.tkAq[todayKey]) || {};
+  return '<article class="card"><div class="meta"><span class="tag trend">Aquecimento do dia</span><span class="why">15 minutos</span></div>' +
+    '<p class="how">Faça antes de postar. Assim o TikTok entende que você é de casa e decoração.</p>' +
+    TK_AQUECE.map((t, i) => '<label class="row" for="tkaq' + i + '"><input type="checkbox" id="tkaq' + i + '" data-tkaq="' + i + '"' + (a[i] ? " checked" : "") + '><span>' + esc(t) + '</span></label>').join("") +
+    '<details class="tips"><summary>Regras para viralizar</summary><p>• Os 2 primeiros segundos decidem tudo: comece pelo resultado.<br>• Vídeo curto (7 a 20 s) é assistido até o fim.<br>• Texto grande na tela (muita gente vê sem som).<br>• Som: toque em <b>Adicionar som</b> e escolha da lista em alta, com volume baixinho.<br>• Poste 2 vídeos por dia, todo dia, perto das 12h e das 19h.<br>• Comentário com pergunta? Toque em <b>Responder</b> › ícone de câmera e responda em vídeo.<br>• Nunca poste vídeo de outro perfil: o TikTok esconde vídeo copiado.<br>• Vídeo que foi bem? Faça a parte 2 no dia seguinte.</p></details></article>';
+}
+function tkBanco(){
+  return '<details class="tips"><summary>Todos os ganchos (toque para copiar)</summary><div class="actions">' +
+    TK_GANCHOS.concat(TK_NATAL.map(x => x[0])).map(h => copyBtn(tkPreenche(h.replace("{e}", state.tkEp || 1), null), esc(tkPreenche(h.replace("{e}", state.tkEp || 1), null)))).join("") + '</div></details>';
+}
+const tiktokCrescer = () => tkSeguidores() + tkAquece() + tkAchadinho() + tkNatal() + '<article class="card">' + tkBanco() + '</article>';
 // ---------- META DO DIA (quanto falta postar hoje) ----------
 function metaDoDia(posts, feitosPlano, iaFeitos, prDone, nExtras){
   const nShopee = 3, fShopee = Math.min(iaFeitos, nShopee);
@@ -550,6 +630,11 @@ async function salvarFoto(v){
 
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  if (e.target.closest("button[data-tkseg]")) { const n = parseInt($("tkSeg").value, 10); if (!(n >= 0)) { toast("Escreva só o número. Ex.: 350"); return; } state.seg = state.seg || {}; state.seg[todayKey] = n; save(); renderHoje(); toast("Salvo! Faltam " + Math.max(0, TK_META - n).toLocaleString("pt-BR") + " para 2.000."); return; }
+  if (e.target.closest("button[data-tkgira]")) { state.tkGira = state.tkGira || {}; state.tkGira[todayKey] = (state.tkGira[todayKey] || 0) + 1; save(); renderHoje(); return; }
+  if (e.target.closest("button[data-tkgiran]")) { state.tkGiraN = state.tkGiraN || {}; state.tkGiraN[todayKey] = (state.tkGiraN[todayKey] || 0) + 1; save(); renderHoje(); return; }
+  if (e.target.closest("button[data-tkep]")) { state.tkEp = (state.tkEp || 1) + 1; save(); renderHoje(); toast("Boa! Amanhã é o Ep. " + state.tkEp + "."); return; }
+  const aq = e.target.closest("input[data-tkaq]"); if (aq) { state.tkAq = state.tkAq || {}; const d = state.tkAq[todayKey] = state.tkAq[todayKey] || {}; d[aq.dataset.tkaq] = aq.checked; save(); return; }
   const rb = e.target.closest("button[data-resp]"); if (rb) { abrirResp(Number(rb.dataset.resp)); return; }
   const lb = e.target.closest("button[data-letra]"); if (lb) { const ta = $("respTxt"); ta.value = ta.value.replace(/opção [A-E]\b/g, "opção " + lb.dataset.letra); lb.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === lb)); return; }
   if (e.target.closest("button[data-respcopiar]")) { copyText($("respTxt").value); return; }
