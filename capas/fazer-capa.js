@@ -18,7 +18,7 @@ const html = `<!doctype html><meta charset="utf-8">
 .tag{font:900 34px 'Nunito Sans';letter-spacing:.22em;color:#F1D29A;text-transform:uppercase}
 .tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 22px 6px}
 .s{font:italic 116px/1.02 'DM Serif Display';margin-top:18px}
-.b{font:900 112px/1.02 'Nunito Sans';text-transform:uppercase}
+.b{font:800 70px/1.15 'Nunito Sans';text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
 .p{font:700 40px 'Nunito Sans';margin-top:26px}.p b{color:#F1D29A}
 .h{position:absolute;bottom:${fmt === 'feed' ? 45 : 70}px;left:0;right:0;text-align:center;font:700 32px 'Nunito Sans';color:rgba(255,255,255,.9)}
 </style><div class="c" id="c"><div class="g"></div><div class="t">
