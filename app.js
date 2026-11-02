@@ -367,7 +367,7 @@ const ofertaGrupo = v => "🏠 *" + v.nome + "*\n💰 " + v.preco + "\n👉 " + 
 function grupoCard(){
   const vs = ((state.ia && state.ia.videos) || []).map(efetivo).filter(v => v.link);
   const convite = "Tem grupo VIP de achadinhos de casa no WhatsApp 🤍 Promoção todo dia, e é grátis! Entra aqui: " + LINK_GRUPO_PAGINA;
-  return '<article class="card" style="border-color:var(--pine)"><div class="meta"><span class="tag casa">Grupo VIP do WhatsApp</span><span class="why">copie e cole</span></div>' +
+  return '<article class="card" style="border-color:var(--pine)"><div class="meta"><span class="tag casa">Ofertas de hoje</span><span class="why">copie e cole</span></div>' +
     '<p class="how">Mande <b>uma oferta de cada vez</b> no grupo (assim aparece a foto do produto). Espace: manhã, almoço e noite.</p>' +
     (vs.length ? '<div class="actions" style="flex-wrap:wrap">' + vs.map((v, i) => copyBtn(ofertaGrupo(v), "Copiar oferta " + (i+1))).join("") + '</div>' : '<p class="how">Os produtos de hoje ainda não chegaram.</p>') +
     '<div class="actions"><a class="btn wine" style="text-decoration:none" href="' + LINK_VIP + '" target="_blank" rel="noopener">Abrir o grupo</a></div>' +
