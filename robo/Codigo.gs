@@ -84,11 +84,41 @@ function pedidoVideo_(cena, nome) {
   return 'Vídeo vertical ultrarrealista de 8 segundos a partir desta foto. ' + cena + '. O produto (' + nome + ') continua igual e em destaque, sendo usado ou arrumado por mãos femininas. Movimento lento de câmera se aproximando, luz quente, clima aconchegante, sem texto na tela.';
 }
 
+// O app manda o áudio do vídeo (WAV 16 kHz) e recebe a legenda com os tempos (Gemini).
+function doPost(e) {
+  const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
+  try {
+    const q = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    if (q.acao === 'legenda') return json(legendar_(q));
+    return json({erro: 'ação desconhecida'});
+  } catch (err) { return json({erro: String(err.message || err)}); }
+}
+function legendar_(q) {
+  const audio = String(q.audio || '');
+  if (!audio) return {erro: 'sem áudio'};
+  if (audio.length > 15000000) return {erro: 'vídeo longo demais para a legenda'};
+  const prompt = 'Transcreva este áudio em português do Brasil, palavra por palavra, exatamente como a pessoa falou (pode corrigir só a pontuação e escrever números por extenso como foram falados). ' +
+    'Divida em pedaços curtos de legenda de TikTok, de 2 a 5 palavras cada, na ordem, sem pular nada. ' +
+    'Para cada pedaço dê o início "s" e o fim "e" em segundos (com décimos) contados do começo do áudio. ' +
+    'Responda SÓ com JSON assim: {"falas":[{"s":0.4,"e":1.6,"t":"Gente, olha esse"}]}. Se ninguém falar, responda {"falas":[]}.';
+  const txt = gemini_(prompt, false, [{inline_data: {mime_type: q.mime || 'audio/wav', data: audio}}], {temperature: 0, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+  if (!txt) return {erro: 'o Gemini não respondeu (confira a GEMINI_KEY)'};
+  const j = jsonDe_(txt);
+  if (!j || !Array.isArray(j.falas)) return {erro: 'não consegui entender o áudio'};
+  const falas = j.falas.map(f => ({s: Number(f.s), e: Number(f.e), t: String(f.t || '').trim().slice(0, 80)}))
+    .filter(f => f.t && isFinite(f.s) && isFinite(f.e) && f.e > f.s).sort((a, b) => a.s - b.s);
+  return {falas: falas};
+}
+
 // O app Daia Studio lê daqui os 3 vídeos do dia (Implantar > App da Web).
 function doGet(e) {
   const q = (e && e.parameter) || {};
   const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
   try {
+    if (q.acao === 'extra') return json({ok: guardarExtra_(q)});
+    if (q.acao === 'busca') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? buscaProduto_(String(q.q || '')) : {erro: 'chave errada'});
+    if (q.acao === 'notafotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {notas: notasFotos_(String(q.urls || '').split(' ').filter(Boolean).slice(0, 8))} : {erro: 'chave errada'});
+    if (q.acao === 'refazerfotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? refazerFotosAuto_() : {erro: 'chave errada'});
     if (q.link && q.acao === 'pack') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {ok: guardarPack_(q)} : {erro: 'chave errada'});
     if (q.link) return json({link: meuLink_(q.link)});
     if (q.pergunta) return json({resposta: perguntaDalinha_(String(q.pergunta).slice(0, 600), String(q.ctx || '').slice(0, 900))});
@@ -116,14 +146,16 @@ function conteudo_(hoje) {
   const recados = ler('App - Recado').filter(l => l[1] && (!l[0] || l[0] === hoje));
   const itens = ler('App - Itens');
   const prontos = ler('App - Prontos').filter(l => l[0] && !/^n/i.test(l[8] || 'sim')).map(l => ({
-    id: l[0].trim(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
-    itens: itens.filter(i => i[0].trim() === l[0].trim()).sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5]}))
-  })).filter(p => p.itens.length);
+    id: l[0].trim(), tipo: String(l[9] || '').trim().toLowerCase(), c1: l[1], c2: l[2], capa: l[3], fim: l[4], leg: l[5], tags: l[6], album: l[7],
+    itens: itens.filter(i => i[0].trim() === l[0].trim() && i[6] !== 'sem foto boa').sort((a, b) => Number(a[1]) - Number(b[1])).map(i => ({n: i[2], d: i[3], link: i[4], foto: i[5], antes: i[7] || '', prod: i[8] || ''}))
+  })).filter(p => p.itens.length >= 3);
   // carrosséis novos do robô primeiro (os 20 mais recentes), depois os outros
-  const autos = prontos.filter(p => /^auto/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
-  const outros = prontos.filter(p => !/^auto/.test(p.id));
+  const autos = prontos.filter(p => /^(auto|cobra)/.test(p.id)).sort((a, b) => b.id.localeCompare(a.id)).slice(0, 20);
+  const outros = prontos.filter(p => !/^(auto|cobra)/.test(p.id));
   return {
     recado: recados.length ? recados[recados.length - 1][1] : '',
+    analise: (ler('App - Análise').slice(-1)[0] || [])[1] || '',
+    extras: ler('App - Extras').slice(-30).map(l => ({id: l[7], data: l[0], onde: l[2], tipo: l[3], t: l[4], link: l[5], claude: l[6]})),
     respostas: ler('App - Respostas').filter(l => l[0] && l[1]).map(l => ({nome: l[0], texto: l[1]})),
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
@@ -176,6 +208,29 @@ function chamar_(query, senha) {
 // Packs do Telegram: a tarefa da meia-noite manda os vídeos novos para a aba "Packs".
 // A chave fica guardada em Propriedades do script > PACK_CHAVE (não fica escrita no código).
 const PACK_CHAVE = PropertiesService.getScriptProperties().getProperty('PACK_CHAVE') || '';
+// "Postei algo extra" do app: guarda na aba "App - Extras" para o Claude analisar no dia seguinte.
+// Colunas: Data | Hora | Onde | Tipo | O que postou | Link | Comentário do Claude | id
+function guardarExtra_(q) {
+  const ss = SpreadsheetApp.getActive();
+  let a = ss.getSheetByName('App - Extras');
+  if (!a) { a = ss.insertSheet('App - Extras'); a.appendRow(['Data', 'Hora', 'Onde', 'Tipo', 'O que postou', 'Link', 'Comentário do Claude', 'id']); a.setFrozenRows(1); }
+  const corta = (s, n) => String(s || '').replace(/[\r\n]+/g, ' ').trim().slice(0, n);
+  const id = corta(q.id, 40), t = corta(q.t, 400);
+  if (!id || !t) return 'faltou o texto';
+  const n = a.getLastRow() - 1;
+  if (n > 0) {
+    const ids = a.getRange(2, 8, n, 1).getValues().map(r => String(r[0]));
+    const i = ids.indexOf(id);
+    if (q.apagar) { if (i >= 0) a.deleteRow(i + 2); return 'apagado'; }
+    if (i >= 0) return 'já tinha';
+  }
+  if (q.apagar) return 'apagado';
+  const agora = new Date(), tz = 'America/Sao_Paulo', hoje = Utilities.formatDate(agora, tz, 'dd/MM/yyyy');
+  if (n > 0 && a.getRange(2, 1, n, 1).getDisplayValues().filter(r => r[0] === hoje).length >= 40) return 'muitos hoje';
+  a.appendRow([hoje, Utilities.formatDate(agora, tz, 'HH:mm'), corta(q.onde, 30), corta(q.tipo, 30), t, corta(q.url, 300), '', id]);
+  return 'guardado';
+}
+
 function guardarPack_(p) {
   const ss = SpreadsheetApp.getActive();
   const aba = ss.getSheetByName('Packs') || ss.insertSheet('Packs');
@@ -228,7 +283,7 @@ const APP_URL = 'https://sgtdaianadelima-ai.github.io/daia-studio/';
 const hojeBR_ = (d) => Utilities.formatDate(d || new Date(), TZ, 'dd/MM/yyyy');
 
 // ---------- Gemini ----------
-function gemini_(prompt, comBusca) {
+function gemini_(prompt, comBusca, partes, config) {
   const props = PropertiesService.getScriptProperties();
   const key = props.getProperty('GEMINI_KEY');
   if (!key) return null;
@@ -242,8 +297,9 @@ function gemini_(prompt, comBusca) {
   for (const modelo of ordem.slice(0, 6)) {
     for (const busca of (comBusca ? [true, false] : [false])) {
       if (busca && cache.get('SEM_BUSCA')) continue;
-      const body = {contents: [{role: 'user', parts: [{text: prompt}]}], generationConfig: {temperature: 0.8}};
+      const body = {contents: [{role: 'user', parts: (partes || []).concat([{text: prompt}])}], generationConfig: config || {temperature: 0.8}};
       if (busca) body.tools = [{google_search: {}}];
+      const t0 = Date.now();
       const r = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/models/' + modelo + ':generateContent',
         {method: 'post', contentType: 'application/json', headers: {'x-goog-api-key': key}, payload: JSON.stringify(body), muteHttpExceptions: true});
       const cod = r.getResponseCode();
@@ -251,6 +307,7 @@ function gemini_(prompt, comBusca) {
         const j = JSON.parse(r.getContentText());
         const c = ((j.candidates || [])[0] || {}).content;
         const txt = c && c.parts ? c.parts.map(p => p.text || '').join('').trim() : '';
+        Logger.log('Gemini ok ' + modelo + ' em ' + (Date.now() - t0) + ' ms');
         if (txt) { if (modelo !== salvo) props.setProperty('GEMINI_MODELO', modelo); return txt; }
       } else {
         Logger.log('Gemini ' + cod + ' (' + modelo + ', busca=' + busca + '): ' + r.getContentText().slice(0, 160));
@@ -325,6 +382,73 @@ const TEMAS_CARROSSEL = [
   {c1: 'Decoração de Natal', c2: 'para a porta e a sala', fim: 'Por qual você começaria?', tags: '#decoracaodenatal #natal2026', busca: ['guirlanda natal', 'capa de almofada natal', 'papai noel decorativo', 'enfeite porta natal', 'cortina de luz led']},
   {c1: 'Black Friday:', c2: 'achados de casa com desconto', fim: 'Corre que acaba!', tags: '#blackfriday #achadinhosshopee', busca: ['air fryer', 'aspirador portatil', 'jogo de panelas', 'organizador closet', 'luminaria led']}
 ];
+// ---------- Foto limpa (pedido da Daia em 27/10/2026: nada de foto de vendedor com texto, preço ou selo) ----------
+const miniatura_ = u => /_tn$/.test(u) ? u : u + '_tn';
+// Dá nota de 0 a 10 para cada foto (10 = só o produto, sem nada escrito por cima). null se o Gemini não responder.
+function notasFotos_(urls) {
+  const partes = [];
+  urls.forEach((u, i) => {
+    try {
+      const r = UrlFetchApp.fetch(miniatura_(u), {muteHttpExceptions: true});
+      if (r.getResponseCode() !== 200) throw new Error('foto');
+      partes.push({text: 'Foto ' + (i + 1) + ':'});
+      partes.push({inline_data: {mime_type: String(r.getHeaders()['Content-Type'] || 'image/jpeg').split(';')[0], data: Utilities.base64Encode(r.getContent())}});
+    } catch (e) { partes.push({text: 'Foto ' + (i + 1) + ': (não abriu, nota 0)'}); }
+  });
+  const prompt = 'Você é uma editora de Instagram muito exigente. Olhe com atenção cada uma destas ' + urls.length + ' fotos de produtos da Shopee, inclusive os cantos. Para cada foto responda: ' +
+    '"texto": tem QUALQUER letra, número ou palavra colocada por cima da foto (propaganda, preço, medida, nome do produto, "kit", quantidade, marca d\'água)? Só não conta o que está impresso no próprio produto ou na embalagem. ' +
+    '"logo": tem logotipo ou nome de loja em qualquer canto, selo, faixa, seta, ícone, círculo de destaque ou moldura? ' +
+    '"colagem": é uma montagem com mais de uma foto, detalhe ampliado em círculo/quadro, várias cores lado a lado ou fundo dividido? ' +
+    '"bonita": nota de 0 a 10 de quão bonita, nítida e elegante é a foto para um post (luz boa, produto inteiro e bem enquadrado). ' +
+    'Na dúvida, responda true. Responda SÓ com JSON: {"fotos":[{"texto":false,"logo":false,"colagem":false,"bonita":8}, ...]} uma por foto, na ordem.';
+  const j = jsonDe_(gemini_(prompt, false, partes, {temperature: 0, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 1024}}));
+  if (!j || !Array.isArray(j.fotos)) return null;
+  // nota final: 0 se tiver texto, logo ou colagem; senão a nota de beleza
+  return urls.map((_, i) => { const f = j.fotos[i] || {}; return f.texto === false && f.logo === false && f.colagem === false ? Number(f.bonita) || 0 : 0; });
+}
+// Entre os melhores produtos da busca, escolhe o que tem a foto mais limpa (nota 7 ou mais).
+// Devolve undefined se o Gemini não respondeu (aí não dá para saber).
+function escolherLimpo_(lista, usados) {
+  const cand = lista.filter(x => Number(x.commissionRate) >= COMISSAO_MIN && Number(x.sales) >= VENDAS_MIN && x.imageUrl && !usados.has(String(x.itemId)) && !usados.has(x.imageUrl))
+    .sort((a, b) => Number(b.sales) * Number(b.commissionRate) - Number(a.sales) * Number(a.commissionRate)).slice(0, 8);
+  if (!cand.length) return null;
+  const notas = notasFotos_(cand.map(x => x.imageUrl));
+  if (!notas) return undefined;
+  let melhor = null, nota = 6.5;
+  cand.forEach((x, i) => { if (notas[i] > nota) { nota = notas[i]; melhor = x; } });
+  return melhor;
+}
+
+// Refaz as fotos dos carrosséis do robô: confere cada foto e troca o produto se a foto tiver texto, preço ou selo.
+// Coluna G da aba "App - Itens": ok / trocada / sem foto boa (essa linha some do app).
+function refazerFotosAuto_() {
+  const ini = Date.now(), ss = SpreadsheetApp.getActive(), aba = ss.getSheetByName('App - Itens');
+  const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
+  if (aba.getRange(1, 7).getValue() !== 'Foto conferida') aba.getRange(1, 7).setValue('Foto conferida');
+  const n = aba.getLastRow() - 1, dados = aba.getRange(2, 1, n, 7).getValues();
+  const pend = [];
+  dados.forEach((l, i) => { if (/^auto/.test(String(l[0])) && /^https?:/.test(String(l[5])) && !l[6]) pend.push(i); });
+  let ok = 0, trocadas = 0, ruins = 0;
+  for (let k = 0; k < pend.length && Date.now() - ini < 240000; k += 6) {
+    const grupo = pend.slice(k, k + 6), notas = notasFotos_(grupo.map(i => String(dados[i][5])));
+    if (!notas) break;
+    grupo.forEach((i, g) => {
+      const l = dados[i], linha = i + 2;
+      if (notas[g] >= 7) { aba.getRange(linha, 7).setValue('ok'); ok++; return; }
+      if (Date.now() - ini > 270000) return;
+      let lista = []; try { lista = buscar_(String(l[2]), senha); } catch (e) {}
+      const p = escolherLimpo_(lista, new Set([String(l[5])]));
+      if (p === undefined) return; // Gemini não respondeu: tenta na próxima vez
+      if (!p) { aba.getRange(linha, 7).setValue('sem foto boa'); ruins++; return; }
+      const frase = String(l[3]).split(' · ')[0].replace(/R\$ ?[\d.,]+( na Shopee)?/, '').trim() || 'Achadinho da Shopee que vale a pena';
+      aba.getRange(linha, 3, 1, 5).setValues([[nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), frase, p.offerLink, p.imageUrl, 'trocada']]);
+      trocadas++;
+    });
+  }
+  const falta = aba.getRange(2, 1, n, 7).getValues().filter(l => /^auto/.test(String(l[0])) && /^https?:/.test(String(l[5])) && !l[6]).length;
+  return {ok: ok, trocadas: trocadas, semFotoBoa: ruins, faltam: falta};
+}
+
 function carrosselDoDia() {
   const ss = SpreadsheetApp.getActive();
   const agora = new Date(), id = 'auto' + Utilities.formatDate(agora, TZ, 'yyMMdd'), hoje = hojeBR_(agora);
@@ -339,19 +463,18 @@ function carrosselDoDia() {
   for (const palavra of tema.busca) {
     let lista = [];
     try { lista = buscar_(palavra, senha); } catch (e) { continue; }
-    const p = lista.filter(x => Number(x.commissionRate) >= COMISSAO_MIN && Number(x.sales) >= VENDAS_MIN && x.imageUrl && !usados.has(String(x.itemId)))
-      .sort((a, b) => Number(b.sales) * Number(b.commissionRate) - Number(a.sales) * Number(a.commissionRate))[0];
+    const p = escolherLimpo_(lista, usados); // só entra produto com foto limpa
     if (!p) continue;
     usados.add(String(p.itemId));
-    itens.push({n: nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), d: 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ',') + ' na Shopee', link: p.offerLink, foto: p.imageUrl});
+    itens.push({n: nomeCurto_(p.productName).split(' ').slice(0, 6).join(' '), d: 'Achadinho da Shopee que vale a pena', link: p.offerLink, foto: p.imageUrl});
   }
   if (itens.length < 3) return 'poucos produtos hoje';
   let c1 = tema.c1, c2 = tema.c2, leg = tema.c1 + ' ' + tema.c2 + ' 🤍 Qual desses você levaria? Comenta QUERO que eu te mando os links!';
   const g = jsonDe_(gemini_('Crie a capa de um carrossel do Instagram de uma afiliada da Shopee (nicho casa, tom de amiga, fofo). Produtos: ' + itens.map(i => i.n).join('; ') +
     '. Responda SOMENTE com JSON: {"c1":"linha fina da capa, até 4 palavras","c2":"linha forte da capa, até 6 palavras, que dê vontade de arrastar","leg":"legenda de até 2 frases terminando com: Comenta QUERO que eu te mando os links!","frases":["frase curta de até 7 palavras para cada produto, na mesma ordem"]}', false));
-  if (g) { c1 = g.c1 || c1; c2 = g.c2 || c2; leg = g.leg || leg; (g.frases || []).forEach((f, k) => { if (itens[k] && f) itens[k].d = f + ' · ' + itens[k].d; }); }
+  if (g) { c1 = g.c1 || c1; c2 = g.c2 || c2; leg = g.leg || leg; (g.frases || []).forEach((f, k) => { if (itens[k] && f) itens[k].d = f; }); } // sem preço: o valor muda toda hora (pedido da Daia)
   abaP.appendRow([id, c1, c2, CAPAS[dia % CAPAS.length], tema.fim, leg, tema.tags + ' #achadinhosshopee #shopee', 'Robô: produtos da Shopee de ' + hoje, 'sim']);
-  abaI.getRange(abaI.getLastRow() + 1, 1, itens.length, 6).setValues(itens.map((it, k) => [id, k + 1, it.n, it.d, it.link, it.foto]));
+  abaI.getRange(abaI.getLastRow() + 1, 1, itens.length, 9).setValues(itens.map((it, k) => [id, k + 1, it.n, it.d, it.link, it.foto, '', '', it.foto])); // coluna I = foto original do produto (para a Foto com IA)
   return id + ' com ' + itens.length + ' produtos';
 }
 
@@ -489,3 +612,11 @@ function instalarTudo() {
   Logger.log('Horários ligados. Tópico dos lembretes: ' + props.getProperty('NTFY_TOPICO'));
 }
 function testeGemini() { Logger.log('modelo: ' + modeloGemini_(PropertiesService.getScriptProperties().getProperty('GEMINI_KEY') || '') + ' | resposta: ' + perguntaDalinha_('Me dá uma dica rápida de post de casa para hoje', '')); }
+
+// Busca um produto bom (equilíbrio de vendas e comissão) para a tarefa diária montar carrosséis "A casa te cobra".
+function buscaProduto_(palavra) {
+  if (!palavra) return {erro: 'sem palavra'};
+  const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
+  const lista = buscar_(palavra, senha).map(p => ({p: p, nota: oportunidade_(p)})).filter(x => x.nota > 0).sort((a, b) => b.nota - a.nota).slice(0, 5);
+  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, img: x.p.imageUrl, vendas: x.p.sales, com: x.p.commissionRate, id: x.p.itemId}))};
+}

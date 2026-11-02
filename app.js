@@ -97,8 +97,8 @@ const PLANILHA = "https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7v
 const conteudo = () => (state.ia && state.ia.conteudo) || {};
 function applyConteudo(){
   const c = conteudo();
-  if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: "achados", c1: p.c1, c2: p.c2, capa: p.capa, fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
-    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto]), s: p.itens.map(i => [i.n, i.d])}));
+  if (c.prontos && c.prontos.length) PR = c.prontos.map(p => ({id: p.id, tipo: p.tipo === "cobra" ? "cobra" : "achados", c1: p.c1, c2: p.c2, capa: p.capa || (p.itens[0] && p.itens[0].foto) || "", fim: p.fim || "Salva pra comprar depois", leg: p.leg || "", tags: p.tags || "", album: p.album || "",
+    itens: p.itens.map(i => [i.n, i.d, i.link, i.foto, i.antes || "", i.prod || ""]), s: p.itens.map(i => [i.n, i.d])}));
   if (c.plano && c.plano.length) {
     const extra = {};
     c.plano.forEach(r => { const m = String(r.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/); if (!m || !r.t) return;
@@ -126,14 +126,15 @@ function resumoSemana(){
   const car = Object.values(state.prontos || {}).filter(v => typeof v === "string" && naSemana(v)).length;
   const postouNo = d => (PLAN[d] || []).some((p, i) => state.done[d + "-" + i]) || Object.values(state.iaDone || {}).includes(d) || Object.values(state.prontos || {}).includes(d);
   let seguidos = 0; for (let i = 0; i < 60; i++) { const d = new Date(); d.setDate(d.getDate() - i); const k = keyOf(d); if (postouNo(k)) seguidos++; else if (i > 0) break; }
-  const total = plano + ia + car;
+  const extras = extrasLista().filter(x => naSemana(x.data)).length;
+  const total = plano + ia + car + extras;
   const frase = total === 0 ? "Essa semana ainda está em branco. Bora começar hoje? Um post já conta! 🤍" : total < 7 ? "Você começou! Cada post te deixa mais perto das vendas. ✨" : total < 15 ? "Que semana boa! Continua assim. 💪" : "Você está voando! Semana incrível. 🎉";
-  return {plano, planoTotal, ia, car, seguidos, total, frase};
+  return {plano, planoTotal, ia, car, extras, seguidos, total, frase};
 }
 function semanaCard(){
   const r = resumoSemana();
   return '<article class="card"><div class="meta"><span class="tag casa">Sua semana</span><span class="why">últimos 7 dias</span></div>' +
-    '<div class="semana"><div><b>' + r.plano + '</b><small>de ' + r.planoTotal + ' posts do plano</small></div><div><b>' + r.ia + '</b><small>Shopee Vídeos</small></div><div><b>' + r.car + '</b><small>carrosséis</small></div><div><b>' + r.seguidos + '</b><small>' + (r.seguidos === 1 ? 'dia seguido' : 'dias seguidos') + '</small></div></div>' +
+    '<div class="semana"><div><b>' + r.plano + '</b><small>de ' + r.planoTotal + ' posts do plano</small></div><div><b>' + r.ia + '</b><small>Shopee Vídeos</small></div><div><b>' + r.car + '</b><small>carrosséis</small></div><div><b>' + r.extras + '</b><small>extras</small></div><div><b>' + r.seguidos + '</b><small>' + (r.seguidos === 1 ? 'dia seguido' : 'dias seguidos') + '</small></div></div>' +
     '<p class="how">' + esc(r.frase) + '</p></article>';
 }
 // ---------- LEMBRETES ----------
@@ -174,7 +175,7 @@ function renderHoje(){
     '<div class="actions"><button class="btn wine" data-pronto="' + esc(pr.id) + '">Abrir post pronto</button></div></article>';
   COPY = [];
   const semPlano = posts.length ? '' : '<article class="card"><div class="meta"><span class="tag trend">Plano de postagens</span></div><p class="how">Ainda não tem plano para este dia. Me peça um plano novo no Claude, ou escreva os posts na aba <b>App - Plano</b> da planilha.</p></article>';
-  $("cards").innerHTML = (cur === todayKey ? recadoCard() + pendentesCard() + iaCards() + grupoCard() + packsCard() : "") + prontoCard + semPlano + posts.map((p, i) => {
+  const videos = semPlano + posts.map((p, i) => {
     const k = cur + "-" + i, d = !!state.done[k];
     return '<article class="card' + (d ? " done" : "") + '" data-i="' + i + '">' +
       '<div class="meta"><span>' + esc(p.h) + '</span><span class="tag ' + p.k + '">' + LABEL[p.k] + '</span><span class="why">' + WHY[p.k] + '</span></div>' +
@@ -183,13 +184,67 @@ function renderHoje(){
       '<p class="how det">' + esc(p.m) + '</p>' +
       (p.r ? '<ol class="script det">' + p.r.map(l => '<li>' + esc(l) + '</li>').join("") + '</ol>' : '') +
       '<p class="cta det">' + esc(CTA[p.k]) + '</p>' +
-      '<details class="tips det"><summary>Como editar e onde postar</summary><p>1) Aba Editar: escolha o vídeo e toque em Editar (tira as pausas). 2) Toque em Enviar para o TikTok. 3) No TikTok: Legendas, música e postar.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
+      '<details class="tips det"><summary>Como editar e onde postar</summary><p>1) Grave. 2) No TikTok ou no CapCut: toque em Legendas (automáticas) e escolha a música. 3) Poste. Precisa de ideia, gancho ou legenda? Toque em ✨ Ideias com IA.</p><p><b>' + esc(ONDE[p.k]) + '</b></p></details>' +
       '<div class="actions"><button class="btn main" data-act="done">' + (d ? "Postado ✓" : "Marcar como postado") + '</button>' +
       (p.r ? '' : '<button class="btn" data-act="roteiro">Roteiro no Claude</button>') +
-      '<button class="btn" data-act="editar">Editar vídeo</button></div>' +
+      '<button class="btn" data-act="editar">✨ Ideias com IA</button></div>' +
     '</article>';
-  }).join("") + (cur === todayKey ? semanaCard() + '<details class="card ferramentas"><summary>🧰 Ferramentas <small>converter link, respostas, lembretes e planilha</small></summary>' + conversorCard() + respostasCard() + lembretesCard() + editarCard() + '</details>' : "");
+  }).join("");
+  const hoje = cur === todayKey;
+  const iaV = hoje && state.ia && state.ia.videos ? state.ia.videos : [];
+  const iaFeitos = iaV.filter(v => state.iaDone && state.iaDone[efetivo(v).id]).length;
+  const nPacks = hoje && state.ia && state.ia.packs ? state.ia.packs.length : 0;
+  const resumoSem = hoje ? resumoSemana() : null;
+  const nExtras = hoje ? extrasLista().filter(x => x.data === todayKey).length : 0;
+  const meta = hoje ? metaDoDia(posts, done, iaFeitos, !!prDone, nExtras) : null;
+  if (meta) { $("barFill").style.width = (meta.feitos / meta.total * 100) + "%"; $("progText").textContent = meta.feitos >= meta.total ? "Meta batida! 🎉" : meta.feitos + " de " + meta.total + " da meta"; }
+  const extrasDoDia = extrasLista().filter(x => x.data === cur);
+  const extrasNoPlano = extrasDoDia.map(x => '<article class="card done extra-plano"><div class="meta"><span class="tag trend">Extra</span><span class="why">' + esc((x.onde || []).join(", ")) + '</span></div><h3 class="title">' + esc(x.t) + '</h3>' +
+    (x.claude ? '<p class="how extra-claude">💬 ' + esc(x.claude) + '</p>' : '') + '<div class="actions"><span class="why">✓ Postado fora do plano</span></div></article>').join("");
+  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
+    (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
+    (hoje ? secao("grupo", "💬", "Grupo VIP do WhatsApp", "ofertas do dia para copiar", "", false, grupoCard()) : "") +
+    secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos + extrasNoPlano +
+      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
+    secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
+    (hoje ? secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
+      secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, analiseCard() + semanaCard()) +
+      secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
+// Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
+// ---------- META DO DIA (quanto falta postar hoje) ----------
+function metaDoDia(posts, feitosPlano, iaFeitos, prDone, nExtras){
+  const nShopee = 3, fShopee = Math.min(iaFeitos, nShopee);
+  const total = posts.length + nShopee + 1, feitos = feitosPlano + fShopee + (prDone ? 1 : 0);
+  const falta = [], f1 = nShopee - fShopee, f2 = posts.length - feitosPlano;
+  if (f1) falta.push(f1 + (f1 === 1 ? " Shopee Vídeo" : " Shopee Vídeos"));
+  if (f2) falta.push(f2 + (f2 === 1 ? " vídeo do plano (TikTok/Reels)" : " vídeos do plano (TikTok/Reels)"));
+  if (!prDone) falta.push("1 carrossel no Instagram");
+  return {total, feitos, falta, extras: nExtras};
+}
+function metaCard(m){
+  if (!m) return "";
+  const pronto = m.feitos >= m.total;
+  const frase = pronto ? "Meta de hoje batida! Você é demais. 🎉" :
+    m.feitos === 0 ? "Hoje você tem que postar " + m.total + " vezes. Bora começar pelo mais fácil? 🤍" :
+    "Você já postou " + m.feitos + ". Faltam " + (m.total - m.feitos) + ". Tá quase! 💪";
+  return '<article class="card meta-dia' + (pronto ? " ok" : "") + '"><div class="meta-topo"><b>🎯 Meta de hoje</b><span>' + m.feitos + ' de ' + m.total + '</span></div>' +
+    '<div class="meta-barra"><i style="width:' + Math.min(100, m.feitos / m.total * 100) + '%"></i></div>' +
+    '<p>' + esc(frase) + '</p>' + (m.falta.length ? '<p class="meta-falta"><b>Falta:</b> ' + esc(m.falta.join(" · ")) + '</p>' : '') +
+    (m.extras ? '<p class="meta-falta">✨ + ' + m.extras + (m.extras === 1 ? ' post extra' : ' posts extras') + ' fora do plano. Bônus!</p>' : '') + '</article>';
+}
+function secao(id, emoji, titulo, sub, conta, ok, corpo){
+  const aberto = state.secoes && state.secoes[id];
+  return '<details class="secao' + (ok ? " ok" : "") + '" data-sec="' + id + '"' + (aberto ? " open" : "") + '>' +
+    '<summary><span class="sec-emoji" aria-hidden="true">' + emoji + '</span><span class="sec-txt"><b>' + titulo + '</b><small>' + esc(sub) + '</small></span>' +
+    (conta ? '<span class="sec-conta">' + (ok ? "✓ " : "") + conta + '</span>' : '') + '<span class="sec-seta" aria-hidden="true"></span></summary>' +
+    '<div class="sec-corpo">' + corpo + '</div></details>';
+}
+$("cards").addEventListener("input", e => { if (e.target.id === "xTxt" || e.target.id === "xLink") { rascunhoExtra(); save(); } });
+$("cards").addEventListener("toggle", e => {
+  const d = e.target; if (!d.matches || !d.matches("details.secao")) return;
+  state.secoes = state.secoes || {}; state.secoes[d.dataset.sec] = d.open; save();
+}, true);
 // ---------- SHOPEE VÍDEO DE HOJE (o robô do Google escolhe 3 produtos todo dia às 6h) ----------
 const ROBO = "https://script.google.com/macros/s/AKfycbzdJLT5-Lwb9oKNOAcwa4nZzZ95bw21W3QWOenf8ORFQmjH2QeHviIrVaPvmxLBDsKI/exec";
 const LINK_PAGINA = "https://daledaia.github.io", LINK_VIP = "https://chat.whatsapp.com/E6jfFnVCMfN9Byt4p1nEtm";
@@ -341,25 +396,145 @@ async function converter(){
   try {
     const j = await (await fetch(ROBO + "?link=" + encodeURIComponent(v))).json();
     if (!j.link) throw new Error(j.erro || "não deu");
-    COPY.push(j.link);
+    COPY.push(j.link); state.ultimoLink = j.link; save();
     out.innerHTML = '<p class="how"><b>Seu link:</b> ' + esc(j.link) + '</p><div class="actions"><button class="btn main" data-copy="' + (COPY.length-1) + '">Copiar meu link</button></div>';
     copyText(j.link);
   } catch(e) { out.innerHTML = '<p class="how">Não consegui converter: ' + esc(e.message) + '. Confira se é um link da Shopee.</p>'; }
 }
+// ---------- RESPOSTAS PRONTAS (toca, vê a mensagem, ajusta e copia) ----------
+// {link} = página de links, {vip} = grupo VIP, {produto} = link do produto (o último que ela converteu).
+const RESP_BASE = [
+  ["🎵 TikTok", [
+    ["Comentário: pediu o link", "Oi! 🤍 É a opção A. O link está na minha bio, em “Achadinhos”. Se preferir, me chama no direct que eu te mando!"],
+    ["Direct: mandar o link", "Oi! 🤍 Aqui está o link da opção A:\n{produto}\n\n💡 O TikTok não deixa o link clicável. Copia e cola no WhatsApp (pode mandar pra você mesma) e toca nele: abre direto na Shopee."],
+    ["Comentário: qual é o produto?", "É a opção A! 🤍 Está na minha bio, em “Achadinhos”. Corre que costuma esgotar!"]]],
+  ["📸 Instagram", [
+    ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, olha em “Solicitações de mensagem” ou no link da minha bio."],
+    ["Direct: mandar o link", "Oi! 🤍 Aqui está o link da opção A:\n{produto}\n\nE todos os meus achados ficam aqui: {link}"],
+    ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: {link}\nE no grupo VIP eu mando as promoções do dia: {vip}"]]],
+  ["💬 WhatsApp", [
+    ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: {vip}"],
+    ["Mandar o link no WhatsApp", "Oi! 🤍 Esse é o link da opção A, é só tocar:\n{produto}"]]],
+  ["❓ Dúvidas", [
+    ["Perguntou se é bom", "É sim! Tem muitas avaliações boas e eu indico 🤍 O link está no meu perfil, e qualquer dúvida me chama aqui."],
+    ["Perguntou o preço", "O preço muda toda hora na Shopee e às vezes tem cupom 🤍 Confere no link da opção A: lá aparece o valor de agora!"],
+    ["Tem outras cores?", "Tem sim! 🤍 No link você escolhe a cor e o tamanho antes de comprar."],
+    ["Demora pra chegar?", "Depende da sua cidade 🤍 A Shopee mostra o prazo certinho antes de você finalizar a compra."],
+    ["É confiável?", "É sim 🤍 A compra é pela própria Shopee: se não chegar ou vier errado, você pede o dinheiro de volta pelo app."],
+    ["Comprou e agradeceu", "Ahh que bom! 🤍 Depois me conta o que achou. Se puder, me marca no story!"]]]
+];
+let RESP = [];
 function respostasCard(){
-  const daPlanilha = (conteudo().respostas || []).map(x => [x.nome, String(x.texto).replace(/\{link\}/g, LINK_PAGINA).replace(/\{vip\}/g, LINK_VIP)]);
-  const r = daPlanilha.length ? daPlanilha : [
-    ["Pediu o link (geral)", "Oi! 🤍 Todos os meus achados estão aqui: " + LINK_PAGINA + "\nE no grupo VIP eu mando as promoções do dia: " + LINK_VIP],
-    ["Quer entrar no grupo", "Que bom! 🤍 Entra aqui no grupo VIP, todo dia tem oferta boa: " + LINK_VIP],
-    ["Resposta no comentário", "Te mandei no direct! 🤍 Se não chegar, o link está na minha bio."],
-    ["Perguntou se é bom", "É sim! Tem muitas avaliações boas e eu indico 🤍 O link está no meu perfil, e qualquer dúvida me chama aqui."]
-  ];
-  return '<article class="card"><div class="meta"><span class="tag trend">Respostas prontas</span><span class="why">copie e cole</span></div>' +
-    '<p class="how">Para comentários e directs do Instagram e do TikTok.</p><div class="actions" style="flex-wrap:wrap">' + r.map(x => copyBtn(x[1], x[0])).join("") + '</div></article>';
+  const daPlanilha = {}; (conteudo().respostas || []).forEach(x => { daPlanilha[x.nome] = x.texto; });
+  RESP = [];
+  const usados = {};
+  const grupo = (titulo, lista) => '<p class="resp-grupo">' + titulo + '</p><div class="actions" style="flex-wrap:wrap">' +
+    lista.map(x => { usados[x[0]] = 1; RESP.push({nome: x[0], texto: daPlanilha[x[0]] || x[1]}); return '<button class="btn" data-resp="' + (RESP.length - 1) + '">' + esc(x[0]) + '</button>'; }).join("") + '</div>';
+  let html = RESP_BASE.map(g => grupo(g[0], g[1])).join("");
+  const minhas = Object.keys(daPlanilha).filter(n => !usados[n]).map(n => [n, daPlanilha[n]]);
+  if (minhas.length) html += grupo("⭐ Minhas", minhas);
+  return '<article class="card"><div class="meta"><span class="tag trend">Respostas prontas</span><span class="why">toque para ver</span></div>' +
+    '<p class="how">Toque numa resposta: ela aparece aqui embaixo. Você pode mudar o texto antes de copiar.</p>' + html + '<div id="respPrev"></div></article>';
+}
+function montaResp(t){
+  const prod = state.ultimoLink || "[cole aqui o link do produto]";
+  return String(t).replace(/\{link\}/g, LINK_PAGINA).replace(/\{vip\}/g, LINK_VIP).replace(/\{produto\}/g, prod);
+}
+function abrirResp(i){
+  const r = RESP[i], box = $("respPrev"); if (!r || !box) return;
+  const txt = montaResp(r.texto), temOpcao = /opção [A-E]\b/.test(txt), temProd = /\{produto\}/.test(r.texto);
+  box.innerHTML = '<div class="resp-prev"><b>' + esc(r.nome) + '</b>' +
+    (temOpcao ? '<div class="chips" aria-label="Qual opção">' + "ABCDE".split("").map(l => '<button type="button" class="chip" data-letra="' + l + '" aria-pressed="' + (txt.indexOf("opção " + l) >= 0) + '">Opção ' + l + '</button>').join("") + '</div>' : '') +
+    '<textarea class="input" id="respTxt" rows="6" aria-label="Mensagem">' + esc(txt) + '</textarea>' +
+    (temProd ? '<p class="how nota">' + (state.ultimoLink ? '🔗 Usei o último link que você converteu. Se for outro produto, toque em “Colar outro link”.' : '🔗 Converta o link do produto em “Converter link” (aqui em cima) ou toque em “Colar outro link”.') + '</p>' : '') +
+    '<div class="actions"><button class="btn main" data-respcopiar="1">📋 Copiar</button>' +
+    (temProd ? '<button class="btn" data-respcolar="1">Colar outro link</button>' : '') +
+    '<button class="btn" data-respfechar="1">Fechar</button></div></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+async function colarLinkResp(){
+  const ta = $("respTxt"); if (!ta) return;
+  let novo = "";
+  try { novo = (await navigator.clipboard.readText()).trim(); } catch(_) {}
+  if (!/^https?:\/\//.test(novo)) { toast("Copie o link do produto primeiro e toque de novo. Ou apague e cole no texto.", 5000); return; }
+  const velho = state.ultimoLink || "[cole aqui o link do produto]";
+  ta.value = ta.value.split(velho).join(novo);
+  if (/s\.shopee|shopee\.com/.test(novo)) { state.ultimoLink = novo; save(); }
+  toast("Link colocado na mensagem.");
+}
+// ---------- POSTEI ALGO EXTRA (fora do plano) ----------
+const X_ONDE = ["TikTok", "Reels", "Story", "Carrossel/foto", "Shopee Vídeo", "WhatsApp"];
+const X_TIPO = ["Trend", "Achadinho", "Ideia minha", "Bastidores", "Outro"];
+function extrasLista(){
+  const srv = conteudo().extras || [], porId = {};
+  srv.forEach(x => { if (x.id) porId[x.id] = x; });
+  const locais = (state.extras || []).map(x => Object.assign({}, x, {claude: porId[x.id] ? porId[x.id].claude : ""}));
+  const ids = {}; locais.forEach(x => { ids[x.id] = 1; });
+  const deFora = srv.filter(x => x.id && !ids[x.id] && !(state.extrasApagados || {})[x.id]).map(x => {
+    const m = String(x.data).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    return {id: x.id, data: m ? m[3] + "-" + pad(m[2]) + "-" + pad(m[1]) : "", onde: String(x.onde || "").split(", ").filter(Boolean), tipo: x.tipo, t: x.t, link: x.link, claude: x.claude, env: true};
+  });
+  return locais.concat(deFora).sort((a, b) => String(b.data).localeCompare(String(a.data)));
+}
+function extrasCard(){
+  const r = state.extraRasc || {onde: [], tipo: ""};
+  const chip = (attr, v, on) => '<button type="button" class="chip" ' + attr + '="' + esc(v) + '" aria-pressed="' + !!on + '">' + esc(v) + '</button>';
+  const lista = extrasLista().slice(0, 10);
+  return '<article class="card"><p class="how">Postou uma trend, um achado ou uma ideia sua que não estava no plano? Anote aqui. No dia seguinte o Claude olha os números e diz se está no caminho certo.</p>' +
+    '<div class="field"><span class="lab">Onde você postou?</span><div class="chips" id="xOnde">' + X_ONDE.map(v => chip("data-xonde", v, r.onde.indexOf(v) >= 0)).join("") + '</div></div>' +
+    '<div class="field"><span class="lab">O que foi?</span><div class="chips" id="xTipo">' + X_TIPO.map(v => chip("data-xtipo", v, r.tipo === v)).join("") + '</div></div>' +
+    '<div class="field"><label for="xTxt">O que você postou?</label><textarea class="input" id="xTxt" rows="3" placeholder="Ex.: trend do “parece caro” com o pisca-pisca da sala">' + esc(r.t || "") + '</textarea></div>' +
+    '<div class="field"><label for="xLink">Link do post (se quiser)</label><input class="input" id="xLink" type="url" inputmode="url" placeholder="Cole o link do TikTok ou do Instagram" value="' + esc(r.link || "") + '"></div>' +
+    '<div class="actions"><button class="btn main" data-xsalvar="1">✅ Salvar o que postei</button></div>' +
+    (lista.length ? '<p class="resp-grupo">Seus extras</p>' + lista.map(x => '<div class="extra-item"><div><b>' + esc(x.data ? fmtDay(x.data, {day: "numeric", month: "short"}) : "") + ' · ' + esc((x.onde || []).join(", ") || "—") + (x.tipo ? ' · ' + esc(x.tipo) : '') + '</b>' +
+      '<p>' + esc(x.t) + '</p>' + (x.link ? '<a href="' + esc(x.link) + '" target="_blank" rel="noopener">Ver o post</a>' : '') +
+      (x.claude ? '<p class="extra-claude">💬 ' + esc(x.claude) + '</p>' : '<small>' + (x.env ? 'O Claude analisa amanhã.' : 'Vai para o Claude quando tiver internet.') + '</small>') + '</div>' +
+      '<button class="btn mini" data-xapagar="' + esc(x.id) + '" aria-label="Apagar">✕</button></div>').join("") : '') + '</article>';
+}
+function rascunhoExtra(){
+  state.extraRasc = state.extraRasc || {onde: [], tipo: ""};
+  if ($("xTxt")) state.extraRasc.t = $("xTxt").value;
+  if ($("xLink")) state.extraRasc.link = $("xLink").value;
+  return state.extraRasc;
+}
+async function enviarExtra(x){
+  const q = new URLSearchParams({acao: "extra", id: x.id, onde: (x.onde || []).join(", "), tipo: x.tipo || "", t: x.t, url: x.link || ""});
+  if (x.apagar) q.set("apagar", "1");
+  try { const j = await (await fetch(ROBO + "?" + q)).json(); return !!(j && j.ok); } catch(_) { return false; }
+}
+async function salvarExtra(){
+  const r = rascunhoExtra(), t = String(r.t || "").trim();
+  if (!t) { toast("Escreva o que você postou."); $("xTxt")?.focus(); return; }
+  if (!r.onde.length) { toast("Toque onde você postou."); return; }
+  const x = {id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), data: todayKey, onde: r.onde.slice(), tipo: r.tipo || "", t: t, link: String(r.link || "").trim(), env: false};
+  state.extras = [x].concat(state.extras || []).slice(0, 60);
+  state.extraRasc = {onde: [], tipo: ""}; save(); renderHoje();
+  toast("Anotado! 🤍 Amanhã o Claude te conta como foi.");
+  x.env = await enviarExtra(x); save();
+  if (!x.env) toast("Salvei aqui no celular. Mando para o Claude quando a internet voltar.", 5000);
+  else renderHoje();
+}
+async function apagarExtra(id){
+  const x = extrasLista().find(e => e.id === id); if (!x) return;
+  state.extras = (state.extras || []).filter(e => e.id !== id);
+  state.extrasApagados = state.extrasApagados || {}; state.extrasApagados[id] = 1;
+  save(); renderHoje(); toast("Apagado.");
+  if (x.env) enviarExtra({id: id, t: "-", apagar: true});
+}
+async function reenviarExtras(){
+  const pend = (state.extras || []).filter(x => !x.env);
+  for (const x of pend) { x.env = await enviarExtra(x); }
+  if (pend.length) save();
+}
+function analiseCard(){
+  const a = conteudo().analise;
+  if (!a) return "";
+  return '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Como estou indo</span><span class="why">o Claude olhou seus números</span></div><p class="how" style="white-space:pre-line">' + esc(a) + '</p></article>';
 }
 async function loadIA(tent){
   try {
     const r = await fetch(ROBO); const j = await r.json();
+    reenviarExtras();
     if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save();
       if (novo) { applyConteudo(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); const aba = document.querySelector('nav.tabs button[aria-selected="true"]')?.dataset.tab; if (aba === "hoje") renderHoje(); if (aba === "prontos") renderProntos(); } }
   } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
@@ -389,6 +564,15 @@ async function salvarFoto(v){
 
 $("cards").addEventListener("click", e => {
   const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  const rb = e.target.closest("button[data-resp]"); if (rb) { abrirResp(Number(rb.dataset.resp)); return; }
+  const lb = e.target.closest("button[data-letra]"); if (lb) { const ta = $("respTxt"); ta.value = ta.value.replace(/opção [A-E]\b/g, "opção " + lb.dataset.letra); lb.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c === lb)); return; }
+  if (e.target.closest("button[data-respcopiar]")) { copyText($("respTxt").value); return; }
+  if (e.target.closest("button[data-respcolar]")) { colarLinkResp(); return; }
+  if (e.target.closest("button[data-respfechar]")) { $("respPrev").innerHTML = ""; return; }
+  const xo = e.target.closest("button[data-xonde]"); if (xo) { const r = rascunhoExtra(), v = xo.dataset.xonde, i = r.onde.indexOf(v); if (i >= 0) r.onde.splice(i, 1); else r.onde.push(v); xo.setAttribute("aria-pressed", i < 0); save(); return; }
+  const xt = e.target.closest("button[data-xtipo]"); if (xt) { const r = rascunhoExtra(); r.tipo = r.tipo === xt.dataset.xtipo ? "" : xt.dataset.xtipo; xt.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.xtipo === r.tipo)); save(); return; }
+  if (e.target.closest("button[data-xsalvar]")) { salvarExtra(); return; }
+  const xa = e.target.closest("button[data-xapagar]"); if (xa) { apagarExtra(xa.dataset.xapagar); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
   const gb = e.target.closest("button[data-gpt]"); if (gb) { fotoNoChatGPT(vid(Number(gb.dataset.gpt))); return; }
   const fb = e.target.closest("button[data-foto]"); if (fb) { salvarFoto(vid(Number(fb.dataset.foto))); return; }
@@ -403,7 +587,7 @@ $("cards").addEventListener("click", e => {
   const i = Number(b.closest(".card").dataset.i), p = PLAN[cur][i], k = cur + "-" + i;
   if (b.dataset.act === "done") { state.done[k] = !state.done[k]; save(); renderHoje(); }
   if (b.dataset.act === "roteiro") askClaude(promptRoteiro(p));
-  if (b.dataset.act === "editar") { $("vTitle").value = p.k === "serie" ? p.t.split(" — ")[0].replace("Ep.", "MINHA PRIMEIRA ÁRVORE — EP.").toUpperCase() : p.t.toUpperCase(); show("editar"); }
+  if (b.dataset.act === "editar") { state.iaTema = p.t; save(); show("ia"); }
 });
 $("arrived").addEventListener("click", e => { const id = e.target.closest("button[data-ask]")?.dataset.ask; if (id) askProduct(id); });
 $("prev").onclick = () => { const i = DAYS.indexOf(cur); if (i > 0) { cur = DAYS[i-1]; renderHoje(); } };
@@ -512,7 +696,7 @@ $("vFile").addEventListener("change", async e => {
   const f = e.target.files && e.target.files[0]; if (!f) return;
   vfile = f; if (vurl) URL.revokeObjectURL(vurl); vurl = URL.createObjectURL(f);
   $("pickText").textContent = f.name; $("pickInfo").textContent = "Lendo o áudio do vídeo...";
-  ["s2","s3","s4"].forEach(id => $(id).classList.add("off")); analysis = null;
+  ["s2","s3","s4"].forEach(id => $(id).classList.add("off")); analysis = null; legVez++; legendas = null; legPromessa = null; mostrarLegendas(); legStatus("");
   try {
     analysis = await analyzeAudio(f);
     if (analysis.duration > 185) { $("pickInfo").textContent = "Esse vídeo tem mais de 3 minutos. Escolha um mais curto."; return; }
@@ -522,6 +706,7 @@ $("vFile").addEventListener("change", async e => {
     $("pickInfo").textContent = "Não consegui ler o áudio. O vídeo vai sair só com o título, sem tirar pausas.";
   }
   $("s2").classList.remove("off"); $("s3").classList.remove("off"); showPlan();
+  $("legBox").hidden = !$("vLeg").checked; transcrever();
 });
 function videoDuration(u){ return new Promise((res, rej) => { const v = document.createElement("video"); v.preload = "metadata"; v.onloadedmetadata = () => res(v.duration); v.onerror = rej; v.src = u; }); }
 async function analyzeAudio(f){
@@ -532,7 +717,103 @@ async function analyzeAudio(f){
   const chans = []; for (let c = 0; c < audio.numberOfChannels; c++) chans.push(audio.getChannelData(c));
   const env = new Float32Array(n);
   for (let i = 0; i < n; i++) { let s = 0; const a = i * win; for (let j = 0; j < win; j++) { let x = 0; for (const ch of chans) x += ch[a+j]; x /= chans.length; s += x*x; } env[i] = 10 * Math.log10(s / win + 1e-10); }
-  return {duration: audio.duration, env, step: 0.02};
+  let wav = null; try { wav = await wav16k(audio); } catch(_) {}
+  return {duration: audio.duration, env, step: 0.02, wav};
+}
+// ---------- LEGENDA AUTOMÁTICA ----------
+// O som vai (WAV 16 kHz, mono) para o robô do Google, que pede ao Gemini o texto.
+// O tempo de cada pedaço é calculado aqui, pelos trechos em que ela está falando.
+async function wav16k(audio){
+  const sr = 16000, len = Math.max(1, Math.ceil(audio.duration * sr));
+  const oc = new OfflineAudioContext(1, len, sr), s = oc.createBufferSource();
+  s.buffer = audio; s.connect(oc.destination); s.start();
+  const d = (await oc.startRendering()).getChannelData(0);
+  const out = new ArrayBuffer(44 + d.length * 2), v = new DataView(out);
+  const txt = (o, t) => { for (let i = 0; i < t.length; i++) v.setUint8(o + i, t.charCodeAt(i)); };
+  txt(0, "RIFF"); v.setUint32(4, 36 + d.length * 2, true); txt(8, "WAVEfmt "); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, sr, true); v.setUint32(28, sr * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); txt(36, "data"); v.setUint32(40, d.length * 2, true);
+  for (let i = 0; i < d.length; i++) { const x = Math.max(-1, Math.min(1, d[i])); v.setInt16(44 + i * 2, x < 0 ? x * 0x8000 : x * 0x7FFF, true); }
+  return new Uint8Array(out);
+}
+function base64De(u8){ let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }
+let legendas = null, legPromessa = null, legVez = 0, legEstilo = "branca";
+// Espalha os pedaços de texto pelos momentos de fala (proporcional ao tamanho de cada pedaço).
+// Cada frase (termina em . ! ? …) fica entre as maiores pausas da fala.
+function alinharLegenda(falas, an){
+  const runs = an.env ? segmentsFor(an, "forte") : [{s: 0, e: an.duration}];
+  let grupos = [], g = [];
+  falas.forEach(f => { g.push(f); if (/[.!?…]["”'»)]?$/.test(f.t.trim())) { grupos.push(g); g = []; } });
+  if (g.length) grupos.push(g);
+  let regioes;
+  if (grupos.length > 1 && runs.length >= grupos.length) {
+    const cortes = runs.slice(1).map((r, i) => ({i, d: r.s - runs[i].e})).sort((a, b) => b.d - a.d).slice(0, grupos.length - 1).map(x => x.i).sort((a, b) => a - b);
+    regioes = []; let ini = 0;
+    cortes.forEach(i => { regioes.push(runs.slice(ini, i + 1)); ini = i + 1; });
+    regioes.push(runs.slice(ini));
+  } else { grupos = [falas]; regioes = [runs]; }
+  const out = [];
+  grupos.forEach((gr, k) => out.push(...espalhar(gr, regioes[k])));
+  return out;
+}
+// Espalha os pedaços pelos trechos de fala, proporcional ao tamanho de cada pedaço.
+function espalhar(falas, runs){
+  const total = runs.reduce((a, r) => a + r.e - r.s, 0);
+  const pesos = falas.map(f => Math.max(4, f.t.replace(/[^\p{L}\p{N}]/gu, "").length + 2));
+  const soma = pesos.reduce((a, b) => a + b, 0);
+  const em = x => { let falta = x * total; for (const r of runs) { const d = r.e - r.s; if (falta <= d + 1e-6) return r.s + falta; falta -= d; } return runs[runs.length - 1].e; };
+  let acc = 0;
+  return falas.map((f, i) => { const s = em(acc / soma); acc += pesos[i]; return {s, e: em(acc / soma), t: f.t}; });
+}
+function mostrarLegendas(){
+  const box = $("legLista"); if (!box) return;
+  box.innerHTML = (legendas || []).map((l, i) => '<label><small>' + fmt(l.s) + '</small><input class="input" data-leg="' + i + '" value="' + esc(l.t) + '" aria-label="Legenda ' + (i + 1) + '"></label>').join("");
+}
+function legStatus(t, err){ $("legStatus").textContent = t; $("legStatus").className = "status" + (err ? " err" : ""); }
+async function transcrever(){
+  if (!analysis || !$("vLeg").checked) return;
+  if (!analysis.wav) { legStatus("Não consegui ler o som deste vídeo. Ele vai sair sem legenda.", true); return; }
+  const vez = ++legVez; legendas = null; mostrarLegendas();
+  const t0 = Date.now(), relogio = setInterval(() => { if (vez !== legVez || legendas) return clearInterval(relogio); const s = Math.round((Date.now() - t0) / 1000); legStatus(s > 90 ? "O robô demorou. Tentando de novo… " + s + " s" : "Escrevendo a legenda… " + s + " s (leva até 1 minuto). Pode ir escolhendo o resto."); }, 1000);
+  legStatus("Escrevendo a legenda… leva até 1 minuto. Pode ir escolhendo o resto.");
+  legPromessa = (async () => {
+    try {
+      const corpo = JSON.stringify({acao: "legenda", mime: "audio/wav", audio: base64De(analysis.wav)});
+      // às vezes o Gemini trava: espera até 90 s e tenta mais uma vez
+      let j = null;
+      for (let tent = 0; tent < 2 && !j; tent++) {
+        const ctl = new AbortController(), limite = setTimeout(() => ctl.abort(), 90000);
+        try { j = await (await fetch(ROBO, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: corpo, signal: ctl.signal})).json(); }
+        catch (e) { if (tent === 1 || vez !== legVez) throw e; }
+        finally { clearTimeout(limite); }
+      }
+      if (vez !== legVez) return;
+      if (!j.falas) throw new Error(j.erro || "sem resposta");
+      if (!j.falas.length) { legStatus("Não ouvi fala neste vídeo. Ele vai sair sem legenda."); return; }
+      legendas = alinharLegenda(j.falas, analysis); mostrarLegendas();
+      legStatus("Legenda pronta! Toque numa linha para corrigir. Apague o texto para tirar a linha.");
+    } catch (e) { if (vez === legVez) legStatus("Não consegui fazer a legenda (" + (/fetch|abort/i.test(e.message || "") || !e.message ? "a internet caiu ou o robô demorou demais" : e.message) + "). Tente de novo desmarcando e marcando a caixa.", true); }
+    finally { clearInterval(relogio); }
+  })();
+  return legPromessa;
+}
+$("vLeg").addEventListener("change", () => { $("legBox").hidden = !$("vLeg").checked; if ($("vLeg").checked && !legendas) transcrever(); });
+$("legLista").addEventListener("input", e => { const i = e.target.dataset.leg; if (i != null && legendas && legendas[i]) legendas[i].t = e.target.value; });
+chipGroup($("legEstilo"), v => { legEstilo = v; });
+function legendaEm(t){ if (!legendas) return ""; for (const l of legendas) if (t >= l.s && t < l.e) return l.t.trim(); return ""; }
+function drawLegenda(ctx, W, H, text){
+  if (!text) return;
+  const size = Math.round(W * 0.072);
+  ctx.font = "900 " + size + "px 'Nunito Sans', system-ui, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const lines = wrapLines(ctx, text, W * 0.86), lh = size * 1.2, y0 = H * 0.72 - (lines.length - 1) * lh / 2;
+  if (legEstilo === "vinho") {
+    const padX = size * 0.5, padY = size * 0.3, boxW = Math.min(W * 0.94, Math.max(...lines.map(l => ctx.measureText(l).width)) + padX * 2), boxH = lines.length * lh + padY * 2;
+    const x = (W - boxW) / 2, y = y0 - lh / 2 - padY, r = size * 0.4;
+    ctx.fillStyle = "rgba(142,27,58,0.92)"; ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+boxW,y,x+boxW,y+boxH,r); ctx.arcTo(x+boxW,y+boxH,x,y+boxH,r); ctx.arcTo(x,y+boxH,x,y,r); ctx.arcTo(x,y,x+boxW,y,r); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#FFFFFF"; lines.forEach((l, i) => ctx.fillText(l, W / 2, y0 + lh * i));
+    return;
+  }
+  ctx.lineJoin = "round"; ctx.lineWidth = size * 0.2; ctx.strokeStyle = "#000000"; ctx.fillStyle = legEstilo === "amarela" ? "#FFE14D" : "#FFFFFF";
+  lines.forEach((l, i) => { ctx.strokeText(l, W / 2, y0 + lh * i); ctx.fillText(l, W / 2, y0 + lh * i); });
 }
 function segmentsFor(an, lv){
   const L = LEVELS[lv];
@@ -582,6 +863,7 @@ $("vGo").addEventListener("click", async () => {
   outExt = mime.startsWith("video/mp4") ? "mp4" : "webm";
   $("vGo").disabled = true; $("vBarBox").hidden = false; $("s4").classList.add("off");
   let wake = null; try { wake = await navigator.wakeLock?.request("screen"); } catch(_) {}
+  if ($("vLeg").checked && legPromessa && !legendas) { vSetStatus("Esperando a legenda ficar pronta…"); await legPromessa; }
   try {
     outBlob = await render(segmentsFor(analysis, level), $("vTitle").value.trim(), $("vZoom").checked, mime);
     $("vOut").src = URL.createObjectURL(outBlob); $("s4").classList.remove("off");
@@ -591,6 +873,7 @@ $("vGo").addEventListener("click", async () => {
   $("vGo").disabled = false;
 });
 async function render(segs, title, zoom, mime){
+  const comLegenda = $("vLeg").checked && legendas && legendas.length;
   try { await document.fonts.load("900 40px 'Nunito Sans'"); } catch(_) {}
   const v = document.createElement("video"); v.playsInline = true; v.preload = "auto"; v.src = vurl;
   await new Promise((res, rej) => { v.onloadedmetadata = res; v.onerror = rej; });
@@ -604,7 +887,7 @@ async function render(segs, title, zoom, mime){
   const chunks = []; rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
   const stopped = new Promise(res => rec.onstop = res);
   let segIndex = 0, running = true;
-  const draw = () => { if (!running) return; const z = zoom && segIndex % 2 === 1 ? 1.12 : 1, dw = W*z, dh = H*z; ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.drawImage(v, (W-dw)/2, (H-dh)*0.42, dw, dh); drawTitle(ctx, W, H, title); requestAnimationFrame(draw); };
+  const draw = () => { if (!running) return; const z = zoom && segIndex % 2 === 1 ? 1.12 : 1, dw = W*z, dh = H*z; ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.drawImage(v, (W-dw)/2, (H-dh)*0.42, dw, dh); drawTitle(ctx, W, H, title); drawLegenda(ctx, W, H, comLegenda ? legendaEm(v.currentTime) : ""); requestAnimationFrame(draw); };
   const total = segs.reduce((a, r) => a + r.e - r.s, 0); let done = 0;
   const seek = t => new Promise(res => { v.onseeked = () => res(); v.currentTime = t; });
   await seek(segs[0].s); requestAnimationFrame(draw);
@@ -656,65 +939,130 @@ function paintPhoto(ctx, W, H, img, dark, zoom, dx, dy){
     const z = zoom || 1, s = Math.max(W / img.width, H / img.height) * z, dw = img.width * s, dh = img.height * s;
     ctx.drawImage(img, (W - dw) / 2 + (dx || 0) * W, (H - dh) / 2 + (dy || 0) * H, dw, dh);
   }
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, "rgba(15,8,10," + (0.10 + dark*0.2) + ")");
-  g.addColorStop(0.45, "rgba(15,8,10," + (0.18 + dark*0.35) + ")");
-  g.addColorStop(1, "rgba(15,8,10," + (0.55 + dark*0.3) + ")");
+  // minimalista: a foto aparece inteira; só um véu suave embaixo, onde fica o texto
+  const g = ctx.createLinearGradient(0, H*0.45, 0, H);
+  g.addColorStop(0, "rgba(20,12,14,0)");
+  g.addColorStop(0.6, "rgba(20,12,14," + (0.22 + dark*0.18) + ")");
+  g.addColorStop(1, "rgba(20,12,14," + (0.48 + dark*0.2) + ")");
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (dark > 0.3) { ctx.fillStyle = "rgba(20,12,14," + (dark*0.25) + ")"; ctx.fillRect(0, 0, W, H); }
 }
-function shadowOn(ctx, W){ ctx.shadowColor = "rgba(0,0,0,0.45)"; ctx.shadowBlur = W*0.02; ctx.shadowOffsetY = W*0.003; }
+function shadowOn(ctx, W){ ctx.shadowColor = "rgba(0,0,0,0.28)"; ctx.shadowBlur = W*0.018; ctx.shadowOffsetY = 0; }
 function shadowOff(ctx){ ctx.shadowColor = "transparent"; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; }
+// texto pequeno e delicado, com letras espaçadas
+function delicado(ctx, txt, x, y, size, alpha){
+  ctx.save(); ctx.font = "300 " + Math.round(size) + "px " + SANS; ctx.fillStyle = "rgba(255,255,255," + (alpha || 0.85) + ")";
+  try { ctx.letterSpacing = Math.round(size*0.12) + "px"; } catch(_) {}
+  ctx.fillText(txt, x, y); ctx.restore();
+}
 function drawHandle(ctx, W, H, extra){
   const h = state.handle || "";
-  ctx.font = "700 " + Math.round(W*0.03) + "px " + SANS; ctx.fillStyle = "rgba(255,255,255,0.9)";
-  ctx.textAlign = "center"; ctx.fillText([h, extra].filter(Boolean).join("   ·   "), W/2, H*0.95);
+  ctx.textAlign = "center"; delicado(ctx, [h, extra].filter(Boolean).join("  ·  "), W/2, H*0.955, W*0.022, 0.7);
+}
+// "A casa te cobra / A casa te poupa": capa e páginas = antes (em cima) e depois (embaixo); última = chamada
+const totalSlides = p => p.tipo === "cobra" ? p.s.length + 1 : p.s.length + 2;
+// Textos de cada imagem: o padrão, ou o que a Daia editou (state.prEd[id][n] = {t, b, off})
+function textosPadrao(p, n, total){
+  if (n === total - 1) return {t: p.fim, b: p.tipo === "cobra" ? "digita CASA que eu te mando os links" : p.tipo === "achados" ? "comenta QUERO que eu te mando os links" : "salva pra não esquecer"};
+  if (p.tipo === "cobra") { const [l1, l2] = String(p.itens[n][1] || "").split("|").map(s => s.trim()).concat(["a casa te cobra", "a casa te poupa"]).filter(Boolean); return {t: l1, b: l2}; }
+  if (n === 0) return {t: p.c1, b: p.c2};
+  const [nome0, frase0] = p.s[n-1];
+  const nomeCurto = String(nome0 || "").replace(/^(kit|conjunto)\s+[\d\/]+\s*(unidades|pe[çc]as)?\s*(de\s+)?/i, "").replace(/\s*[-–]\s*\d+\s*(ml|g)\b.*$/i, "").split(/\s+/).slice(0, 4).join(" ");
+  const achado = p.tipo === "achados" && frase0;
+  return {t: achado ? String(frase0).replace(/\s*·.*$/, "") : nome0, b: achado ? nomeCurto.toLowerCase() : (frase0 || "")};
+}
+function edicao(p, n, total){
+  const e = (state.prEd && state.prEd[p.id] && state.prEd[p.id][n]) || {}, d = textosPadrao(p, n, total);
+  return {t: e.t != null ? e.t : d.t, b: e.b != null ? e.b : d.b, off: !!e.off};
+}
+function fotoEm(ctx, img, x, y, w, h, zoom){
+  ctx.save(); ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.fillStyle = "#1A1114"; ctx.fillRect(x, y, w, h);
+  if (img) { const s = Math.max(w / img.width, h / img.height) * (zoom || 1), dw = img.width * s, dh = img.height * s; ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh); }
+  ctx.restore();
+}
+function drawCobra(ctx, W, H, p, n, total, imgs, opt){
+  const a = opt.a == null ? 1 : opt.a, ed = edicao(p, n, total), over = imgs.over || {}, overA = imgs.overA || {};
+  if (n < total - 1) {
+    const [antes0, depois0] = imgs.pares[n] || [], antes = overA[n] || antes0, depois = over[n] || depois0;
+    const meio = Math.round(H / 2), linha = Math.max(3, Math.round(W * 0.004));
+    fotoEm(ctx, antes, 0, 0, W, meio - linha / 2, opt.zoom); fotoEm(ctx, depois, 0, meio + linha / 2, W, H - meio - linha / 2, opt.zoom);
+    ctx.fillStyle = "#FFFFFF"; ctx.fillRect(0, meio - linha / 2, W, linha);
+    let g = ctx.createLinearGradient(0, 0, 0, H * 0.2); g.addColorStop(0, "rgba(20,12,14,0.35)"); g.addColorStop(1, "rgba(20,12,14,0)"); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H * 0.2);
+    g = ctx.createLinearGradient(0, H * 0.8, 0, H); g.addColorStop(0, "rgba(20,12,14,0)"); g.addColorStop(1, "rgba(20,12,14,0.4)"); ctx.fillStyle = g; ctx.fillRect(0, H * 0.8, W, H * 0.2);
+    const s = Math.round(W * 0.07); ctx.globalAlpha = a; shadowOn(ctx, W);
+    ctx.font = "italic " + s + "px " + SERIF; ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "left"; if (ed.t) ctx.fillText(ed.t, W * 0.07, H * 0.085 + s * 0.4);
+    ctx.textAlign = "right"; if (ed.b) ctx.fillText(ed.b, W * 0.93, H * 0.93);
+    shadowOff(ctx); ctx.textAlign = "center";
+    delicado(ctx, [state.handle || "", opt.video ? "" : (n === 0 ? "arrasta →" : "")].filter(Boolean).join("  ·  "), W / 2, H * 0.975, W * 0.02, 0.75);
+    ctx.globalAlpha = 1;
+    return;
+  }
+  const ult = imgs.pares[imgs.pares.length - 1] || [];
+  paintPhoto(ctx, W, H, over[n] || ult[1] || ult[0], 0.6, opt.zoom, opt.dx, opt.dy);
+  ctx.globalAlpha = a; ctx.textAlign = "center"; ctx.fillStyle = "#FFFFFF"; shadowOn(ctx, W);
+  const s1 = Math.round(W * 0.075); ctx.font = "italic " + s1 + "px " + SERIF;
+  const ls = wrapText(ctx, ed.t || "", W * 0.8, 3); let y = H * 0.55 - (ls.length * s1 * 1.1) / 2;
+  ls.forEach(l => { y += s1 * 1.1; ctx.fillText(l, W / 2, y); });
+  shadowOff(ctx);
+  if (ed.b) delicado(ctx, ed.b, W / 2, y + W * 0.075, W * 0.03, 0.9);
+  drawHandle(ctx, W, H, "");
+  ctx.globalAlpha = 1;
 }
 // a = quanto do texto já apareceu (0 a 1), usado no vídeo
 function drawProntoSlide(ctx, W, H, p, n, total, imgs, opt){
   opt = opt || {}; const a = opt.a == null ? 1 : opt.a;
+  if (p.tipo === "cobra") return drawCobra(ctx, W, H, p, n, total, imgs, opt);
+  const ed = edicao(p, n, total), over = imgs.over || {};
   // imgs = [capa, final, dica 1, dica 2, ...]: cada imagem do carrossel tem a sua foto
-  const img = n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]);
+  const img = over[n] || (n === 0 ? imgs[0] : n === total - 1 ? (imgs[1] || imgs[0]) : (imgs[n + 1] || imgs[0]));
   paintPhoto(ctx, W, H, img, n === 0 ? 0 : (p.tipo === "achados" && n < total - 1 ? 0.15 : 0.6), opt.zoom, opt.dx, opt.dy);
   ctx.textBaseline = "alphabetic"; ctx.fillStyle = "#FFFFFF"; ctx.globalAlpha = a; shadowOn(ctx, W);
-  const mw = W * 0.84, rise = (1 - a) * W * 0.03;
+  // Identidade Dale Daia, minimalista: só o texto principal (letra fina inclinada + letra grossa na capa);
+  // o resto pequeno, fino e espaçado. Sem preço e sem numeração.
+  const mw = W * 0.8, rise = (1 - a) * W * 0.03;
+  ctx.textAlign = "center";
   if (n === 0) {
-    ctx.textAlign = "center";
-    const s1 = Math.round(W*0.105), s2 = Math.round(W*0.092);
-    ctx.font = "italic " + s1 + "px " + SERIF; const l1 = wrapText(ctx, p.c1, mw, 2);
-    ctx.font = "900 " + s2 + "px " + SANS; const l2 = wrapText(ctx, p.c2, mw, 3);
-    const blockH = l1.length*s1*1.05 + l2.length*s2*1.08;
-    let y = H*0.70 - blockH/2 + rise;
-    ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.05; ctx.fillText(l, W/2, y); });
-    ctx.font = "900 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.08; ctx.fillText(l, W/2, y); });
+    const s1 = Math.round(W*0.082), s2 = Math.round(W*0.066);
+    ctx.font = "italic " + s1 + "px " + SERIF; const l1 = ed.t ? wrapText(ctx, ed.t, mw, 2) : [];
+    ctx.font = "800 " + s2 + "px " + SANS; const l2 = ed.b ? wrapText(ctx, ed.b, mw, 2) : [];
+    const blockH = l1.length*s1*1.08 + l2.length*s2*1.12;
+    let y = H*0.80 - blockH + rise;
+    ctx.font = "italic " + s1 + "px " + SERIF; l1.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
+    ctx.font = "800 " + s2 + "px " + SANS; l2.forEach(l => { y += s2*1.12; ctx.fillText(l, W/2, y); });
     shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : "arrasta →");
   } else if (n < total - 1) {
-    const [t, body] = p.s[n-1];
-    ctx.textAlign = "center";
-    const sn = Math.round(W*0.06), st = Math.round(W*0.088), sb = Math.round(W*0.05);
-    ctx.font = "italic " + st + "px " + SERIF; const lt = wrapText(ctx, t, mw, 3);
-    ctx.font = "600 " + sb + "px " + SANS; const lb = wrapText(ctx, body, mw*0.95, 5);
-    const blockH = sn*1.3 + lt.length*st*1.08 + W*0.03 + lb.length*sb*1.35;
-    let y = H*0.885 - blockH - (p.tipo === "achados" ? W*0.075 : 0) + rise; // texto embaixo, para o produto aparecer na foto
-    ctx.fillStyle = "#F1D29A"; ctx.font = "italic " + sn + "px " + SERIF; y += sn; ctx.fillText((p.tipo === "achados" ? "Achado " : "") + String(n).padStart(2,"0"), W/2, y); y += sn*0.3;
-    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.08; ctx.fillText(l, W/2, y); });
-    y += W*0.03; ctx.font = "600 " + sb + "px " + SANS; lb.forEach(l => { y += sb*1.35; ctx.fillText(l, W/2, y); });
-    if (p.tipo === "achados") { ctx.font = "800 " + Math.round(W*0.034) + "px " + SANS; ctx.fillStyle = "#F1D29A"; ctx.fillText("Comenta QUERO que eu te mando o link", W/2, y + W*0.065); }
-    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : (n+1) + "/" + total);
+    const st = Math.round(W*0.064), sb = Math.round(W*0.03);
+    ctx.font = "italic " + st + "px " + SERIF; const lt = ed.t ? wrapText(ctx, ed.t, mw, 2) : [];
+    ctx.font = "300 " + sb + "px " + SANS; const lb = ed.b ? wrapText(ctx, ed.b, mw, 2) : [];
+    const blockH = lt.length*st*1.1 + (lb.length ? W*0.025 + lb.length*sb*1.5 : 0);
+    let y = H*0.885 - blockH + rise; // texto embaixo, para a foto respirar
+    ctx.fillStyle = "#FFFFFF"; ctx.font = "italic " + st + "px " + SERIF; lt.forEach(l => { y += st*1.1; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx);
+    if (lb.length) { y += W*0.025; lb.forEach(l => { y += sb*1.5; delicado(ctx, l, W/2, y, sb, 0.9); }); }
+    drawHandle(ctx, W, H, "");
   } else {
-    ctx.textAlign = "center";
-    const s1 = Math.round(W*0.1); ctx.font = "italic " + s1 + "px " + SERIF;
-    const ls = wrapText(ctx, p.fim, mw, 4); let y = H*0.55 - (ls.length*s1*1.08)/2 + rise;
-    ls.forEach(l => { y += s1*1.08; ctx.fillText(l, W/2, y); });
-    ctx.font = "800 " + Math.round(W*0.042) + "px " + SANS; ctx.fillStyle = "#F1D29A";
-    ctx.fillText("Promoções reais no grupo · link na bio", W/2, y + W*0.1);
-    shadowOff(ctx); drawHandle(ctx, W, H, opt.video ? "" : total + "/" + total);
+    const s1 = Math.round(W*0.075); ctx.font = "italic " + s1 + "px " + SERIF;
+    const ls = ed.t ? wrapText(ctx, ed.t, mw, 3) : []; let y = H*0.55 - (ls.length*s1*1.1)/2 + rise;
+    ls.forEach(l => { y += s1*1.1; ctx.fillText(l, W/2, y); });
+    shadowOff(ctx);
+    if (ed.b) delicado(ctx, ed.b, W/2, y + W*0.075, W*0.03, 0.9);
+    drawHandle(ctx, W, H, "");
   }
   ctx.globalAlpha = 1;
 }
 function loadImgURL(u){ return new Promise(res => { if (!u) return res(null); const i = new Image(); if (/^https?:\/\//.test(u) &&!u.startsWith(location.origin)) i.crossOrigin = "anonymous"; i.onload = () => res(i); i.onerror = () => res(null); i.src = u; }); }
 function loadImg(blob){ return blob ? loadImgURL(URL.createObjectURL(blob)) : Promise.resolve(null); }
+// fotos trocadas pela Daia ficam no celular: "sl-<id>-<n>" (foto principal / de baixo) e "sla-<id>-<n>" (de cima, no antes/depois)
 async function prontoImgs(p){
+  const base = await prontoImgsBase(p), total = totalSlides(p); base.over = {}; base.overA = {};
+  for (let n = 0; n < total; n++) { const f = await getPhoto("sl-" + p.id + "-" + n); if (f) base.over[n] = await loadImg(f); const fa = await getPhoto("sla-" + p.id + "-" + n); if (fa) base.overA[n] = await loadImg(fa); }
+  return base;
+}
+async function prontoImgsBase(p){
   const own = await loadImg(await getPhoto("bg-" + p.id));
+  if (p.tipo === "cobra") return {pares: await Promise.all(p.itens.map(it => Promise.all([loadImgURL(it[4]), loadImgURL(it[3])])))};
   if (p.tipo === "achados") { const capa = await loadImgURL(p.capa || "c-" + p.id + ".jpg"); const fotos = await Promise.all(p.itens.map((it, i) => loadImgURL(it[3] || "p-" + p.id + "-" + (i + 1) + ".jpg"))); return [own || capa, own || capa].concat(fotos.map(f => f || capa)); }
   const [f1, f2] = await Promise.all([loadImgURL("f-" + p.id + "-1.jpg"), loadImgURL("f-" + p.id + "-2.jpg")]);
   const dicas = await Promise.all(p.s.map((_, i) => loadImgURL("s-" + p.id + "-" + (i + 1) + ".jpg")));
@@ -723,7 +1071,7 @@ async function prontoImgs(p){
 async function fontsReady(){ try { await Promise.all([document.fonts.load("italic 60px 'DM Serif Display'"), document.fonts.load("900 60px 'Nunito Sans'"), document.fonts.load("600 40px 'Nunito Sans'"), document.fonts.load("700 30px 'Nunito Sans'"), document.fonts.load("800 30px 'Nunito Sans'")]); } catch(_) {} }
 async function buildPronto(p){
   await fontsReady();
-  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = p.s.length + 2, imgs = await prontoImgs(p);
+  const W = 1080, H = prFormat === "ig" ? 1350 : 1920, total = totalSlides(p), imgs = await prontoImgs(p);
   const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
   const blobs = [];
   for (let n = 0; n < total; n++) { drawProntoSlide(ctx, W, H, p, n, total, imgs); blobs.push(await new Promise(r => c.toBlob(r, "image/jpeg", 0.9))); }
@@ -733,7 +1081,7 @@ async function buildPronto(p){
 async function buildVideo(p, onProgress){
   await fontsReady();
   const mime = pickMime(); if (!mime) throw new Error("sem gravador");
-  const W = 720, H = 1280, total = p.s.length + 2, imgs = await prontoImgs(p), per = 2.4, fps = 30;
+  const W = 720, H = 1280, total = totalSlides(p), imgs = await prontoImgs(p), per = 2.4, fps = 30;
   const c = document.createElement("canvas"); c.width = W; c.height = H; const ctx = c.getContext("2d");
   drawProntoSlide(ctx, W, H, p, 0, total, imgs, {a:0, zoom:1, video:true});
   const stream = c.captureStream(fps), rec = new MediaRecorder(stream, {mimeType: mime, videoBitsPerSecond: 5000000});
@@ -760,7 +1108,7 @@ async function renderProntos(){
     const open = openPronto === p.id, done = state.prontos[p.id];
     return '<article class="card" data-pid="' + p.id + '">' +
       '<div class="pr-head"><img class="pr-cover" data-cover="' + p.id + '" src="' + esc(p.tipo === "achados" ? (p.capa || "c-" + p.id + ".jpg") : "f-" + p.id + "-1.jpg") + '" loading="lazy" alt=""><div class="info"><h3 class="title" style="font-size:19px">' + esc(p.c1 + " " + p.c2) + '</h3>' +
-      '<p class="note">' + (p.s.length + 2) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
+      '<p class="note">' + totalSlides(p) + ' imagens' + (done ? ' · <b>postado ✓</b>' : '') + '</p>' +
       '<div class="actions"><button class="btn ' + (open ? '' : 'wine') + '" data-pa="toggle">' + (open ? "Fechar" : "Abrir") + '</button></div></div></div>' +
       (open ? '<div class="field"><span class="lab">Formato</span><div class="chips" data-pa="fmt">' +
         '<button type="button" class="chip" data-v="ig" aria-pressed="' + (prFormat === "ig") + '">Instagram (4:5)</button>' +
@@ -770,7 +1118,7 @@ async function renderProntos(){
         '<div class="leg sel">' + esc(p.leg + "\n\n" + p.tags) + '</div>' +
         '<div class="actions"><button class="btn wine" data-pa="share">Postar (envia as imagens)</button><button class="btn" data-pa="copy">Copiar legenda</button><button class="btn" data-pa="save">Salvar imagens</button>' +
         '<button class="btn main" data-pa="done">' + (done ? "Postado ✓" : "Marcar como postado") + '</button></div>' +
-        (p.itens ? '<div class="field"><span class="lab">Alguém comentou QUERO?</span><p class="note">Copie e mande no direct: já vai com os 5 links, todos SEUS links de afiliada. (Fotos dos produtos: Telegram › PACK VIP DE FOTOS PARA CARROSSEL › CASA/DECORAÇÃO › ' + esc(p.album) + '.)</p><button class="btn" data-pa="links">Copiar resposta com os links</button></div>' : '') +
+        (p.itens ? '<div class="field"><span class="lab">Alguém comentou ' + (p.tipo === "cobra" ? "CASA" : "QUERO") + '?</span><p class="note">Copie e mande no direct: já vai com todos os links, todos SEUS links de afiliada.' + (/^a\d/.test(p.id) && p.album ? ' (Fotos dos produtos: Telegram › PACK VIP DE FOTOS PARA CARROSSEL › CASA/DECORAÇÃO › ' + esc(p.album) + '.)' : '') + '</p><button class="btn" data-pa="links">Copiar resposta com os links</button></div>' : '') +
         '<div class="field"><span class="lab">Quer vídeo?</span><p class="note">Os vídeos de IA dos produtos e os vídeos prontos dos seus packs ficam na tela Hoje.</p></div>' : '') +
     '</article>';
   }).join("");
@@ -782,9 +1130,9 @@ async function renderProntos(){
     const p = PR.find(x => x.id === openPronto), key = p.id + "-" + prFormat;
     if (!prOutputs[key]) prOutputs[key] = await buildPronto(p);
     const box = $("sl-" + p.id); if (!box) return;
-    const urls = prOutputs[key].map(b => URL.createObjectURL(b));
-    box.innerHTML = urls.map(u => '<img src="' + u + '" alt="">').join("");
-    const cv = document.querySelector('[data-cover="' + p.id + '"]'); if (cv) cv.src = urls[0];
+    const arqs = prOutputs[key].map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type: "image/jpeg"}));
+    mostrarBaixar(p.id, arqs);
+    const cv = document.querySelector('[data-cover="' + p.id + '"]'); if (cv) cv.src = URL.createObjectURL(arqs[0]);
   }
 }
 $("prontoList").addEventListener("click", async e => {
@@ -816,7 +1164,8 @@ $("prontoList").addEventListener("click", async e => {
     toast("Vídeo salvo na pasta Downloads. A legenda está copiada."); return;
   }
   if (!blobs) return;
-  const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"}));
+  // as imagens que a Daia tirou do carrossel não vão
+  const files = blobs.map((bl, i) => new File([bl], p.id + "-" + (i+1) + ".jpg", {type:"image/jpeg"})).filter((_, i) => !edicao(p, i, totalSlides(p)).off);
   if (a === "share") {
     try { await navigator.clipboard.writeText(text); } catch(_) {}
     if (navigator.canShare && navigator.canShare({files})) {
@@ -824,10 +1173,77 @@ $("prontoList").addEventListener("click", async e => {
     } else toast("Este celular não deixou enviar direto. Use Salvar imagens.");
   }
   if (a === "save") {
-    for (const f of files) { const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); await new Promise(r => setTimeout(r, 300)); }
-    toast("Imagens salvas na pasta Downloads.");
+    // O Chrome do celular bloqueia vários downloads seguidos: baixa uma por uma com pausa
+    // e mostra um botão ⬇ em cada imagem (cada toque baixa uma, sem bloqueio).
+    for (const f of files) { baixarArquivo(f); await new Promise(r => setTimeout(r, 900)); }
+    mostrarBaixar(pid, files);
+    toast("Se só baixou a primeira, toque em ⬇ em cada imagem (ou em Permitir, quando o Chrome perguntar).", 7000);
   }
 });
+function baixarArquivo(f){ const l = document.createElement("a"); l.href = URL.createObjectURL(f); l.download = f.name; document.body.appendChild(l); l.click(); l.remove(); }
+// Mostra as imagens com ⬇ (baixar) e ✏️ (editar texto, trocar foto, foto com IA ou tirar do carrossel)
+function fotoProduto(p, n, total){
+  const i = p.tipo === "cobra" ? n : n - 1, it = p.itens && p.itens[i];
+  if (!it || n === total - 1 || (p.tipo !== "cobra" && n === 0)) return "";
+  if (it[5]) return it[5];
+  if (/susercontent|shopee/.test(it[3] || "")) return it[3];
+  if (/^a\d/.test(p.id)) return "p-" + p.id + "-" + (i + 1) + ".jpg";
+  return "";
+}
+function mostrarBaixar(pid, files){
+  const box = $("sl-" + pid); if (!box) return;
+  const p = PR.find(x => x.id === pid), total = totalSlides(p);
+  box.classList.add("com-baixar");
+  box.innerHTML = files.map((f, i) => { const off = edicao(p, i, total).off;
+    return '<div class="sl-item' + (off ? ' sl-off' : '') + '"><img src="' + URL.createObjectURL(f) + '" alt="Imagem ' + (i+1) + '">' +
+      (off ? '<small>fora do carrossel</small>' : '') +
+      '<div class="sl-bts"><button type="button" class="btn mini" data-baixar="' + i + '" aria-label="Baixar imagem ' + (i+1) + '"' + (off ? ' disabled' : '') + '>⬇</button>' +
+      '<button type="button" class="btn mini" data-editar="' + i + '" aria-label="Editar imagem ' + (i+1) + '">✏️</button></div></div>'; }).join("") +
+    '<div class="sl-editor" id="ed-' + pid + '" hidden></div>';
+  box.onclick = async e => {
+    const b = e.target.closest("[data-baixar]"); if (b) { baixarArquivo(files[Number(b.dataset.baixar)]); b.textContent = "✓"; return; }
+    const ed = e.target.closest("[data-editar]"); if (ed) { abrirEditor(p, Number(ed.dataset.editar), total); return; }
+  };
+}
+function abrirEditor(p, n, total){
+  const box = $("ed-" + p.id); if (!box) return;
+  const e = edicao(p, n, total), prod = fotoProduto(p, n, total), cobraPar = p.tipo === "cobra" && n < total - 1;
+  box.hidden = false;
+  box.innerHTML = '<b>Editar esta imagem</b>' +
+    '<div class="field"><label for="edt-' + p.id + '">' + (cobraPar ? "Frase de cima" : "Texto grande") + '</label><input class="input" id="edt-' + p.id + '" value="' + esc(e.t || "") + '" placeholder="Deixe vazio para não ter"></div>' +
+    '<div class="field"><label for="edb-' + p.id + '">' + (cobraPar ? "Frase de baixo" : "Texto pequeno") + '</label><input class="input" id="edb-' + p.id + '" value="' + esc(e.b || "") + '" placeholder="Deixe vazio para não ter"></div>' +
+    '<div class="actions"><button class="btn main" data-ed="salvar">Salvar texto</button><button class="btn" data-ed="padrao">Voltar ao original</button></div>' +
+    '<div class="actions"><label class="btn" style="cursor:pointer">📷 ' + (cobraPar ? "Trocar foto de baixo" : "Trocar a foto") + '<input type="file" accept="image/*" data-ed="foto" hidden></label>' +
+    (cobraPar ? '<label class="btn" style="cursor:pointer">📷 Trocar foto de cima<input type="file" accept="image/*" data-ed="fotoa" hidden></label>' : '') +
+    (prod ? '<button class="btn wine" data-ed="ia">✨ Foto com IA</button>' : '') + '</div>' +
+    (prod ? '<p class="how nota">✨ Foto com IA: envia a foto do produto e o pedido para o Gemini ou o ChatGPT. Eles criam uma foto bonita do mesmo produto, sem texto. Salve a foto e toque em <b>Trocar a foto</b>.</p>' : '') +
+    '<div class="actions"><button class="btn" data-ed="tirar">' + (e.off ? "↩️ Voltar para o carrossel" : "🗑️ Tirar do carrossel") + '</button><button class="btn" data-ed="fechar">Fechar</button></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+  const guardar = obj => { state.prEd = state.prEd || {}; state.prEd[p.id] = state.prEd[p.id] || {}; if (obj === null) delete state.prEd[p.id][n]; else state.prEd[p.id][n] = Object.assign({}, state.prEd[p.id][n], obj); save(); };
+  const refazer = msg => { delete prOutputs[p.id + "-ig"]; delete prOutputs[p.id + "-tt"]; renderProntos(); if (msg) toast(msg); };
+  box.onclick = async ev => {
+    const a = ev.target.closest("button[data-ed]")?.dataset.ed; if (!a) return;
+    if (a === "fechar") { box.hidden = true; return; }
+    if (a === "salvar") { guardar({t: $("edt-" + p.id).value.trim(), b: $("edb-" + p.id).value.trim()}); refazer("Texto atualizado."); }
+    if (a === "padrao") { guardar(null); await putPhoto("sl-" + p.id + "-" + n, null); await putPhoto("sla-" + p.id + "-" + n, null); refazer("Voltou ao original."); }
+    if (a === "tirar") { guardar({off: !e.off}); refazer(e.off ? "A imagem voltou para o carrossel." : "Tirada. Ela não vai quando você postar ou salvar."); }
+    if (a === "ia") fotoComIA(prod);
+  };
+  box.onchange = async ev => {
+    const inp = ev.target.closest("input[data-ed]"); if (!inp || !inp.files || !inp.files[0]) return;
+    await putPhoto((inp.dataset.ed === "fotoa" ? "sla-" : "sl-") + p.id + "-" + n, await shrink(inp.files[0], 1600));
+    refazer("Foto trocada.");
+  };
+}
+const PEDIDO_FOTO_IA = "Crie uma foto realista e elegante deste MESMO produto (não mude o produto: mesma cor, formato e detalhes), sendo usado numa casa bonita e aconchegante. Luz natural quente, estilo minimalista, tons neutros, foto vertical 4:5 com cara de foto de celular de verdade. Sem nenhum texto, logo, preço, selo ou marca d'água.";
+async function fotoComIA(url){
+  try { await navigator.clipboard.writeText(PEDIDO_FOTO_IA); } catch(_) {}
+  try {
+    const b = await (await fetch(url)).blob(), f = new File([b], "produto.jpg", {type: b.type || "image/jpeg"});
+    if (navigator.canShare && navigator.canShare({files: [f]})) { await navigator.share({files: [f], text: PEDIDO_FOTO_IA}); toast("Escolha o Gemini ou o ChatGPT. Se o pedido não aparecer, é só colar: ele já está copiado.", 7000); return; }
+  } catch(err) { if (err && err.name === "AbortError") return; }
+  window.open(url, "_blank"); toast("O pedido está copiado. Salve a foto do produto e mande no Gemini ou no ChatGPT junto com o pedido.", 7000);
+}
 $("prontoList").addEventListener("change", async e => {
   if (e.target.dataset.pa !== "bg") return;
   const f = e.target.files && e.target.files[0]; if (!f) return;
@@ -837,10 +1253,70 @@ $("prontoList").addEventListener("change", async e => {
   renderProntos(); toast("Foto colocada na capa.");
 });
 
+// ---------- CRIAR COM IA (no lugar do editor de vídeo, desde a v22) ----------
+// Atalhos para as IAs e pedidos prontos (baseados nos prompts que a Daia mandou). {tema} = o que ela escrever.
+const IA_APPS = [
+  ["Gemini", "https://gemini.google.com/app", "fotos e vídeos com IA"],
+  ["ChatGPT", "https://chatgpt.com/", "fotos e textos"],
+  ["Claude", "https://claude.ai/new", "ideias, roteiros e legendas"],
+  ["CapCut", "https://www.capcut.com/", "música e legenda no vídeo"]
+];
+const IA_CTX = "Sou a Daia, afiliada da Shopee (perfil @daledaia), nicho casa, decoração e achadinhos. Meu estilo é minimalista, aconchegante e elegante; meu público são mulheres que amam casa bonita e organizada gastando pouco. Português do Brasil, simples, tom de amiga. Nunca cite preço.";
+const IA_PEDIDOS = [
+  {id: "virais", nome: "✨ 5 ideias que viralizam", ias: "txt", p: "Você é um estrategista de redes sociais especialista em crescimento acelerado. Analise as tendências virais recentes do Instagram e do TikTok no nicho de achadinhos de casa sobre {tema} e crie 5 ideias curtas, explosivas e com alto potencial de compartilhamento. Seja específico e prático: para cada ideia, diga o formato, o gancho dos 3 primeiros segundos e o que mostrar."},
+  {id: "ganchos", nome: "🪝 10 ganchos de vídeo", ias: "txt", p: "Liste as 10 maiores dores que o meu público sente sobre {tema}. Transforme cada dor em um gancho de até 10 palavras, pronto para Reels e TikTok. Evite clichês, seja direto e provocador."},
+  {id: "roteiro", nome: "🎬 Roteiro de Reels de 30 s", ias: "txt", p: "Crie um roteiro de 30 segundos para Reels sobre {tema}. Estrutura: 1) gancho irresistível; 2) história curta e envolvente; 3) chamada para comentar ou salvar. Diga o que aparece em cada parte. Frases curtas e simples. Nenhuma enrolação."},
+  {id: "carrossel", nome: "📌 Carrossel que todo mundo salva", ias: "txt", p: "Liste 5 dicas práticas e pouco conhecidas sobre {tema}. Cada dica com no máximo 12 palavras, clara e fácil de aplicar. Objetivo: um carrossel impossível de não salvar. Dê também a frase da capa (até 6 palavras) e a frase do último slide."},
+  {id: "cobra", nome: "🏠 Carrossel \"a casa te cobra\"", ias: "txt", p: "Monte um carrossel no formato antes e depois \"a casa te cobra / a casa te poupa\" (ou \"isso irrita / isso traz paz\") sobre {tema}: 5 cantinhos da casa; para cada um, diga a foto de antes (bagunça), a foto de depois (organizado) e o achado da Shopee que resolve. Termine com uma pergunta para gerar comentários e a legenda com \"Digita CASA que eu te mando os links!\"."},
+  {id: "legenda", nome: "💬 Legenda e hashtags", ias: "txt", p: "Escreva 3 opções de legenda curta (até 2 frases) para um post sobre {tema}, terminando com \"Comenta QUERO que eu te mando o link\". Depois, 5 hashtags que estão funcionando no nicho de casa e achadinhos."},
+  {id: "cta", nome: "📣 10 chamadas para comentar", ias: "txt", p: "Crie 10 chamadas (CTAs) curtas, criativas e diretas que incentivem comentários ou salvamentos em posts sobre {tema}. Evite frases genéricas; use curiosidade e ação imediata."},
+  {id: "reaproveitar", nome: "♻️ Transformar em 3 posts", ias: "txt", p: "Transforme este conteúdo em: 1) roteiro de Reels de 7 segundos; 2) carrossel de 5 slides; 3) post com uma frase de impacto. Adapte a linguagem para cada formato.\n\nConteúdo: {tema}"},
+  {id: "foto", nome: "📸 Foto bonita do produto (mande a foto junto)", ias: "img", p: "Crie uma foto realista e elegante deste MESMO produto da foto (não mude o produto: mesma cor, formato e detalhes), sendo usado numa casa bonita e aconchegante. Luz natural quente, estilo minimalista, tons neutros, foto vertical 4:5 com cara de foto de celular de verdade. Sem nenhum texto, logo, preço, selo ou marca d’água. Produto: {tema}."},
+  {id: "video", nome: "🎥 Vídeo de 8 s da foto (mande a foto junto)", ias: "img", p: "Transforme esta foto em um vídeo vertical 9:16 de 8 segundos, ultrarrealista: câmera se aproximando devagar, mãos femininas usando o produto com calma, luz quente de fim de tarde, casa aconchegante. O produto continua exatamente igual. Sem texto na tela. Produto: {tema}."}
+];
+let iaAberto = null;
+function textoPedido(ped){ const tema = (state.iaTema || "").trim() || "achadinhos de casa da Shopee"; return (ped.ias === "txt" ? IA_CTX + "\n\n" : "") + ped.p.split("{tema}").join(tema); }
+function renderIA(){
+  const box = $("iaBox"); if (!box) return;
+  box.innerHTML = '<article class="card"><div class="meta"><span class="tag trend">Abrir uma IA</span></div><div class="ia-apps">' +
+      IA_APPS.map(a => '<a class="ia-app" href="' + a[1] + '" target="_blank" rel="noopener"><b>' + a[0] + '</b><small>' + esc(a[2]) + '</small></a>').join("") + '</div></article>' +
+    '<article class="card"><div class="meta"><span class="tag casa">Pedidos prontos</span><span class="why">toque para ver</span></div>' +
+      '<div class="field"><label for="iaTema">Tema ou produto</label><input class="input" id="iaTema" placeholder="Ex.: cozinha organizada, pisca-pisca de Natal" value="' + esc(state.iaTema || "") + '"></div>' +
+      '<div class="actions" style="flex-wrap:wrap">' + IA_PEDIDOS.map(p => '<button class="btn" data-iaped="' + p.id + '">' + esc(p.nome) + '</button>').join("") + '</div>' +
+      '<div id="iaPrev"></div></article>' +
+    '<article class="card"><div class="meta"><span class="tag serie">Dica</span></div><p class="how">📸 e 🎥 com foto: no Gemini ou no ChatGPT, toque no <b>+</b>, escolha a foto do produto e cole o pedido. O Claude escreve muito bem, mas não cria imagens.<br>🎵 Legenda e música do vídeo: use as legendas automáticas do TikTok ou do CapCut.</p></article>';
+  if (iaAberto) abrirPedido(iaAberto);
+}
+function abrirPedido(id){
+  const ped = IA_PEDIDOS.find(p => p.id === id), box = $("iaPrev"); if (!ped || !box) return;
+  iaAberto = id;
+  const img = ped.ias === "img";
+  box.innerHTML = '<div class="resp-prev"><b>' + esc(ped.nome) + '</b><textarea class="input" id="iaTxt" rows="8" aria-label="Pedido">' + esc(textoPedido(ped)) + '</textarea>' +
+    '<div class="actions"><button class="btn main" data-iaacao="copiar">📋 Copiar</button>' +
+    (img ? '' : '<button class="btn" data-iaacao="claude">Enviar ao Claude</button>') +
+    '<button class="btn" data-iaacao="chatgpt">Enviar ao ChatGPT</button><button class="btn" data-iaacao="gemini">Abrir o Gemini</button><button class="btn" data-iaacao="fechar">Fechar</button></div>' +
+    '<p class="how nota">' + (img ? 'Copie, abra o Gemini ou o ChatGPT, mande a foto do produto e cole o pedido.' : 'No Claude e no ChatGPT o pedido já vai escrito. No Gemini, é só colar (ele já fica copiado).') + '</p></div>';
+  box.scrollIntoView({block: "nearest", behavior: "smooth"});
+}
+function abrirLink(u){ const l = document.createElement("a"); l.href = u; l.target = "_blank"; l.rel = "noopener"; document.body.appendChild(l); l.click(); l.remove(); }
+$("iaBox").addEventListener("input", e => { if (e.target.id === "iaTema") { state.iaTema = e.target.value; save(); const t = $("iaTxt"); if (t && iaAberto) t.value = textoPedido(IA_PEDIDOS.find(p => p.id === iaAberto)); } });
+$("iaBox").addEventListener("click", async e => {
+  const pb = e.target.closest("button[data-iaped]"); if (pb) { abrirPedido(pb.dataset.iaped); return; }
+  const a = e.target.closest("button[data-iaacao]")?.dataset.iaacao; if (!a) return;
+  if (a === "fechar") { iaAberto = null; $("iaPrev").innerHTML = ""; return; }
+  const txt = $("iaTxt").value;
+  try { await navigator.clipboard.writeText(txt); } catch(_) {}
+  if (a === "copiar") { toast("Copiado! Agora é só colar na IA."); return; }
+  if (a === "claude") abrirLink("https://claude.ai/new?q=" + encodeURIComponent(txt));
+  if (a === "chatgpt") abrirLink("https://chatgpt.com/?q=" + encodeURIComponent(txt));
+  if (a === "gemini") { toast("Pedido copiado. No Gemini, toque e segure na caixa de texto e cole.", 5000); abrirLink("https://gemini.google.com/app"); }
+});
+
 // ---------- abas ----------
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["hoje","prontos","produtos","ideias","editar"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
+  if (t === "ia") renderIA();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}

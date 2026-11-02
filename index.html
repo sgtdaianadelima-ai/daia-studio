@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,300;6..12,400;6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
 <style>
 /* Layout: app de uma coluna — cabeçalho do dia, conteúdo rolando, barra de abas fixa embaixo */
 :root{
@@ -127,6 +127,11 @@ textarea.input{min-height:96px;resize:vertical}
 .seg3 .chip{padding:10px 4px}
 .check{display:flex;gap:10px;align-items:center;font-size:15px;font-weight:700}
 .check input{width:22px;height:22px;accent-color:var(--wine)}
+.leg-box{display:grid;gap:10px}
+.leg-lista{display:grid;gap:6px;max-height:320px;overflow-y:auto;padding-right:4px}
+.leg-lista label{display:flex;gap:8px;align-items:center}
+.leg-lista small{color:var(--muted);font-size:12px;min-width:34px}
+.leg-lista input{flex:1;min-width:0;padding:8px 10px}
 .stats{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:15px;font-variant-numeric:tabular-nums}
 .stats b{font-size:20px;color:var(--pine)}
 .timeline{position:relative;height:22px;border-radius:8px;background:var(--wine-soft);overflow:hidden}
@@ -156,6 +161,18 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .pr-head .info{min-width:0;display:grid;gap:4px}
 .slides{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
 .slides img{width:120px;flex-shrink:0;border-radius:10px;border:1px solid var(--line)}
+.slides .sl-item{display:grid;gap:6px;justify-items:center;flex-shrink:0}
+.slides.com-baixar img{width:140px}
+.slides.com-baixar{flex-wrap:wrap;overflow-x:visible}
+.slides .sl-bts{display:flex;gap:6px}
+.slides .sl-off img{opacity:.35}
+.slides .sl-off small{font-size:12px;color:var(--muted)}
+.sl-editor{flex-basis:100%;display:grid;gap:10px;margin-top:8px;padding:12px;border:2px solid var(--wine);border-radius:16px;background:var(--wine-soft)}
+.sl-editor .input{background:var(--surface)}
+.ia-apps{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ia-app{display:grid;gap:2px;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--bg);color:var(--ink);text-decoration:none}
+.ia-app b{font-size:17px;color:var(--wine)}
+.ia-app small{font-size:13px;color:var(--muted)}
 .leg{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:14px;white-space:pre-wrap}
 .splash{position:fixed;inset:0;background:var(--wine);color:var(--on-accent);display:grid;place-items:center;z-index:20;transition:opacity .4s}
 .splash div{font-family:var(--display);font-size:40px}
@@ -190,7 +207,7 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .voz-dica:empty{display:none}
 .card.recado{background:var(--wine);border-color:var(--wine);color:var(--on-accent)}
 .card.recado p{margin:0;font-size:17px;font-weight:700}
-.semana{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center}
+.semana{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center}
 .semana b{display:block;font-family:var(--display);font-size:28px;color:var(--wine);font-weight:400;line-height:1.1}
 .semana small{font-size:12px;color:var(--muted);line-height:1.2;display:block}
 .card.pendente{border-color:var(--gold);background:var(--gold-soft)}
@@ -225,6 +242,42 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .opcao>div{min-width:0;display:grid;gap:2px}
 .opcao small{color:var(--muted)}
 .link-btn{background:none;border:0;padding:0;color:var(--wine);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+.secao{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.secao>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;min-height:56px;-webkit-tap-highlight-color:transparent}
+.secao>summary::-webkit-details-marker{display:none}
+.sec-emoji{font-size:24px;width:44px;height:44px;border-radius:14px;background:var(--wine-soft);display:grid;place-items:center;flex:none}
+.sec-txt{display:grid;gap:2px;min-width:0;flex:1}
+.sec-txt b{font-size:17px}
+.sec-txt small{font-size:13px;color:var(--muted)}
+.sec-conta{font-size:13px;font-weight:800;color:var(--wine);background:var(--wine-soft);padding:4px 10px;border-radius:999px;white-space:nowrap}
+.secao.ok .sec-conta{color:#2f7a45;background:color-mix(in srgb,#2f7a45 14%,var(--surface))}
+.sec-seta{width:10px;height:10px;border-right:2.5px solid var(--muted);border-bottom:2.5px solid var(--muted);transform:rotate(45deg);transition:transform .2s;flex:none;margin:0 4px 4px}
+.secao[open] .sec-seta{transform:rotate(-135deg);margin:4px 4px 0}
+.secao[open]>summary{border-bottom:1px solid var(--line)}
+.sec-corpo{display:grid;gap:12px;padding:12px}
+.sec-corpo .card{box-shadow:none}
+.how.nota{margin:0;padding:0 4px}
+.resp-grupo{margin:14px 0 4px;font-size:13px;font-weight:800;color:var(--muted);letter-spacing:.02em}
+.resp-prev{display:grid;gap:10px;margin-top:14px;padding:12px;border:2px solid var(--wine);border-radius:16px;background:var(--wine-soft)}
+.resp-prev textarea{min-height:190px;background:var(--surface)}
+.extra-item{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
+.extra-item>div{flex:1;min-width:0}
+.extra-item p{margin:4px 0;overflow-wrap:anywhere}
+.extra-item small{color:var(--muted)}
+.extra-item a{font-size:14px;font-weight:800;color:var(--wine)}
+.extra-claude{background:var(--wine-soft);border-radius:12px;padding:8px 10px}
+.btn.mini{padding:6px 10px;font-size:13px}
+.meta-dia{display:grid;gap:8px;border:2px solid var(--wine)}
+.meta-dia.ok{border-color:var(--pine)}
+.meta-dia p{margin:0}
+.meta-topo{display:flex;justify-content:space-between;align-items:center;font-size:17px}
+.meta-topo span{font-family:var(--display);font-size:26px;color:var(--wine)}
+.meta-dia.ok .meta-topo span{color:var(--pine)}
+.meta-barra{height:10px;border-radius:99px;background:var(--wine-soft);overflow:hidden}
+.meta-barra i{display:block;height:100%;background:var(--wine);border-radius:99px}
+.meta-dia.ok .meta-barra i{background:var(--pine)}
+.meta-falta{font-size:14px;color:var(--muted)}
+.extra-plano .extra-claude{margin:0}
 .ferramentas{display:block}
 .ferramentas>summary{font-weight:800;font-size:16px;cursor:pointer;list-style:none}
 .ferramentas>summary small{display:block;font-weight:600;color:var(--muted);font-size:13px}
@@ -319,11 +372,19 @@ body.letra-grande .btn{font-size:16px}
 </section>
 
 <!-- EDITAR -->
-<section id="tab-editar" hidden>
+<section id="tab-ia" hidden>
+  <header class="top">
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
+    <h1>Criar com <em>IA</em></h1>
+    <p class="sub">Abra a IA que quiser ou use um pedido pronto. Escreva o tema, toque no pedido, confira e envie.</p>
+  </header>
+  <div id="iaBox"></div>
+</section>
+<section id="tab-editar" hidden aria-hidden="true" style="display:none"><!-- editor antigo, desligado (v22) -->
   <header class="top">
     <div class="brand"><span>Daia Studio</span><span class="topo-bts"><a href="cronograma.html" class="ico" aria-label="Cronograma">🗓️</a><a href="manual.html" class="ico" aria-label="Manual">📖</a><button type="button" class="ico" data-personalizar aria-label="Personalizar o app">🎨</button></span></div>
     <h1>Editar <em>vídeo</em></h1>
-    <p class="sub">Tira as pausas, coloca o título e devolve pronto. O vídeo não sai do seu celular.</p>
+    <p class="sub">Tira as pausas, coloca o título e a legenda e devolve pronto. O vídeo fica no seu celular (para a legenda, só o som vai para o seu robô do Google).</p>
   </header>
   <section class="step" id="s1">
     <h3>1. Vídeo</h3>
@@ -337,6 +398,15 @@ body.letra-grande .btn{font-size:16px}
       <button type="button" class="chip" data-v="normal" aria-pressed="true">Normal</button>
       <button type="button" class="chip" data-v="forte" aria-pressed="false">Ritmo rápido</button></div></div>
     <label class="check" for="vZoom"><input type="checkbox" id="vZoom" checked> Zoom alternado a cada corte</label>
+    <label class="check" for="vLeg"><input type="checkbox" id="vLeg" checked> Legenda automática (escreve o que você fala)</label>
+    <div id="legBox" class="leg-box" hidden>
+      <div class="field"><span class="lab">Cor da legenda</span><div class="seg3" id="legEstilo">
+        <button type="button" class="chip" data-v="branca" aria-pressed="true">Branca</button>
+        <button type="button" class="chip" data-v="amarela" aria-pressed="false">Amarela</button>
+        <button type="button" class="chip" data-v="vinho" aria-pressed="false">Fundo vinho</button></div></div>
+      <p class="status" id="legStatus"></p>
+      <div id="legLista" class="leg-lista"></div>
+    </div>
     <div class="stats" id="vStats"></div>
     <div class="timeline" id="vTimeline" hidden></div>
   </section>
@@ -352,7 +422,7 @@ body.letra-grande .btn{font-size:16px}
     <video id="vOut" controls playsinline></video>
     <div class="actions"><button class="btn wine" id="vShare">Enviar para o TikTok</button><button class="btn" id="vSave">Salvar no celular</button></div>
     <p class="status" id="vSaveStatus"></p>
-    <div class="after"><b>No TikTok:</b><ol><li>Toque em <b>Legendas</b> (legenda automática).</li><li>Escolha a música.</li><li>Poste. Use o mesmo vídeo no Reels.</li></ol></div>
+    <div class="after"><b>No TikTok:</b><ol><li>Se você não usou a legenda do app, toque em <b>Legendas</b>.</li><li>Escolha a música.</li><li>Poste. Use o mesmo vídeo no Reels.</li></ol></div>
   </section>
   <canvas id="cv"></canvas>
 </section>
@@ -364,7 +434,7 @@ body.letra-grande .btn{font-size:16px}
   <button role="tab" data-tab="prontos" aria-selected="false"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="14" height="18" rx="2"/><path d="M21 7v12a2 2 0 0 1-2 2"/><path d="M7 8h6M7 12h6"/></svg>Prontos</button>
   <button role="tab" data-tab="produtos" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Produtos</button>
   <button role="tab" data-tab="ideias" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Ideias</button>
-  <button role="tab" data-tab="editar" aria-selected="false"><svg viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg>Editar</button>
+  <button role="tab" data-tab="ia" aria-selected="false"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>IA</button>
 </nav>
 <div class="toast" id="toast" hidden></div>
 
