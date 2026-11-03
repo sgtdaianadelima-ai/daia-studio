@@ -13,7 +13,7 @@ const html = `<!doctype html><meta charset="utf-8">
 <style>body{margin:0}.c{width:1080px;height:1920px;position:relative;overflow:hidden}
 .l{position:absolute;inset:0;background-position:center;background-size:cover}
 .p{-webkit-mask-image:url(${d(mascara)});mask-image:url(${d(mascara)});-webkit-mask-size:cover;mask-size:cover;-webkit-mask-position:center;mask-position:center}
-.g{background:linear-gradient(180deg,rgba(15,8,10,.38) 0%,rgba(15,8,10,.12) 45%,rgba(15,8,10,.12) 70%,rgba(15,8,10,.55) 100%)}
+.g{background:${process.env.ALINHAR ? "linear-gradient(180deg,rgba(15,8,10,.38) 0%,rgba(15,8,10,.12) 45%,rgba(15,8,10,.12) 70%,rgba(15,8,10,.55) 100%)" : "linear-gradient(180deg,rgba(15,8,10,.15) 0%,rgba(15,8,10,.12) 40%,rgba(15,8,10,.55) 62%,rgba(15,8,10,.82) 100%)"}}
 .t{position:absolute;left:${process.env.ESQ || 30}px;right:${process.env.DIR || 30}px;top:${topo}px;text-align:${process.env.ALINHAR || 'center'};color:${cor};text-shadow:0 3px 24px rgba(0,0,0,.35)}
 .tag{font:900 ${process.env.TAGT || (process.env.ESQ ? 27 : 34)}px 'Nunito Sans';letter-spacing:.2em;color:#F1D29A;text-transform:uppercase;white-space:nowrap}
 .tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 16px 6px}
@@ -25,7 +25,7 @@ ${process.env.ALINHAR && process.env.ALINHAR !== "center" ? ".tag:before,.tag:af
 </style><div class="c" id="c">
 <div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div>
 <div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>${frase ? `<div class="f">${esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>')}</div>` : ''}</div>
-<div class="l p" style="background-image:url(${d(foto)})"></div><div class="l g" style="background:linear-gradient(180deg,transparent 60%,rgba(15,8,10,.55) 100%)"></div>
+<div class="l p"><div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div></div>
 <div class="h">@daledaia</div></div>`;
 (async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   await p.setContent(html, { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
