@@ -45,6 +45,7 @@ Quando a Daia mandar uma foto e pedir "faz uma capa" (Reels, TikTok, post, story
 - Frase curta embaixo (Nunito Sans 700) com uma palavra em dourado. "@daledaia" no rodapé.
 - Reels/TikTok/story: 1080×1920 com o texto no meio (y ≈ 1150–1550), para aparecer inteiro no quadradinho do perfil. Feed: 1080×1350.
 - Se o principal da foto ocupar o meio (ex.: guirlanda), descer o texto com `TOPO=1400`. Título comprido diminui sozinho.
+- Foto mais larga que 9:16 (ex.: quase quadrada): além da versão cortada, fazer uma com a foto inteira em cima: `ENCAIXAR=150 TOPO=1400` (fundo = a mesma foto desfocada, bordas suaves).
 - Gerar com `node capas/fazer-capa.js foto saida.png "TAG" "linha fina" "LINHA GROSSA" "frase com *destaque*" [story|feed|tiktok]`.
 - Entregar **3 opções de título** com SendUserFile, dizer qual recomenda e como trocar a capa no app.
 - Série no TikTok/Instagram: **Operação Natal** (o vídeo da árvore "capenga" é o "antes", sem número; os episódios começam no Ep. 1).
