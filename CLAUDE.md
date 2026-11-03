@@ -51,3 +51,4 @@ Quando a Daia mandar uma foto e pedir "faz uma capa" (Reels, TikTok, post, story
 - Série no TikTok/Instagram: **Operação Natal** (o vídeo da árvore "capenga" é o "antes", sem número; os episódios começam no Ep. 1).
 - Não precisa aumentar `VERSAO` do `sw.js` por mudança só em `capas/` (não faz parte do app).
 - **Marca d'água** (27/10/2026): círculo "daledaia • daledaia •", Nunito Sans, PNG 1000×1000 sem fundo, em `capas/marca-dagua-*.png` (branca 60% = principal; branca forte; vinho 55% para fundo claro). Refazer com `node capas/fazer-marca-dagua.js pasta`.
+- **Texto atrás da pessoa** (03/11/2026, Ep. 3): recortar a pessoa com `rembg` (modelo `u2net_human_seg`, `pip install rembg onnxruntime`), virar a máscara em transparência e rodar `FINA=190 node capas/capa-atras.js foto mascara.png saida.png "Operação Natal" "Episódio 3" "" 250`. Texto em cima (y≈250), numa linha só, para a cabeça tampar só um pedaço e continuar legível.
