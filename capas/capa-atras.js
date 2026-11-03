@@ -1,9 +1,11 @@
 // Capa com o texto ATRÁS da pessoa (efeito revista).
-// Uso: node capas/capa-atras.js foto.png mascara.png saida.png "TAG" "linha fina" "LINHA GROSSA" [topo=330] [cor=#FFFFFF]
+// Uso: node capas/capa-atras.js foto.png mascara.png saida.png "TAG" "linha fina" "LINHA GROSSA" [topo=250] ["frase com *destaque*"]
+// ALINHAR=left ESQ=50 DIR=380: tira o texto do meio quando a cabeça tampa (só o braço/cabelo passa na frente).
+// Mesmo padrão da identidade (fazer-capa.js): tag dourada, fina 116px, grossa 70px espaçada, frase com palavra dourada.
 // mascara.png = recorte da pessoa (branco = pessoa), feito com:
 //   python3 -c "from rembg import remove,new_session;from PIL import Image;remove(Image.open('foto.png').convert('RGB'),session=new_session('u2net_human_seg'),only_mask=True).convert('L').save('m.png')" e depois virar transparência: m=Image.open('m.png'); r=Image.new('RGBA',m.size); r.putalpha(m); r.save('mascara.png')
 const { chromium } = require('playwright'); const fs = require('fs'), path = require('path');
-const [foto, mascara, saida, tag = '', fina = '', grossa = '', topo = '330', cor = '#FFFFFF'] = process.argv.slice(2);
+const [foto, mascara, saida, tag = '', fina = '', grossa = '', topo = '250', frase = ''] = process.argv.slice(2), cor = '#FFFFFF';
 const d = f => 'data:image/png;base64,' + fs.readFileSync(f).toString('base64');
 const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;');
 const html = `<!doctype html><meta charset="utf-8">
@@ -12,15 +14,16 @@ const html = `<!doctype html><meta charset="utf-8">
 .l{position:absolute;inset:0;background-position:center;background-size:cover}
 .p{-webkit-mask-image:url(${d(mascara)});mask-image:url(${d(mascara)});-webkit-mask-size:cover;mask-size:cover;-webkit-mask-position:center;mask-position:center}
 .g{background:linear-gradient(180deg,rgba(15,8,10,.38) 0%,rgba(15,8,10,.12) 45%,rgba(15,8,10,.12) 70%,rgba(15,8,10,.55) 100%)}
-.t{position:absolute;left:30px;right:30px;top:${topo}px;text-align:center;color:${cor};text-shadow:0 3px 24px rgba(0,0,0,.35)}
-.tag{font:900 34px 'Nunito Sans';letter-spacing:.22em;color:#F1D29A;text-transform:uppercase}
-.tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 22px 6px}
-.s{font:italic ${process.env.FINA || 150}px/1 'DM Serif Display';margin-top:14px;white-space:nowrap}
-.b{font:800 92px/1.1 'Nunito Sans';text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.t{position:absolute;left:${process.env.ESQ || 30}px;right:${process.env.DIR || 30}px;top:${topo}px;text-align:${process.env.ALINHAR || 'center'};color:${cor};text-shadow:0 3px 24px rgba(0,0,0,.35)}
+.tag{font:900 ${process.env.ESQ ? 27 : 34}px 'Nunito Sans';letter-spacing:.2em;color:#F1D29A;text-transform:uppercase;white-space:nowrap}
+.tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 16px 6px}
+.s{font:italic ${process.env.FINA || 116}px/1.02 'DM Serif Display';margin-top:18px;white-space:nowrap}
+.b{font:800 ${process.env.GROSSA || 70}px/1.15 'Nunito Sans';text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap}
+.f{font:700 40px 'Nunito Sans';margin-top:26px}.f b{color:#F1D29A}
 .h{position:absolute;bottom:70px;left:0;right:0;text-align:center;font:700 32px 'Nunito Sans';color:rgba(255,255,255,.9)}
 </style><div class="c" id="c">
 <div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div>
-<div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div></div>
+<div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>${frase ? `<div class="f">${esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>')}</div>` : ''}</div>
 <div class="l p" style="background-image:url(${d(foto)})"></div><div class="l g" style="background:linear-gradient(180deg,transparent 60%,rgba(15,8,10,.55) 100%)"></div>
 <div class="h">@daledaia</div></div>`;
 (async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
