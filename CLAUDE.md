@@ -41,10 +41,11 @@ Quando a Daia mandar uma foto e pedir "faz uma capa" (Reels, TikTok, post, story
 - Foto real dela ocupando tudo + degradê escuro de baixo para cima.
 - **NÃO editar a foto** (28/10/2026: a Daia achou horrível a edição de luz/cor). Ela mesma traz a foto pronta (feita por IA, estilo Pinterest): só cortar bordas pretas de print e colocar o texto. Se a foto for mais larga que 9:16, avisar que as laterais cortam no Reels.
 - Linha pequena em cima em **dourado #F1D29A**, maiúsculas espaçadas, com tracinhos dos lados (ex.: "OPERAÇÃO NATAL").
-- Título em 2 linhas: **DM Serif Display itálico** (fina) + **Nunito Sans 900 MAIÚSCULO** (grossa), branco com sombra.
+- Título em 2 linhas: **DM Serif Display itálico** (fina, 116px) + **Nunito Sans 800 MAIÚSCULO pequena e espaçada** (grossa, 70px — a Daia achou a grossa grande demais em 02/11/2026; estilo **minimalista**: nunca letra grossa enorme), branco com sombra.
 - Frase curta embaixo (Nunito Sans 700) com uma palavra em dourado. "@daledaia" no rodapé.
 - Reels/TikTok/story: 1080×1920 com o texto no meio (y ≈ 1150–1550), para aparecer inteiro no quadradinho do perfil. Feed: 1080×1350.
 - Se o principal da foto ocupar o meio (ex.: guirlanda), descer o texto com `TOPO=1400`. Título comprido diminui sozinho.
+- Foto mais larga que 9:16 (ex.: quase quadrada): além da versão cortada, fazer uma com a foto inteira em cima: `ENCAIXAR=150 TOPO=1400` (fundo = a mesma foto desfocada, bordas suaves).
 - Gerar com `node capas/fazer-capa.js foto saida.png "TAG" "linha fina" "LINHA GROSSA" "frase com *destaque*" [story|feed|tiktok]`.
 - Entregar **3 opções de título** com SendUserFile, dizer qual recomenda e como trocar a capa no app.
 - Série no TikTok/Instagram: **Operação Natal** (o vídeo da árvore "capenga" é o "antes", sem número; os episódios começam no Ep. 1).

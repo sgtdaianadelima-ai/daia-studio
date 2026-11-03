@@ -1,5 +1,6 @@
 // Gera capa no estilo Dale Daia (foto real + degradê escuro embaixo + letra fina inclinada + letra grossa + dourado).
 // Uso: [TOPO=1400] node capas/fazer-capa.js foto.jpg saida.png "TAG" "linha fina" "LINHA GROSSA" "frase com *destaque*" [story|feed|tiktok]
+// ENCAIXAR=1: foto mais larga que 9:16 aparece inteira em cima (fundo = a mesma foto desfocada); use com TOPO.
 // story/tiktok = 1080x1920 (texto fica no meio, aparece no quadradinho do perfil); feed = 1080x1350.
 const { chromium } = require('playwright');
 const path = require('path'), fs = require('fs');
@@ -13,15 +14,17 @@ const html = `<!doctype html><meta charset="utf-8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:opsz,wght@6..12,600;6..12,700;6..12,800;6..12,900&display=swap">
 <style>body{margin:0}
 .c{width:${W}px;height:${H}px;position:relative;overflow:hidden;background:#1A1114 url(${img}) center/cover}
+.fundo{position:absolute;inset:-60px;background:url(${img}) center/cover;filter:blur(40px) brightness(.6)}
+.foto{position:absolute;left:0;width:100%;top:${process.env.ENCAIXAR || 0}px;-webkit-mask-image:linear-gradient(transparent 0,#000 6%,#000 82%,transparent 100%);mask-image:linear-gradient(transparent 0,#000 6%,#000 82%,transparent 100%)}
 .g{position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,8,10,.15) 0%,rgba(15,8,10,.12) 40%,rgba(15,8,10,.55) 62%,rgba(15,8,10,.82) 100%)}
 .t{position:absolute;left:40px;right:40px;top:${topo}px;text-align:center;color:#fff;text-shadow:0 3px 22px rgba(0,0,0,.5)}
 .tag{font:900 34px 'Nunito Sans';letter-spacing:.22em;color:#F1D29A;text-transform:uppercase}
 .tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 22px 6px}
 .s{font:italic 116px/1.02 'DM Serif Display';margin-top:18px}
-.b{font:900 112px/1.02 'Nunito Sans';text-transform:uppercase}
+.b{font:800 70px/1.15 'Nunito Sans';text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
 .p{font:700 40px 'Nunito Sans';margin-top:26px}.p b{color:#F1D29A}
 .h{position:absolute;bottom:${fmt === 'feed' ? 45 : 70}px;left:0;right:0;text-align:center;font:700 32px 'Nunito Sans';color:rgba(255,255,255,.9)}
-</style><div class="c" id="c"><div class="g"></div><div class="t">
+</style><div class="c" id="c">${process.env.ENCAIXAR ? `<div class="fundo"></div><img class="foto" src="${img}">` : ''}<div class="g"></div><div class="t">
 ${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>
 ${frase ? `<div class="p">${fraseHtml}</div>` : ''}</div><div class="h">@daledaia</div></div>`;
 (async () => {
