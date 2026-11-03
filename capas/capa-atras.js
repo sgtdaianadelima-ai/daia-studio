@@ -1,6 +1,7 @@
 // Capa com o texto ATRÁS da pessoa (efeito revista).
 // Uso: node capas/capa-atras.js foto.png mascara.png saida.png "TAG" "linha fina" "LINHA GROSSA" [topo=250] ["frase com *destaque*"]
 // ALINHAR=left ESQ=50 DIR=380: tira o texto do meio quando a cabeça tampa (só o braço/cabelo passa na frente).
+// BRILHO=1: a camada da frente (ex.: luzinhas) fica sem a sombra, brilhando por cima do texto.
 // Mesmo padrão da identidade (fazer-capa.js): tag dourada, fina 116px, grossa 70px espaçada, frase com palavra dourada.
 // mascara.png = recorte da pessoa (branco = pessoa), feito com:
 //   python3 -c "from rembg import remove,new_session;from PIL import Image;remove(Image.open('foto.png').convert('RGB'),session=new_session('u2net_human_seg'),only_mask=True).convert('L').save('m.png')" e depois virar transparência: m=Image.open('m.png'); r=Image.new('RGBA',m.size); r.putalpha(m); r.save('mascara.png')
@@ -25,7 +26,7 @@ ${process.env.ALINHAR && process.env.ALINHAR !== "center" ? ".tag:before,.tag:af
 </style><div class="c" id="c">
 <div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div>
 <div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>${frase ? `<div class="f">${esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>')}</div>` : ''}</div>
-<div class="l p"><div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div></div>
+<div class="l p"><div class="l" style="background-image:url(${d(foto)})"></div>${process.env.BRILHO ? "" : `<div class="l g"></div>`}</div>
 <div class="h">@daledaia</div></div>`;
 (async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   await p.setContent(html, { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
