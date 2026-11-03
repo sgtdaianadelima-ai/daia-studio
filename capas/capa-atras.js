@@ -15,8 +15,9 @@ const html = `<!doctype html><meta charset="utf-8">
 .p{-webkit-mask-image:url(${d(mascara)});mask-image:url(${d(mascara)});-webkit-mask-size:cover;mask-size:cover;-webkit-mask-position:center;mask-position:center}
 .g{background:linear-gradient(180deg,rgba(15,8,10,.38) 0%,rgba(15,8,10,.12) 45%,rgba(15,8,10,.12) 70%,rgba(15,8,10,.55) 100%)}
 .t{position:absolute;left:${process.env.ESQ || 30}px;right:${process.env.DIR || 30}px;top:${topo}px;text-align:${process.env.ALINHAR || 'center'};color:${cor};text-shadow:0 3px 24px rgba(0,0,0,.35)}
-.tag{font:900 ${process.env.ESQ ? 27 : 34}px 'Nunito Sans';letter-spacing:.2em;color:#F1D29A;text-transform:uppercase;white-space:nowrap}
+.tag{font:900 ${process.env.TAGT || (process.env.ESQ ? 27 : 34)}px 'Nunito Sans';letter-spacing:.2em;color:#F1D29A;text-transform:uppercase;white-space:nowrap}
 .tag:before,.tag:after{content:"";display:inline-block;width:70px;height:2px;background:#F1D29A;vertical-align:middle;margin:0 16px 6px}
+${process.env.ALINHAR && process.env.ALINHAR !== "center" ? ".tag:before,.tag:after{display:none}.tag{letter-spacing:.16em}" : ""}
 .s{font:italic ${process.env.FINA || 116}px/1.02 'DM Serif Display';margin-top:18px;white-space:nowrap}
 .b{font:800 ${process.env.GROSSA || 70}px/1.15 'Nunito Sans';text-transform:uppercase;letter-spacing:.08em;margin-top:6px;white-space:nowrap}
 .f{font:700 40px 'Nunito Sans';margin-top:26px}.f b{color:#F1D29A}
@@ -28,5 +29,5 @@ const html = `<!doctype html><meta charset="utf-8">
 <div class="h">@daledaia</div></div>`;
 (async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
   await p.setContent(html, { waitUntil: 'networkidle' }); await p.evaluate(() => document.fonts.ready); await p.waitForTimeout(500);
-  await p.evaluate(() => document.querySelectorAll('.s,.b').forEach(e => { let f = parseFloat(getComputedStyle(e).fontSize); while (e.scrollWidth > e.clientWidth && f > 50) e.style.fontSize = (f -= 2) + 'px'; }));
+  await p.evaluate(() => document.querySelectorAll('.tag,.s,.b').forEach(e => { let f = parseFloat(getComputedStyle(e).fontSize); while (e.scrollWidth > e.clientWidth && f > 50) e.style.fontSize = (f -= 2) + 'px'; }));
   await (await p.$('#c')).screenshot({ path: path.resolve(saida) }); await b.close(); console.log('ok', saida); })();
