@@ -1,6 +1,7 @@
 // Capa com o texto ATRÁS da pessoa (efeito revista).
 // Uso: node capas/capa-atras.js foto.png mascara.png saida.png "TAG" "linha fina" "LINHA GROSSA" [topo=250] ["frase com *destaque*"]
 // ALINHAR=left ESQ=50 DIR=380: tira o texto do meio quando a cabeça tampa (só o braço/cabelo passa na frente).
+// VEU=1: sombra suave só atrás do texto (texto em cima ou no meio, sobre fundo claro).
 // BRILHO=1: a camada da frente (ex.: luzinhas) fica sem a sombra, brilhando por cima do texto.
 // Mesmo padrão da identidade (fazer-capa.js): tag dourada, fina 116px, grossa 70px espaçada, frase com palavra dourada.
 // mascara.png = recorte da pessoa (branco = pessoa), feito com:
@@ -25,7 +26,7 @@ ${process.env.ALINHAR && process.env.ALINHAR !== "center" ? ".tag:before,.tag:af
 .h{position:absolute;bottom:70px;left:0;right:0;text-align:center;font:700 32px 'Nunito Sans';color:rgba(255,255,255,.9)}
 </style><div class="c" id="c">
 <div class="l" style="background-image:url(${d(foto)})"></div><div class="l g"></div>
-<div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>${frase ? `<div class="f">${esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>')}</div>` : ''}</div>
+${process.env.VEU ? `<div style="position:absolute;left:-200px;right:-200px;top:${topo-140}px;height:640px;background:radial-gradient(ellipse at center,rgba(15,8,10,.62) 0%,rgba(15,8,10,.35) 45%,transparent 72%)"></div>` : ''}<div class="t">${tag ? `<div class="tag">${esc(tag)}</div>` : ''}<div class="s">${esc(fina)}</div><div class="b">${esc(grossa)}</div>${frase ? `<div class="f">${esc(frase).replace(/\*(.+?)\*/g, '<b>$1</b>')}</div>` : ''}</div>
 <div class="l p"><div class="l" style="background-image:url(${d(foto)})"></div>${process.env.BRILHO ? "" : `<div class="l g"></div>`}</div>
 <div class="h">@daledaia</div></div>`;
 (async () => { const b = await chromium.launch(), p = await b.newPage({ viewport: { width: 1080, height: 1920 } });
