@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Grupo VIP Dale Daia</title>
+<meta name="description" content="Achadinhos de casa e decoração com desconto, todo dia no WhatsApp. Grupo grátis da Dale Daia.">
+<meta name="theme-color" content="#7A1F2B">
+<meta property="og:title" content="Grupo VIP Dale Daia · Achadinhos de casa">
+<meta property="og:description" content="Ofertas de casa e decoração todo dia no WhatsApp. É grátis.">
+<meta property="og:image" content="https://sgtdaianadelima-ai.github.io/daia-studio/icon-512.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:wght@400;700;900&display=swap">
+<style>
+:root{--bg:#FBF7F2;--surface:#FFFFFF;--ink:#3B2A22;--muted:#7A6457;--line:#E6D7C8;--wine:#7A1F2B;--gold:#C9A46A;--zap:#1F8F4E;--on:#FFFFFF;color-scheme:light}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1E1613;--surface:#2A201C;--ink:#F3E9DF;--muted:#C2AD9C;--line:#3E302A;--wine:#D9667A;--gold:#D9AE5F;--zap:#2FB36A;--on:#FFFFFF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1E1613;--surface:#2A201C;--ink:#F3E9DF;--muted:#C2AD9C;--line:#3E302A;--wine:#D9667A;--gold:#D9AE5F;--zap:#2FB36A;--on:#FFFFFF;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg)}
+body{color:var(--ink);font-family:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;padding:28px 16px 40px;min-height:100vh}
+main{max-width:460px;margin:0 auto;text-align:center}
+.marca{font-size:12px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:var(--wine);margin:0}
+h1{font-family:"DM Serif Display",Georgia,serif;font-weight:400;font-size:34px;line-height:1.1;margin:10px 0 10px;text-wrap:balance}
+h1 em{color:var(--wine)}
+.sub{color:var(--muted);margin:0 0 22px;font-size:17px}
+ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px;text-align:left}
+li{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start}
+li span:first-child{font-size:20px;line-height:1.2}
+.btn{display:block;width:100%;padding:17px 18px;border-radius:999px;background:var(--zap);color:var(--on);font-weight:900;font-size:18px;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.14)}
+.btn:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.cheio{display:none;margin-top:14px;color:var(--muted);font-size:14px}
+.nota{color:var(--muted);font-size:13px;margin-top:26px}
+.nota a{color:var(--wine)}
+</style>
+</head>
+<body>
+<main>
+  <p class="marca">Dale Daia</p>
+  <h1>Achadinhos de <em>casa</em> com desconto, todo dia</h1>
+  <p class="sub">Entre no meu grupo VIP do WhatsApp. É grátis.</p>
+  <ul>
+    <li><span>🏠</span><span>Casa, decoração e organização que eu escolho a dedo.</span></li>
+    <li><span>🔥</span><span>Promoções e cupons da Shopee e de outras lojas.</span></li>
+    <li><span>🔕</span><span>Só eu mando mensagem. Nada de spam ou conversa paralela.</span></li>
+    <li><span>👋</span><span>Você sai quando quiser.</span></li>
+  </ul>
+  <a class="btn" id="entrar" href="#" rel="noopener">Entrar no grupo VIP</a>
+  <p class="cheio" id="cheio">Se o grupo estiver cheio, volte nesta página: eu abro um grupo novo.</p>
+  <p class="nota">Os links do grupo são de afiliada: posso ganhar uma comissão, sem custo a mais para você.<br>Instagram <a href="https://www.instagram.com/daledaia/" rel="noopener">@daledaia</a></p>
+</main>
+<script>
+// GRUPOS: o último da lista é o que recebe as pessoas.
+// Quando um grupo encher (1.024 pessoas), crie outro e coloque o link novo no fim da lista.
+const GRUPOS = [
+  "https://chat.whatsapp.com/E6jfFnVCMfN9Byt4p1nEtm"
+];
+const atual = GRUPOS[GRUPOS.length - 1];
+const bt = document.getElementById("entrar");
+bt.href = atual;
+bt.addEventListener("click", () => { document.getElementById("cheio").style.display = "block"; });
+</script>
+</body>
+</html>

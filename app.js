@@ -203,6 +203,7 @@ function renderHoje(){
     (x.claude ? '<p class="how extra-claude">💬 ' + esc(x.claude) + '</p>' : '') + '<div class="actions"><span class="why">✓ Postado fora do plano</span></div></article>').join("");
   $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
+    (hoje ? secao("grupo", "💬", "Grupo VIP do WhatsApp", "ofertas do dia para copiar", "", false, grupoCard()) : "") +
     secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
     secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
@@ -359,6 +360,19 @@ async function fotoDasCores(v){
   if (!blob) { toast("Não consegui montar a foto. Tire um print das cores na página do produto.", 6000); return; }
   try { if (await compartilharArquivo(blob, "cores.png")) return; } catch(e) { if (e && e.name === "AbortError") return; }
   window.open(URL.createObjectURL(blob), "_blank"); toast("Segure o dedo na foto e toque em Baixar imagem.", 5000);
+}
+// ---------- GRUPO VIP DO WHATSAPP (mensagens prontas com os produtos de hoje) ----------
+const LINK_GRUPO_PAGINA = "https://sgtdaianadelima-ai.github.io/daia-studio/grupo.html";
+const ofertaGrupo = v => "🏠 *" + v.nome + "*\n💰 " + v.preco + "\n👉 " + v.link + "\n\n_Achadinho Dale Daia 🤍_";
+function grupoCard(){
+  const vs = ((state.ia && state.ia.videos) || []).map(efetivo).filter(v => v.link);
+  const convite = "Tem grupo VIP de achadinhos de casa no WhatsApp 🤍 Promoção todo dia, e é grátis! Entra aqui: " + LINK_GRUPO_PAGINA;
+  return '<article class="card" style="border-color:var(--pine)"><div class="meta"><span class="tag casa">Ofertas de hoje</span><span class="why">copie e cole</span></div>' +
+    '<p class="how">Mande <b>uma oferta de cada vez</b> no grupo (assim aparece a foto do produto). Espace: manhã, almoço e noite.</p>' +
+    (vs.length ? '<div class="actions" style="flex-wrap:wrap">' + vs.map((v, i) => copyBtn(ofertaGrupo(v), "Copiar oferta " + (i+1))).join("") + '</div>' : '<p class="how">Os produtos de hoje ainda não chegaram.</p>') +
+    '<div class="actions"><a class="btn wine" style="text-decoration:none" href="' + LINK_VIP + '" target="_blank" rel="noopener">Abrir o grupo</a></div>' +
+    '<details class="tips det"><summary>Divulgar o grupo (stories, bio e anúncio)</summary><p>Use o link da <b>página do grupo</b>: quando o grupo encher, é só me mandar o link do grupo novo que eu troco na página, e o anúncio continua o mesmo. Esse link serve para o anúncio no Instagram, a bio e os stories.</p>' +
+    '<div class="actions" style="flex-wrap:wrap">' + copyBtn(LINK_GRUPO_PAGINA, "Copiar link da página") + copyBtn(convite, "Copiar convite") + '<a class="btn" style="text-decoration:none" href="grupo.html" target="_blank" rel="noopener">Ver a página</a></div></details></article>';
 }
 function conversorCard(){
   return '<article class="card" style="border-color:var(--gold)"><div class="meta"><span class="tag casa">Converter link</span><span class="why">vira o SEU link</span></div>' +
