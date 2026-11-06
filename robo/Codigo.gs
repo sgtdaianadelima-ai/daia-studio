@@ -90,8 +90,36 @@ function doPost(e) {
   try {
     const q = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (q.acao === 'legenda') return json(legendar_(q));
+    if (q.acao === 'criar') return json(criar_(q));
     return json({erro: 'ação desconhecida'});
   } catch (err) { return json({erro: String(err.message || err)}); }
+}
+// Aba Criar do app: produto (dores, ganchos, roteiros) ou trend (a versão da Daia). Usa as dicas do curso da aba "App - Curso".
+function criar_(q) {
+  const texto = String(q.texto || '').slice(0, 1500), foto = String(q.foto || '');
+  if (!texto && !foto) return {erro: 'sem produto'};
+  if (foto.length > 4000000) return {erro: 'foto grande demais'};
+  const a = SpreadsheetApp.getActive().getSheetByName('App - Curso');
+  const curso = a && a.getLastRow() > 1 ? a.getRange(2, 1, a.getLastRow() - 1, 1).getDisplayValues().map(l => l[0]).filter(Boolean).slice(0, 25).join(' | ') : '';
+  const base = 'Você é estrategista de conteúdo da Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização no TikTok (@daledaia) e Instagram. ' +
+    'Ela grava vídeos curtos falando para a câmera, tom de amiga, estética minimalista. NUNCA cite preço. Português do Brasil simples, frases curtas, sem clichê. ' +
+    (curso ? 'Siga estas dicas do curso de TikTok Shop dela: ' + curso + '. ' : '') + (foto ? 'Veja a imagem enviada. ' : '');
+  let prompt;
+  if (q.modo === 'trend') {
+    prompt = base + 'Ela salvou esta trend e quer fazer a versão dela no nicho casa: ' + (texto || 'a da imagem') + '. ' +
+      'Responda SÓ com JSON: {"trend":"o que é a trend e por que viraliza, 1 frase","versoes":[{"titulo":"...","gancho":"fala dos 3 primeiros segundos","roteiro":["0 a 3 s — ...","3 a 8 s — ..."]}],"legenda":"até 2 frases","hashtags":"#... (5)","dica":"1 dica para ganhar seguidores com isso"}. Dê 3 versões.';
+  } else {
+    const loja = /tiktok/i.test(q.loja) ? 'TikTok Shop' : 'Shopee';
+    prompt = base + 'Produto para vender no ' + loja + ': ' + (texto || 'o da imagem') + '. ' +
+      'Responda SÓ com JSON: {"produto":"nome curto","publico":"para quem é, 1 frase","dores":["12 dores reais que ele resolve, do jeito que a cliente fala"],"ganchos":["10 ganchos de até 3 segundos, cada um nascendo de uma dor, que façam parar de rolar a tela"],' +
+      '"roteiros":[{"titulo":"...","gancho":"...","roteiro":["0 a 3 s — ...","..."]}],"legenda":"até 2 frases","hashtags":"#... (5)","dica":"1 dica de ' + loja + ' para vender mais"}. ' +
+      'Dê 3 roteiros de 15 a 25 segundos: gancho, produto resolvendo a dor, chamada ' + (loja === 'TikTok Shop' ? 'para o carrinho laranja' : 'para comentar QUERO e receber o link') + '.';
+  }
+  const partes = foto ? [{inline_data: {mime_type: 'image/jpeg', data: foto}}] : [];
+  const txt = gemini_(prompt, false, partes, {temperature: 0.9, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+  const j = jsonDe_(txt);
+  if (!j) return {erro: txt ? 'resposta estranha' : 'o Gemini não respondeu'};
+  return {r: j};
 }
 function legendar_(q) {
   const audio = String(q.audio || '');
@@ -157,6 +185,10 @@ function conteudo_(hoje) {
     analise: (ler('App - Análise').slice(-1)[0] || [])[1] || '',
     extras: ler('App - Extras').slice(-30).map(l => ({id: l[7], data: l[0], onde: l[2], tipo: l[3], t: l[4], link: l[5], claude: l[6]})),
     respostas: ler('App - Respostas').filter(l => l[0] && l[1]).map(l => ({nome: l[0], texto: l[1]})),
+    // a tarefa diária do computador anota aqui o que viu nas redes (Data, Rede, Conta, O que foi, Link, Views)
+    postados: ler('App - Postados').slice(-60).map(l => ({data: l[0], rede: l[1], conta: l[2], t: l[3], link: l[4], views: l[5]})),
+    seguidores: ler('App - Seguidores').slice(-120).map(l => ({data: l[0], rede: l[1], conta: l[2], n: l[3]})),
+    curso: ler('App - Curso').map(l => l[0]).filter(Boolean),
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
     plano: ler('App - Plano').filter(l => l[0] && l[3]).map(l => ({data: l[0], h: l[1], k: (l[2] || 'casa').toLowerCase().trim(), t: l[3], g: l[4], m: l[5], r: l[6] ? l[6].split('/').map(s => s.trim()).filter(Boolean) : null}))
@@ -340,9 +372,9 @@ const jsonDe_ = t => { if (!t) return null; const m = t.replace(/```json|```/g, 
 
 // ---------- Dalinha (perguntas do app) ----------
 function perguntaDalinha_(pergunta, ctx) {
-  const prompt = 'Você é a Dalinha, a assistente fofa e animada da Daia, afiliada da Shopee no nicho casa e decoração (marca Dale Daia, Instagram @daledaia, TikTok @daiana.lima95). ' +
+  const prompt = 'Você é a Dalinha, a assistente fofa e animada da Daia, afiliada da Shopee no nicho casa e decoração (marca Dale Daia, Instagram @daledaia, TikTok @daledaia e @daiana.lima95). ' +
     'Ela posta carrosséis, Shopee Vídeo com vídeos de IA (foto no ChatGPT/Gemini e vídeo no YouTube Create), vídeos dos packs do Telegram e a série de Natal "Minha Primeira Árvore". ' +
-    'O app dela (Daia Studio) tem as telas Hoje, Prontos (carrosséis), Produtos, Ideias e Editar, um Manual e um Cronograma. O conteúdo do app se muda pela planilha (abas App -). ' +
+    'O app dela (Daia Studio) tem as telas Hoje (meta do dia: 3 Shopee Vídeo, 2 TikTok, 2 Instagram), Criar (dores e ganchos de produto, versão de trend), Prontos (carrosséis) e IAs, um Manual e um Cronograma. A meta é chegar a 2.000 seguidores no TikTok @daledaia para o TikTok Shop. O conteúdo do app se muda pela planilha (abas App -). ' +
     'Responda em português do Brasil, bem simples, carinhosa, no máximo 5 frases curtas, com no máximo 1 emoji. Se for sobre trend, preço, data ou novidade, pesquise na internet antes. ' +
     'Nunca invente números da conta dela. Hoje é ' + hojeBR_() + '. ' + (ctx ? 'O que o app sabe agora: ' + ctx + '. ' : '') + 'Pergunta da Daia: ' + pergunta;
   return gemini_(prompt, true) || '';
