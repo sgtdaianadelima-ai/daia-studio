@@ -13,7 +13,7 @@ Nada de senha, chave, CPF, telefone ou dado pessoal aqui. As chaves ficam só na
 
 ## Arquivos
 - `index.html` — telas e estilos (cores da marca: creme #FBF7F2, vinho #7A1F2B, dourado #C9A46A).
-- `app.js` — lógica: tela Hoje (recado, pendentes, Shopee Vídeo do dia, packs, post pronto, plano, resumo da semana, conversor, respostas, lembretes), Prontos (carrosséis desenhados no canvas), Produtos, Ideias, Editar (corta pausas de vídeo).
+- `app.js` — lógica: tela Hoje (recado, pendentes, Shopee Vídeo do dia, packs, post pronto, plano, resumo da semana, conversor, respostas, lembretes), Prontos (carrosséis desenhados no canvas), Criar (produto: dores, ganchos, roteiros pelo robô `acao=criar`; trend: versão dela), IAs. Meta do dia (METAS): 3 Shopee Vídeo, 2 TikTok, 2 Instagram, marcada também pelas abas App - Postados e App - Seguidores (a tarefa diária do computador preenche). Produtos e Ideias ficam fora do menu.
 - `voz.js` — **Dalinha**, a assistente: modo Pedir (entende pedidos e, se não souber, pergunta ao Gemini pelo robô) e modo Ditado (só transforma fala em texto). Só fala em voz quando a Daia pede.
 - `plan.js`, `prontos.js` — conteúdo antigo de reserva (usado só se a planilha não responder).
 - `manual.html`, `cronograma.html` — manual e cronograma dentro do app.

@@ -196,41 +196,107 @@ function renderHoje(){
   const nPacks = hoje && state.ia && state.ia.packs ? state.ia.packs.length : 0;
   const resumoSem = hoje ? resumoSemana() : null;
   const nExtras = hoje ? extrasLista().filter(x => x.data === todayKey).length : 0;
-  const meta = hoje ? metaDoDia(posts, done, iaFeitos, !!prDone, nExtras) : null;
+  const meta = hoje ? metaDoDia(posts, done, iaFeitos, !!prDone) : null;
+  const mL = id => meta ? meta.linhas.find(l => l.id === id) : null;
   if (meta) { $("barFill").style.width = (meta.feitos / meta.total * 100) + "%"; $("progText").textContent = meta.feitos >= meta.total ? "Meta batida! 🎉" : meta.feitos + " de " + meta.total + " da meta"; }
   const extrasDoDia = extrasLista().filter(x => x.data === cur);
   const extrasNoPlano = extrasDoDia.map(x => '<article class="card done extra-plano"><div class="meta"><span class="tag trend">Extra</span><span class="why">' + esc((x.onde || []).join(", ")) + '</span></div><h3 class="title">' + esc(x.t) + '</h3>' +
     (x.claude ? '<p class="how extra-claude">💬 ' + esc(x.claude) + '</p>' : '') + '<div class="actions"><span class="why">✓ Postado fora do plano</span></div></article>').join("");
-  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
-    (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), iaFeitos + "/" + (iaV.length || 3), iaFeitos >= 3, iaCards() + packsCard()) : "") +
-    secao("tiktok", "🎵", "TikTok e Reels", posts.length ? "vídeos para gravar hoje" : "sem plano neste dia", done + "/" + posts.length, posts.length && done === posts.length, videos + extrasNoPlano +
-      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
-    secao("insta", "📸", "Instagram", "carrossel pronto do dia", prDone ? "1/1" : "0/1", !!prDone, prontoCard) +
-    (hoje ? secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
+  const conta = (id, alt, n) => { const l = mL(id); return l ? l.feito + "/" + l.n : alt + "/" + n; };
+  const okL = id => { const l = mL(id); return !!(l && l.feito >= l.n); };
+  const nSeg = (conteudo().seguidores || []).length;
+  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + dicaCursoCard() + pendentesCard() : "") +
+    (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
+    secao("tiktok", "🎵", "TikTok · cronograma", posts.length ? "o que gravar hoje (poste também no Reels)" : "sem plano neste dia", hoje ? conta("tiktok") : done + "/" + posts.length, hoje ? okL("tiktok") : posts.length && done === posts.length, postadosCard(/tiktok/i) + videos + extrasNoPlano +
+      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '') + '<div class="actions"><a class="btn" style="text-decoration:none" href="cronograma.html">🗓️ Ver o cronograma completo</a></div>') +
+    secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +
+    (hoje ? (nSeg ? secao("seguidores", "📈", "Seguidores", "rumo aos " + META_SEG.toLocaleString("pt-BR") + " no TikTok", "", false, seguidoresCard()) : "") +
+      secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
       secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, analiseCard() + semanaCard()) +
       secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
 // ---------- META DO DIA (quanto falta postar hoje) ----------
-function metaDoDia(posts, feitosPlano, iaFeitos, prDone, nExtras){
-  const nShopee = 3, fShopee = Math.min(iaFeitos, nShopee);
-  const total = posts.length + nShopee + 1, feitos = feitosPlano + fShopee + (prDone ? 1 : 0);
-  const falta = [], f1 = nShopee - fShopee, f2 = posts.length - feitosPlano;
-  if (f1) falta.push(f1 + (f1 === 1 ? " Shopee Vídeo" : " Shopee Vídeos"));
-  if (f2) falta.push(f2 + (f2 === 1 ? " vídeo do plano (TikTok/Reels)" : " vídeos do plano (TikTok/Reels)"));
-  if (!prDone) falta.push("1 carrossel no Instagram");
-  return {total, feitos, falta, extras: nExtras};
+// Meta fixa da Daia: 3 Shopee Vídeo, 2 TikTok, 2 Instagram por dia.
+// Conta sozinho o que dá (plano marcado, extras, carrossel e o que o robô viu nas redes); ela também pode tocar nas bolinhas.
+const METAS = [
+  {id: "shopee", nome: "Shopee Vídeo", emoji: "🛍️", n: 3},
+  {id: "tiktok", nome: "TikTok", emoji: "🎵", n: 2},
+  {id: "insta", nome: "Instagram", emoji: "📸", n: 2}
+];
+const dataBR = k => { const [y, m, d] = k.split("-"); return d + "/" + m + "/" + y; };
+function postadosDe(k){ const br = dataBR(k); return (conteudo().postados || []).filter(p => p.data === br); }
+function metaDoDia(posts, feitosPlano, iaFeitos, prDone){
+  const ex = extrasLista().filter(x => x.data === todayKey), auto = postadosDe(todayKey);
+  const tem = (x, r) => (x.onde || []).some(o => r.test(o));
+  const autoRede = r => auto.filter(p => r.test(p.rede)).length;
+  const calc = {
+    shopee: Math.max(iaFeitos + ex.filter(x => tem(x, /shopee/i)).length, autoRede(/shopee/i)),
+    tiktok: Math.max(feitosPlano + ex.filter(x => tem(x, /tiktok/i)).length, autoRede(/tiktok/i)),
+    insta: Math.max((prDone ? 1 : 0) + ex.filter(x => tem(x, /insta|reels|carrossel/i)).length, autoRede(/insta/i))
+  };
+  const man = (state.metaMan || {})[todayKey] || {};
+  const linhas = METAS.map(m => ({...m, feito: Math.min(m.n, Math.max(calc[m.id], man[m.id] || 0)), auto: autoRede(m.id === "insta" ? /insta/i : new RegExp(m.id, "i"))}));
+  const total = METAS.reduce((s, m) => s + m.n, 0), feitos = linhas.reduce((s, l) => s + l.feito, 0);
+  return {total, feitos, linhas, extras: ex.length};
 }
 function metaCard(m){
   if (!m) return "";
   const pronto = m.feitos >= m.total;
+  const falta = m.linhas.filter(l => l.feito < l.n).map(l => (l.n - l.feito) + " " + l.nome);
   const frase = pronto ? "Meta de hoje batida! Você é demais. 🎉" :
-    m.feitos === 0 ? "Hoje você tem que postar " + m.total + " vezes. Bora começar pelo mais fácil? 🤍" :
+    m.feitos === 0 ? "Hoje são " + m.total + " posts. Bora começar pelo mais fácil? 🤍" :
     "Você já postou " + m.feitos + ". Faltam " + (m.total - m.feitos) + ". Tá quase! 💪";
   return '<article class="card meta-dia' + (pronto ? " ok" : "") + '"><div class="meta-topo"><b>🎯 Meta de hoje</b><span>' + m.feitos + ' de ' + m.total + '</span></div>' +
     '<div class="meta-barra"><i style="width:' + Math.min(100, m.feitos / m.total * 100) + '%"></i></div>' +
-    '<p>' + esc(frase) + '</p>' + (m.falta.length ? '<p class="meta-falta"><b>Falta:</b> ' + esc(m.falta.join(" · ")) + '</p>' : '') +
-    (m.extras ? '<p class="meta-falta">✨ + ' + m.extras + (m.extras === 1 ? ' post extra' : ' posts extras') + ' fora do plano. Bônus!</p>' : '') + '</article>';
+    '<div class="meta-linhas">' + m.linhas.map(l => '<div class="meta-linha' + (l.feito >= l.n ? ' ok' : '') + '"><span>' + l.emoji + ' ' + l.nome + '</span><span class="bolinhas">' +
+      Array.from({length: l.n}, (_, i) => '<button type="button" class="bol' + (i < l.feito ? ' on' : '') + '" data-meta="' + l.id + '-' + (i + 1) + '" aria-label="' + esc(l.nome) + ' ' + (i + 1) + '">' + (i < l.feito ? '✓' : '') + '</button>').join("") +
+      '</span></div>').join("") + '</div>' +
+    '<p>' + esc(frase) + '</p>' + (falta.length ? '<p class="meta-falta"><b>Falta:</b> ' + esc(falta.join(" · ")) + '</p>' : '') +
+    '<p class="meta-falta">' + (m.linhas.some(l => l.auto) ? '🤖 O robô já marcou o que viu no seu TikTok e Instagram.' : '🤖 O robô olha seus perfis e marca sozinho. Postou agora? Toque na bolinha.') + '</p>' +
+    (m.extras ? '<p class="meta-falta">✨ ' + m.extras + (m.extras === 1 ? ' post extra' : ' posts extras') + ' fora do plano hoje.</p>' : '') + '</article>';
+}
+function marcarMeta(v){
+  const [id, n] = v.split("-"); const num = Number(n);
+  state.metaMan = state.metaMan || {}; const d = state.metaMan[todayKey] = state.metaMan[todayKey] || {};
+  d[id] = (d[id] || 0) === num ? num - 1 : num;
+  Object.keys(state.metaMan).forEach(k => { if (k < keyOf(new Date(Date.now() - 14 * 864e5))) delete state.metaMan[k]; });
+  save(); renderHoje();
+}
+// ---------- SEGUIDORES (o robô anota todo dia) ----------
+const META_SEG = 2000;
+function seguidoresCard(){
+  const s = conteudo().seguidores || [];
+  if (!s.length) return "";
+  const contas = {}; s.forEach(x => { (contas[x.conta] = contas[x.conta] || []).push(x); });
+  const linhas = Object.keys(contas).map(c => {
+    const l = contas[c], ult = l[l.length - 1], n = Number(String(ult.n).replace(/\D/g, "")) || 0;
+    const ant = l.length > 1 ? Number(String(l[Math.max(0, l.length - 8)].n).replace(/\D/g, "")) || 0 : null;
+    return {c, rede: ult.rede, n, ganho: ant === null ? null : n - ant, data: ult.data};
+  });
+  const tt = linhas.find(l => /daledaia/i.test(l.c) && /tiktok/i.test(l.rede));
+  let alvo = "";
+  if (tt) {
+    const falta = Math.max(0, META_SEG - tt.n), pct = Math.min(100, tt.n / META_SEG * 100);
+    const ritmo = tt.ganho && tt.ganho > 0 ? Math.ceil(falta / (tt.ganho / 7)) : null;
+    alvo = '<div class="seg-alvo"><div class="meta-topo"><b>🎵 TikTok @daledaia → ' + META_SEG.toLocaleString("pt-BR") + '</b><span>' + tt.n.toLocaleString("pt-BR") + '</span></div>' +
+      '<div class="meta-barra"><i style="width:' + pct + '%"></i></div>' +
+      '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> seguidores para o TikTok Shop.' + (ritmo ? ' No ritmo desta semana, uns ' + ritmo + ' dias.' : '') : 'Chegou! Confira no TikTok Studio se o TikTok Shop já liberou. 🎉') + '</p></div>';
+  }
+  return '<article class="card">' + alvo + '<div class="seg-lista">' + linhas.map(l => '<div><span>' + esc(l.rede) + ' · ' + esc(l.c) + '</span><b>' + l.n.toLocaleString("pt-BR") + '</b>' +
+    (l.ganho !== null ? '<small class="' + (l.ganho >= 0 ? 'sobe' : 'desce') + '">' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana</small>' : '<small>' + esc(l.data) + '</small>') + '</div>').join("") + '</div></article>';
+}
+function postadosCard(rede){
+  const ps = postadosDe(cur).filter(p => rede.test(p.rede));
+  if (!ps.length) return "";
+  return '<article class="card"><div class="meta"><span class="tag trend">🤖 O robô viu</span><span class="why">postado hoje</span></div>' +
+    ps.map(p => '<div class="extra-item"><div><b>' + esc(p.conta) + (p.views ? ' · ' + esc(p.views) + ' views' : '') + '</b><p>' + esc(p.t) + '</p>' + (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener">Ver o post</a>' : '') + '</div></div>').join("") + '</article>';
+}
+function dicaCursoCard(){
+  const d = conteudo().curso || [];
+  if (!d.length) return "";
+  const i = Math.floor(Date.now() / 864e5) % d.length;
+  return '<article class="card recado"><p><b>📚 Dica do curso:</b> ' + esc(d[i]) + '</p></article>';
 }
 function secao(id, emoji, titulo, sub, conta, ok, corpo){
   const aberto = state.secoes && state.secoes[id];
@@ -557,6 +623,7 @@ $("cards").addEventListener("click", e => {
   if (e.target.closest("button[data-respfechar]")) { $("respPrev").innerHTML = ""; return; }
   const xo = e.target.closest("button[data-xonde]"); if (xo) { const r = rascunhoExtra(), v = xo.dataset.xonde, i = r.onde.indexOf(v); if (i >= 0) r.onde.splice(i, 1); else r.onde.push(v); xo.setAttribute("aria-pressed", i < 0); save(); return; }
   const xt = e.target.closest("button[data-xtipo]"); if (xt) { const r = rascunhoExtra(); r.tipo = r.tipo === xt.dataset.xtipo ? "" : xt.dataset.xtipo; xt.parentNode.querySelectorAll(".chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.xtipo === r.tipo)); save(); return; }
+  const bm = e.target.closest("button[data-meta]"); if (bm) { marcarMeta(bm.dataset.meta); return; }
   if (e.target.closest("button[data-xsalvar]")) { salvarExtra(); return; }
   const xa = e.target.closest("button[data-xapagar]"); if (xa) { apagarExtra(xa.dataset.xapagar); return; }
   if (e.target.closest("button[data-conv]")) { converter(); return; }
@@ -1298,11 +1365,107 @@ $("iaBox").addEventListener("click", async e => {
   if (a === "gemini") { toast("Pedido copiado. No Gemini, toque e segure na caixa de texto e cole.", 5000); abrirLink("https://gemini.google.com/app"); }
 });
 
+// ---------- CRIAR: produto (dores e ganchos) ou trend (minha versão) ----------
+// O robô do Google pede ao Gemini; se ele não responder, o mesmo pedido vai para o Claude.
+let criarFoto = null, criarBusy = false, CC = [];
+const CR = () => (state.criar = state.criar || {modo: "produto", loja: "TikTok Shop", texto: "", hist: []});
+const blobB64 = b => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => res(""); r.readAsDataURL(b); });
+function pedidoCriar(c){
+  const curso = (conteudo().curso || []).slice(0, 12).join(" | ");
+  const base = "Sou a Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização. Gravo vídeos curtos falando para a câmera, tom de amiga, estética minimalista. Nunca falo preço no vídeo." + (curso ? " Dicas do curso de TikTok Shop que eu sigo: " + curso + "." : "");
+  if (c.modo === "trend") return base + "\n\nVi esta trend e quero fazer a minha versão: " + c.texto +
+    "\n\nMe dê: 1) em 1 frase, o que é a trend e por que ela viraliza; 2) 3 versões minhas, no nicho casa (cada uma com título, gancho dos 3 primeiros segundos e roteiro curto por segundos); 3) legenda e 5 hashtags; 4) uma dica para ela dar mais seguidores. Português simples.";
+  return base + "\n\nProduto para vender no " + c.loja + ": " + (c.texto || "o da foto") + "." +
+    "\n\nMe dê: 1) 12 dores reais que esse produto resolve (frases curtas, do jeito que a cliente fala); 2) 10 ganchos de até 3 segundos, cada um nascendo de uma dor, que façam parar de rolar a tela; 3) 3 roteiros de 15 a 25 segundos (gancho, mostrar o produto resolvendo, chamada" + (/tiktok/i.test(c.loja) ? " para o carrinho laranja" : " para comentar QUERO e receber o link") + "); 4) legenda e 5 hashtags. Português simples.";
+}
+function criarForm(){
+  const c = CR();
+  const chip = (attr, v, on, txt) => '<button type="button" class="chip" ' + attr + '="' + esc(v) + '" aria-pressed="' + !!on + '">' + (txt || esc(v)) + '</button>';
+  const prod = c.modo !== "trend";
+  return '<div class="chips modo">' + chip("data-cmodo", "produto", prod, "🛍️ Produto") + chip("data-cmodo", "trend", !prod, "🔥 Trend") + '</div>' +
+    (prod ? '<div class="field"><span class="lab">Vai vender onde?</span><div class="chips">' + ["TikTok Shop", "Shopee"].map(v => chip("data-cloja", v, c.loja === v)).join("") + '</div></div>' : '') +
+    '<label class="photo" for="cFoto"><img id="cPrev" alt="" hidden><span id="cFotoTxt">' + (prod ? "Foto do produto (opcional)" : "Print da trend (opcional)") + '</span><input type="file" id="cFoto" accept="image/*"></label>' +
+    '<div class="field"><label for="cTxt">' + (prod ? "O que é o produto?" : "O que você viu?") + '</label><textarea class="input" id="cTxt" rows="3" placeholder="' + (prod ? "Ex.: organizador de gaveta de acrílico. Pode colar o link." : "Ex.: a trend do “eu antes / eu depois” com o som X. Pode colar o link.") + '">' + esc(c.texto || "") + '</textarea></div>' +
+    '<div class="actions"><button class="btn wine full" data-cgerar="1">' + (prod ? "✨ Gerar dores e ganchos" : "✨ Fazer a minha versão") + '</button></div>';
+}
+function crLista(titulo, itens, numerada){
+  if (!itens || !itens.length) return "";
+  CC.push(itens.join("\n"));
+  return '<div class="cr-bloco"><div class="cr-tit"><b>' + titulo + '</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div>' +
+    '<' + (numerada ? 'ol' : 'ul') + ' class="script">' + itens.map(t => { CC.push(t); return '<li><button type="button" class="cr-item" data-ccopy="' + (CC.length - 1) + '">' + esc(t) + '</button></li>'; }).join("") + '</' + (numerada ? 'ol' : 'ul') + '></div>';
+}
+function crRoteiros(rs){
+  if (!rs || !rs.length) return "";
+  return '<div class="cr-bloco"><div class="cr-tit"><b>🎬 Roteiros</b></div>' + rs.map(r => {
+    const falas = r.roteiro || r.falas || []; CC.push((r.titulo || "") + (r.gancho ? "\nGancho: " + r.gancho : "") + "\n" + falas.join("\n"));
+    return '<div class="cr-rot"><div class="cr-tit"><b>' + esc(r.titulo || "") + '</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div>' +
+      (r.gancho ? '<div class="say"><small>Gancho</small>' + esc(r.gancho) + '</div>' : '') + (falas.length ? '<ol class="script">' + falas.map(f => '<li>' + esc(f) + '</li>').join("") + '</ol>' : '') + '</div>';
+  }).join("") + '</div>';
+}
+function resultadoCriar(h){
+  if (!h) return "";
+  const r = h.r || {};
+  CC.push([r.legenda, r.hashtags].filter(Boolean).join("\n\n"));
+  const leg = r.legenda ? '<div class="cr-bloco"><div class="cr-tit"><b>✍️ Legenda</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div><p class="how">' + esc(r.legenda) + (r.hashtags ? '<br><span class="why">' + esc(r.hashtags) + '</span>' : '') + '</p></div>' : '';
+  const topo = h.modo === "trend" ? (r.trend ? '<p class="how"><b>A trend:</b> ' + esc(r.trend) + '</p>' : '') :
+    '<p class="how"><b>' + esc(r.produto || h.texto || "Produto") + '</b> · ' + esc(h.loja) + (r.publico ? '<br>Para quem: ' + esc(r.publico) : '') + '</p>';
+  return '<article class="card cr-res">' + topo +
+    (h.modo === "trend" ? crRoteiros(r.versoes) : crLista("💔 Dores que ele resolve", r.dores, true) + crLista("⚡ Ganchos de 3 segundos", r.ganchos, true) + crRoteiros(r.roteiros)) +
+    leg + (r.dica ? '<p class="meta-falta">💡 ' + esc(r.dica) + '</p>' : '') +
+    '<p class="why">Toque numa frase para copiar.</p></article>';
+}
+function renderCriar(){
+  CC = [];
+  const c = CR(), h = c.atual != null ? c.hist[c.atual] : null;
+  $("criarBox").innerHTML = '<div class="form">' + criarForm() + '</div><div id="cStatus"></div>' + resultadoCriar(h) +
+    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + (x.modo === "trend" ? "🔥 Trend" : "🛍️ " + esc(x.loja)) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '');
+  if (criarFoto) { const im = $("cPrev"); im.src = URL.createObjectURL(criarFoto); im.hidden = false; $("cFotoTxt").textContent = "Trocar a foto"; }
+}
+function criarStatus(t, html){ const el = $("cStatus"); if (el) el.innerHTML = t ? '<article class="card"><p class="how">' + (html ? t : esc(t)) + '</p></article>' : ""; }
+async function gerarCriar(){
+  if (criarBusy) return;
+  const c = CR(); c.texto = $("cTxt").value.trim(); save();
+  if (!c.texto && !criarFoto) { toast(c.modo === "trend" ? "Conte o que você viu ou mande o print." : "Escreva o produto ou mande a foto."); return; }
+  criarBusy = true; criarStatus("✨ Pensando nas melhores ideias… leva uns 20 segundos.");
+  const btn = document.querySelector("[data-cgerar]"); if (btn) btn.disabled = true;
+  let j = null;
+  try {
+    const corpo = {acao: "criar", modo: c.modo, loja: c.loja, texto: c.texto, foto: criarFoto ? await blobB64(criarFoto) : ""};
+    const ctl = new AbortController(), lim = setTimeout(() => ctl.abort(), 90000);
+    try { j = await (await fetch(ROBO, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(corpo), signal: ctl.signal})).json(); } finally { clearTimeout(lim); }
+  } catch(_) { j = null; }
+  criarBusy = false;
+  if (j && j.r) {
+    c.hist.unshift({modo: c.modo, loja: c.loja, texto: c.texto, data: todayKey, r: j.r}); c.hist = c.hist.slice(0, 30); c.atual = 0;
+    criarFoto = null; c.texto = ""; save(); renderCriar(); window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); return;
+  }
+  if (btn) btn.disabled = false;
+  CC.push(pedidoCriar(c));
+  criarStatus('A IA grátis não respondeu agora (pode ser o limite do dia). Leve o pedido para o Claude: ele faz igualzinho.' +
+    '<div class="actions" style="margin-top:8px"><button class="btn wine" data-cclaude="' + (CC.length - 1) + '">Fazer no Claude</button><button class="btn" data-cgerar="1">Tentar de novo</button></div>', true);
+}
+$("criarBox").addEventListener("click", async e => {
+  const m = e.target.closest("[data-cmodo]"); if (m) { CR().modo = m.dataset.cmodo; CR().texto = $("cTxt").value; CR().atual = null; save(); renderCriar(); return; }
+  const l = e.target.closest("[data-cloja]"); if (l) { CR().loja = l.dataset.cloja; l.parentNode.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === l)); save(); return; }
+  if (e.target.closest("[data-cgerar]")) { gerarCriar(); return; }
+  const cp = e.target.closest("[data-ccopy]"); if (cp) { copyText(CC[Number(cp.dataset.ccopy)]); return; }
+  const cl = e.target.closest("[data-cclaude]"); if (cl) { const t = CC[Number(cl.dataset.cclaude)]; try { await navigator.clipboard.writeText(t); } catch(_) {}
+    if (criarFoto) toast("Pedido copiado. No Claude, anexe a foto e cole.", 5000); abrirLink("https://claude.ai/new?q=" + encodeURIComponent(t)); return; }
+  const hb = e.target.closest("[data-chist]"); if (hb) { const c = CR(), i = Number(hb.dataset.chist); c.atual = c.atual === i ? null : i; save(); renderCriar(); if (c.atual != null) window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); }
+});
+$("criarBox").addEventListener("change", async e => {
+  if (e.target.id !== "cFoto" || !e.target.files[0]) return;
+  CR().texto = $("cTxt").value; criarFoto = await shrink(e.target.files[0], 1024); renderCriar();
+});
+$("criarBox").addEventListener("input", e => { if (e.target.id === "cTxt") { CR().texto = e.target.value; save(); } });
+
 // ---------- abas ----------
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  ["hoje","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
-  if (t === "ia") renderIA();
+  if (!$("tab-" + t)) t = "hoje";
+  ["hoje","criar","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
+  document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  if (t === "ia") renderIA(); if (t === "criar") renderCriar();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}
