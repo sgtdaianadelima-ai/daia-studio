@@ -1462,7 +1462,7 @@ $("criarBox").addEventListener("input", e => { if (e.target.id === "cTxt") { CR(
 
 // ---------- PARCERIAS: influenciadoras pequenas que divulgam o grupo VIP ----------
 // A tarefa diária do computador sugere (aba "App - Influenciadoras"); aqui a Daia muda o status.
-const VIP_PAG = "https://sgtdaianadelima-ai.github.io/daia-studio/vip/";
+const VIP_PAG = "https://sgtdaianadelima-ai.github.io/daia-studio/vip.html";
 const P_ST = ["Sugestão", "Mandei mensagem", "Negociando", "Fechado", "Recusou"];
 const P_EMO = {"Sugestão": "💡", "Mandei mensagem": "✉️", "Negociando": "🤝", "Fechado": "✅", "Recusou": "🚫"};
 const refDe = id => String(id || "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9._-]/g, "");
