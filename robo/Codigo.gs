@@ -91,9 +91,110 @@ function doPost(e) {
     const q = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (q.acao === 'legenda') return json(legendar_(q));
     if (q.acao === 'criar') return json(criar_(q));
+    if (q.acao === 'resumir') return json(resumirAulas_(q));
+    if (q.acao === 'gravaraulas') return json(gravarAulas_(q));
+    if (q.acao === 'guardartextos') return json(guardarTextos_(q));
     return json({erro: 'ação desconhecida'});
   } catch (err) { return json({erro: String(err.message || err)}); }
 }
+// Link rastreável do grupo VIP (página vip/ do app): conta cada clique por código de parceira.
+function guardarClique_(q) {
+  const ref = String(q.r || 'direto').toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 40) || 'direto';
+  const ss = SpreadsheetApp.getActive();
+  let a = ss.getSheetByName('App - Cliques');
+  if (!a) { a = ss.insertSheet('App - Cliques'); a.appendRow(['Data', 'Hora', 'Código']); a.setFrozenRows(1); }
+  const d = new Date();
+  a.appendRow([hojeBR_(d), Utilities.formatDate(d, TZ, 'HH:mm'), ref]);
+  return true;
+}
+function contarCliques_(ss) {
+  const a = ss.getSheetByName('App - Cliques');
+  if (!a || a.getLastRow() < 2) return {};
+  const c = {};
+  a.getRange(2, 3, a.getLastRow() - 1, 1).getValues().forEach(l => { const k = String(l[0]); c[k] = (c[k] || 0) + 1; });
+  return c;
+}
+// Status de parceria mudado no app: Sugestão / Mandei mensagem / Negociando / Fechado / Recusou / Dispensada
+function guardarParceria_(q) {
+  const id = String(q.id || '').trim().toLowerCase();
+  if (!id) return false;
+  const a = SpreadsheetApp.getActive().getSheetByName('App - Influenciadoras');
+  if (!a || a.getLastRow() < 2) return false;
+  const ids = a.getRange(2, 1, a.getLastRow() - 1, 1).getValues().map(l => String(l[0]).trim().toLowerCase());
+  const i = ids.indexOf(id);
+  if (i < 0) return false;
+  if (q.st) a.getRange(i + 2, 9).setValue(String(q.st).slice(0, 40));
+  if (q.nota !== undefined) a.getRange(i + 2, 10).setValue(String(q.nota).slice(0, 300));
+  return true;
+}
+// Resumo das aulas do curso (só para o Claude montar a aba Curso).
+function resumirAulas_(q) {
+  if (!PACK_CHAVE || q.chave !== PACK_CHAVE) return {erro: 'chave errada'};
+  const texto = String(q.texto || '').slice(0, 400000);
+  const prompt = 'Você vai ajudar a Daia, afiliada de achadinhos de casa (Shopee, Mercado Livre, Magalu, TikTok Shop), marca Dale Daia, estética minimalista, que NUNCA põe preço em post e não usa fotos do Pinterest. ' +
+    'Abaixo estão as transcrições das aulas do módulo "' + String(q.modulo || '') + '" do curso dela. Para CADA aula, responda em JSON: ' +
+    '{"aulas":[{"aula":"nome exato","diz":"o que a aula ensina, 1 ou 2 frases","fazer":"o que a Daia deve fazer na prática (passos curtos), ou vazio se for só introdução","link":"sites/ferramentas citados","prioridade":"alta|media|baixa para quem quer crescer no TikTok e Instagram e vender na Shopee"}]}. ' +
+    'Português simples. Não invente nada que não esteja na aula.\n\n' + texto;
+  const txt = gemini_(prompt, false, null, {temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+  const j = jsonDe_(txt);
+  return j || {erro: txt ? 'resposta estranha' : 'o Gemini não respondeu'};
+}
+
+// Grava as linhas da aba "App - Aulas" (Módulo | Aula | O que diz | O que fazer | Onde no app | Status | Prioridade).
+function gravarAulas_(q) {
+  if (!PACK_CHAVE || q.chave !== PACK_CHAVE) return {erro: 'chave errada'};
+  const linhas = (q.linhas || []).filter(l => Array.isArray(l) && l.length >= 7).map(l => l.slice(0, 7).map(c => String(c || '').slice(0, 1500)));
+  const ss = SpreadsheetApp.getActive();
+  const a = ss.getSheetByName('App - Aulas') || ss.insertSheet('App - Aulas');
+  if (q.limpar && a.getLastRow() > 1) a.getRange(2, 1, a.getLastRow() - 1, Math.max(7, a.getLastColumn())).clearContent();
+  if (linhas.length) a.getRange(a.getLastRow() + 1, 1, linhas.length, 7).setValues(linhas);
+  return {ok: linhas.length};
+}
+
+// ---------- Curso (Kiwify): o Claude manda as legendas das aulas; o robô resume no servidor, aos poucos ----------
+// Aba "Curso - Textos": Módulo | Ordem | Aula | Texto | Status (vazio = falta resumir, ok = feito)
+function guardarTextos_(q) {
+  if (!PACK_CHAVE || q.chave !== PACK_CHAVE) return {erro: 'chave errada'};
+  const ss = SpreadsheetApp.getActive();
+  let a = ss.getSheetByName('Curso - Textos');
+  if (!a) { a = ss.insertSheet('Curso - Textos'); a.appendRow(['Módulo', 'Ordem', 'Aula', 'Texto', 'Status']); a.setFrozenRows(1); }
+  if (q.limpar && a.getLastRow() > 1) a.getRange(2, 1, a.getLastRow() - 1, 5).clearContent();
+  const ls = (q.itens || []).map(x => [String(x.m || '').slice(0, 200), Number(x.o) || 0, String(x.n || '').slice(0, 300), String(x.t || '').slice(0, 49000), '']);
+  if (ls.length) a.getRange(a.getLastRow() + 1, 1, ls.length, 5).setValues(ls);
+  if (q.iniciar) {
+    ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'resumirCurso').forEach(t => ScriptApp.deleteTrigger(t));
+    ScriptApp.newTrigger('resumirCurso').timeBased().everyMinutes(10).create();
+  }
+  return {ok: ls.length};
+}
+const APP_RECURSOS = 'O app Daia Studio já tem: Hoje (meta do dia: 3 Shopee Vídeo, 2 TikTok, 2 Instagram; cronograma do que gravar; Shopee Vídeo do dia com 3 produtos escolhidos pelo robô, pedidos de foto e vídeo de IA e legenda; vídeos dos packs; carrossel pronto do Instagram; relatório de seguidores rumo aos 2.000 no TikTok; anotar posts extras), ' +
+  'Criar (dores, ganchos de 3 segundos, roteiros e legenda de um produto para TikTok Shop ou Shopee; versão própria de uma trend), Parcerias (influenciadoras pequenas e link rastreável do grupo VIP), Prontos (carrosséis prontos para baixar), IAs (atalhos e pedidos prontos para ChatGPT, Gemini, Claude e CapCut), ' +
+  'Ferramentas (converter link da Shopee em link de afiliada, respostas prontas para comentários, lembretes no celular). Um robô diário lê as métricas do TikTok e Instagram, anota o que ela postou, sugere a trend do dia e influenciadoras.';
+function resumirCurso() {
+  const ini = Date.now(), ss = SpreadsheetApp.getActive(), a = ss.getSheetByName('Curso - Textos');
+  if (!a || a.getLastRow() < 2) return 'nada';
+  const dados = a.getRange(2, 1, a.getLastRow() - 1, 5).getValues();
+  const saida = ss.getSheetByName('App - Aulas') || ss.insertSheet('App - Aulas');
+  while (Date.now() - ini < 270000) {
+    const pend = dados.map((l, i) => ({l, i})).filter(x => x.l[2] && !x.l[4]);
+    if (!pend.length) { ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'resumirCurso').forEach(t => ScriptApp.deleteTrigger(t)); return 'fim'; }
+    const mod = pend[0].l[0], lote = []; let tam = 0;
+    for (const x of pend.filter(p => p.l[0] === mod)) { const s = String(x.l[3] || '').slice(0, 30000); if (lote.length && (lote.length >= 8 || tam + s.length > 70000)) break; lote.push(x); tam += s.length; }
+    const texto = lote.map(x => '## Aula: ' + x.l[2] + '\n' + String(x.l[3] || '(sem texto)').slice(0, 30000)).join('\n\n');
+    const prompt = 'Você ajuda a Daia, afiliada de achadinhos de casa (Shopee, Mercado Livre, Magalu, TikTok Shop), marca Dale Daia, estética minimalista. Ela NUNCA põe preço em post e NÃO usa fotos do Pinterest (direitos autorais). ' + APP_RECURSOS +
+      ' Abaixo estão as falas das aulas do módulo "' + mod + '" do curso dela (Mentoria Afiliada com Propósito). Para CADA aula responda em JSON: {"aulas":[{"aula":"nome exato","diz":"o que a aula ensina, 1 ou 2 frases simples","fazer":"o que a Daia deve fazer na prática, passos curtos separados por \\n (vazio se for só introdução ou motivação)","app":"onde o app já ajuda nisso (ex.: Criar › Produto) ou vazio","st":"app se o app já faz isso por ela, manual se ela precisa fazer","prioridade":"alta, media ou baixa para crescer no TikTok e Instagram e vender"}]}. ' +
+      'Se a aula mandar pôr preço ou usar Pinterest, diga no fazer que ela não faz isso (regra dela). Português simples. Não invente nada que não esteja na aula.\n\n' + texto;
+    const txt = gemini_(prompt, false, null, {temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+    const j = jsonDe_(txt);
+    if (!j || !Array.isArray(j.aulas)) { if (!txt) return 'gemini sem resposta'; lote.forEach(x => { a.getRange(x.i + 2, 5).setValue('erro'); dados[x.i][4] = 'erro'; }); continue; }
+    const porNome = {}; j.aulas.forEach(r => { porNome[String(r.aula || '').trim().toLowerCase()] = r; });
+    const linhas = lote.map((x, k) => { const r = porNome[String(x.l[2]).trim().toLowerCase()] || j.aulas[k] || {}; return [mod, x.l[2], r.diz || '', r.fazer || '', r.app || '', /app/i.test(r.st || '') ? 'app' : 'manual', r.prioridade || 'media']; });
+    saida.getRange(saida.getLastRow() + 1, 1, linhas.length, 7).setValues(linhas);
+    lote.forEach(x => { a.getRange(x.i + 2, 5).setValue('ok'); dados[x.i][4] = 'ok'; });
+  }
+  return 'continua';
+}
+
 // Aba Criar do app: produto (dores, ganchos, roteiros) ou trend (a versão da Daia). Usa as dicas do curso da aba "App - Curso".
 function criar_(q) {
   const texto = String(q.texto || '').slice(0, 1500), foto = String(q.foto || '');
@@ -144,6 +245,8 @@ function doGet(e) {
   const json = o => ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON);
   try {
     if (q.acao === 'extra') return json({ok: guardarExtra_(q)});
+    if (q.acao === 'clique') return json({ok: guardarClique_(q)});
+    if (q.acao === 'parceria') return json({ok: guardarParceria_(q)});
     if (q.acao === 'busca') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? buscaProduto_(String(q.q || '')) : {erro: 'chave errada'});
     if (q.acao === 'notafotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {notas: notasFotos_(String(q.urls || '').split(' ').filter(Boolean).slice(0, 8))} : {erro: 'chave errada'});
     if (q.acao === 'refazerfotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? refazerFotosAuto_() : {erro: 'chave errada'});
@@ -189,6 +292,11 @@ function conteudo_(hoje) {
     postados: ler('App - Postados').slice(-60).map(l => ({data: l[0], rede: l[1], conta: l[2], t: l[3], link: l[4], views: l[5]})),
     seguidores: ler('App - Seguidores').slice(-120).map(l => ({data: l[0], rede: l[1], conta: l[2], n: l[3]})),
     curso: ler('App - Curso').map(l => l[0]).filter(Boolean),
+    // aba Curso do app: Módulo | Aula | O que diz | O que fazer | Onde está no app | Status (app/manual/feito) | Prioridade
+    aulas: ler('App - Aulas').map(l => ({m: l[0], a: l[1], diz: l[2], fazer: l[3], app: l[4], st: l[5], p: l[6]})),
+    // parcerias: a tarefa diária sugere; o app muda o status
+    influ: ler('App - Influenciadoras').slice(-150).map(l => ({id: l[0], nome: l[1], seg: l[2], nicho: l[3], porque: l[4], link: l[5], data: l[6], obs: l[7], st: l[8], nota: l[9]})),
+    cliques: contarCliques_(ss),
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
     plano: ler('App - Plano').filter(l => l[0] && l[3]).map(l => ({data: l[0], h: l[1], k: (l[2] || 'casa').toLowerCase().trim(), t: l[3], g: l[4], m: l[5], r: l[6] ? l[6].split('/').map(s => s.trim()).filter(Boolean) : null}))
