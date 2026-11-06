@@ -204,15 +204,15 @@ function renderHoje(){
     (x.claude ? '<p class="how extra-claude">💬 ' + esc(x.claude) + '</p>' : '') + '<div class="actions"><span class="why">✓ Postado fora do plano</span></div></article>').join("");
   const conta = (id, alt, n) => { const l = mL(id); return l ? l.feito + "/" + l.n : alt + "/" + n; };
   const okL = id => { const l = mL(id); return !!(l && l.feito >= l.n); };
-  const nSeg = (conteudo().seguidores || []).length;
-  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + dicaCursoCard() + pendentesCard() : "") +
+  const tts = contasSeg().filter(l => /tiktok/i.test(l.rede));
+  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok · cronograma", posts.length ? "o que gravar hoje (poste também no Reels)" : "sem plano neste dia", hoje ? conta("tiktok") : done + "/" + posts.length, hoje ? okL("tiktok") : posts.length && done === posts.length, postadosCard(/tiktok/i) + videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '') + '<div class="actions"><a class="btn" style="text-decoration:none" href="cronograma.html">🗓️ Ver o cronograma completo</a></div>') +
     secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +
-    (hoje ? (nSeg ? secao("seguidores", "📈", "Seguidores", "rumo aos " + META_SEG.toLocaleString("pt-BR") + " no TikTok", "", false, seguidoresCard()) : "") +
+    (hoje ? secao("relatorio", "📈", "Relatório · rumo aos 2.000", tts.length ? tts.map(l => l.c + " " + l.n.toLocaleString("pt-BR")).join(" · ") : "seguidores e análise do Claude", "", false, relatorioCard()) +
       secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
-      secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, analiseCard() + semanaCard()) +
+      secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, semanaCard()) +
       secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
@@ -265,38 +265,39 @@ function marcarMeta(v){
 }
 // ---------- SEGUIDORES (o robô anota todo dia) ----------
 const META_SEG = 2000;
-function seguidoresCard(){
-  const s = conteudo().seguidores || [];
-  if (!s.length) return "";
-  const contas = {}; s.forEach(x => { (contas[x.conta] = contas[x.conta] || []).push(x); });
-  const linhas = Object.keys(contas).map(c => {
-    const l = contas[c], ult = l[l.length - 1], n = Number(String(ult.n).replace(/\D/g, "")) || 0;
-    const ant = l.length > 1 ? Number(String(l[Math.max(0, l.length - 8)].n).replace(/\D/g, "")) || 0 : null;
-    return {c, rede: ult.rede, n, ganho: ant === null ? null : n - ant, data: ult.data};
+// Relatório: os 2 TikToks rumo aos 2.000, Instagram, grupo VIP e o texto de análise do Claude.
+const DOC_METRICAS = "https://claude.ai/artifact/5Pgs6xkAreQUUq4XfRujjr";
+function contasSeg(){
+  const s = conteudo().seguidores || [], contas = {};
+  s.forEach(x => { const k = x.rede + "|" + x.conta; (contas[k] = contas[k] || []).push(x); });
+  return Object.keys(contas).map(k => {
+    const l = contas[k], ult = l[l.length - 1], num = x => Number(String(x.n).replace(/\D/g, "")) || 0, n = num(ult);
+    return {c: ult.conta, rede: ult.rede, n, ganho: l.length > 1 ? n - num(l[Math.max(0, l.length - 8)]) : null, dias: l.length, data: ult.data};
   });
-  const tt = linhas.find(l => /daledaia/i.test(l.c) && /tiktok/i.test(l.rede));
-  let alvo = "";
-  if (tt) {
-    const falta = Math.max(0, META_SEG - tt.n), pct = Math.min(100, tt.n / META_SEG * 100);
-    const ritmo = tt.ganho && tt.ganho > 0 ? Math.ceil(falta / (tt.ganho / 7)) : null;
-    alvo = '<div class="seg-alvo"><div class="meta-topo"><b>🎵 TikTok @daledaia → ' + META_SEG.toLocaleString("pt-BR") + '</b><span>' + tt.n.toLocaleString("pt-BR") + '</span></div>' +
-      '<div class="meta-barra"><i style="width:' + pct + '%"></i></div>' +
-      '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> seguidores para o TikTok Shop.' + (ritmo ? ' No ritmo desta semana, uns ' + ritmo + ' dias.' : '') : 'Chegou! Confira no TikTok Studio se o TikTok Shop já liberou. 🎉') + '</p></div>';
-  }
-  return '<article class="card">' + alvo + '<div class="seg-lista">' + linhas.map(l => '<div><span>' + esc(l.rede) + ' · ' + esc(l.c) + '</span><b>' + l.n.toLocaleString("pt-BR") + '</b>' +
-    (l.ganho !== null ? '<small class="' + (l.ganho >= 0 ? 'sobe' : 'desce') + '">' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana</small>' : '<small>' + esc(l.data) + '</small>') + '</div>').join("") + '</div></article>';
+}
+function barraSeg(l){
+  const falta = Math.max(0, META_SEG - l.n), pct = Math.min(100, l.n / META_SEG * 100);
+  const ritmo = l.ganho && l.ganho > 0 ? Math.ceil(falta / (l.ganho / Math.min(7, l.dias - 1))) : null;
+  return '<div class="seg-alvo"><div class="meta-topo"><b>🎵 ' + esc(l.c) + '</b><span>' + l.n.toLocaleString("pt-BR") + '</span></div>' +
+    '<div class="meta-barra"><i style="width:' + pct + '%"></i></div>' +
+    '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> para os 2.000 (TikTok Shop).' + (l.ganho !== null ? ' ' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana.' : '') + (ritmo ? ' Nesse ritmo, uns ' + ritmo + ' dias.' : '') : 'Chegou nos 2.000! Confira no TikTok Studio se o TikTok Shop liberou. 🎉') + '</p></div>';
+}
+function relatorioCard(){
+  const ls = contasSeg(), tts = ls.filter(l => /tiktok/i.test(l.rede)).sort((a, b) => /daledaia/i.test(a.c) ? -1 : 1), outros = ls.filter(l => !/tiktok/i.test(l.rede));
+  const cl = conteudo().cliques || {}, totCl = Object.values(cl).reduce((s, n) => s + n, 0);
+  const a = conteudo().analise;
+  return '<article class="card">' + (tts.length ? tts.map(barraSeg).join("") : '<p class="how">O robô anota os seguidores todo dia. Os números aparecem aqui amanhã.</p>') +
+    (outros.length || totCl ? '<div class="seg-lista">' + outros.map(l => '<div><span>' + esc(l.rede) + ' · ' + esc(l.c) + '</span><b>' + l.n.toLocaleString("pt-BR") + '</b>' +
+      (l.ganho !== null ? '<small class="' + (l.ganho >= 0 ? 'sobe' : 'desce') + '">' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana</small>' : '<small>' + esc(l.data) + '</small>') + '</div>').join("") +
+      (totCl ? '<div><span>Cliques no link do grupo VIP</span><b>' + totCl + '</b><small>todas as parceiras</small></div>' : '') + '</div>' : '') + '</article>' +
+    (a ? '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Análise do Claude</span><span class="why">atualiza todo dia</span></div><p class="how" style="white-space:pre-line">' + esc(a) + '</p></article>' : '') +
+    '<div class="actions"><a class="btn" style="text-decoration:none" href="' + DOC_METRICAS + '" target="_blank" rel="noopener">📄 Relatório completo (todo dia)</a></div>';
 }
 function postadosCard(rede){
   const ps = postadosDe(cur).filter(p => rede.test(p.rede));
   if (!ps.length) return "";
   return '<article class="card"><div class="meta"><span class="tag trend">🤖 O robô viu</span><span class="why">postado hoje</span></div>' +
     ps.map(p => '<div class="extra-item"><div><b>' + esc(p.conta) + (p.views ? ' · ' + esc(p.views) + ' views' : '') + '</b><p>' + esc(p.t) + '</p>' + (p.link ? '<a href="' + esc(p.link) + '" target="_blank" rel="noopener">Ver o post</a>' : '') + '</div></div>').join("") + '</article>';
-}
-function dicaCursoCard(){
-  const d = conteudo().curso || [];
-  if (!d.length) return "";
-  const i = Math.floor(Date.now() / 864e5) % d.length;
-  return '<article class="card recado"><p><b>📚 Dica do curso:</b> ' + esc(d[i]) + '</p></article>';
 }
 function secao(id, emoji, titulo, sub, conta, ok, corpo){
   const aberto = state.secoes && state.secoes[id];
@@ -588,7 +589,7 @@ async function loadIA(tent){
     const r = await fetch(ROBO); const j = await r.json();
     reenviarExtras();
     if (j && j.videos) { j.videos = j.videos.slice(-3); const novo = JSON.stringify(j) !== JSON.stringify(state.ia); state.ia = j; save();
-      if (novo) { applyConteudo(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); const aba = document.querySelector('nav.tabs button[aria-selected="true"]')?.dataset.tab; if (aba === "hoje") renderHoje(); if (aba === "prontos") renderProntos(); } }
+      if (novo) { applyConteudo(); Object.keys(prOutputs).forEach(k => delete prOutputs[k]); const aba = document.querySelector('nav.tabs button[aria-selected="true"]')?.dataset.tab; if (aba === "hoje") renderHoje(); if (aba === "prontos") renderProntos(); if (aba === "parcerias") renderParcerias(); if (aba === "curso") renderCurso(); } }
   } catch(_) { if ((tent || 0) < 3) setTimeout(() => loadIA((tent || 0) + 1), 4000); }
 }
 async function copyText(t){
@@ -1459,13 +1460,94 @@ $("criarBox").addEventListener("change", async e => {
 });
 $("criarBox").addEventListener("input", e => { if (e.target.id === "cTxt") { CR().texto = e.target.value; save(); } });
 
+// ---------- PARCERIAS: influenciadoras pequenas que divulgam o grupo VIP ----------
+// A tarefa diária do computador sugere (aba "App - Influenciadoras"); aqui a Daia muda o status.
+const VIP_PAG = "https://sgtdaianadelima-ai.github.io/daia-studio/vip/";
+const P_ST = ["Sugestão", "Mandei mensagem", "Negociando", "Fechado", "Recusou"];
+const P_EMO = {"Sugestão": "💡", "Mandei mensagem": "✉️", "Negociando": "🤝", "Fechado": "✅", "Recusou": "🚫"};
+const refDe = id => String(id || "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9._-]/g, "");
+const linkVipDe = id => VIP_PAG + "?r=" + encodeURIComponent(refDe(id));
+const msg1 = p => "Oi" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! Tudo bem? 🤍 Sou a Daia, do @daledaia. Tenho um grupo VIP no WhatsApp com achadinhos de casa e ofertas do dia, e acho que o seu público ia amar.\n\nVocê faz divulgação? Me conta como você trabalha (story, Reels, valores) que eu te mando uma proposta.";
+const msgProposta = p => "Que bom! Minha proposta" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + ":\n\n" +
+  "• 1 story por semana com o link do meu grupo VIP de ofertas (ou 1 Reels por mês, como for melhor pra você).\n" +
+  "• O link é só seu: " + linkVipDe(p.id) + "\n  Assim a gente acompanha juntas quantas pessoas clicaram por ele.\n" +
+  "• Valor: R$ ___ por mês. Se preferir, posso pagar por resultado: R$ ___ a cada 10 pessoas que clicarem.\n\n" +
+  "Eu te mando a arte e o texto prontinhos. O que acha? 🤍";
+function parcStatus(p){ const loc = (state.parc || {})[p.id]; return (loc && loc.st) || p.st || "Sugestão"; }
+function parceriaCard(p){
+  const st = parcStatus(p), cl = (conteudo().cliques || {})[refDe(p.id)] || 0, h = refDe(p.id);
+  COPY.push(msg1(p)); const i1 = COPY.length - 1; COPY.push(msgProposta(p)); const i2 = COPY.length - 1; COPY.push(linkVipDe(p.id)); const i3 = COPY.length - 1;
+  return '<article class="card parc" data-parc="' + esc(p.id) + '"><div class="parc-topo"><a class="parc-handle" href="https://www.instagram.com/' + esc(h) + '/" target="_blank" rel="noopener">@' + esc(h) + '</a>' +
+    '<button class="btn mini" data-pdisp="' + esc(p.id) + '" aria-label="Não quero">✕</button></div>' +
+    '<p class="how"><b>' + esc(p.nome || "") + '</b>' + (p.seg ? ' · ' + esc(p.seg) + ' seguidores' : '') + (p.nicho ? ' · ' + esc(p.nicho) : '') + '</p>' +
+    (p.porque ? '<p class="how">' + esc(p.porque) + '</p>' : '') + (p.obs ? '<p class="meta-falta">' + esc(p.obs) + '</p>' : '') +
+    '<div class="chips">' + P_ST.map(s => '<button type="button" class="chip" data-pst="' + esc(s) + '" aria-pressed="' + (s === st) + '">' + P_EMO[s] + ' ' + esc(s) + '</button>').join("") + '</div>' +
+    '<div class="actions"><a class="btn wine" style="text-decoration:none" href="https://ig.me/m/' + esc(h) + '" target="_blank" rel="noopener">Abrir conversa</a>' +
+    '<button class="btn" data-copy="' + i1 + '">Copiar 1ª mensagem</button><button class="btn" data-copy="' + i2 + '">Copiar proposta</button><button class="btn" data-copy="' + i3 + '">Copiar link dela</button></div>' +
+    '<p class="meta-falta">🔗 Cliques pelo link dela: <b>' + cl + '</b></p></article>';
+}
+function renderParcerias(){
+  COPY = [];
+  const todas = (conteudo().influ || []).filter(p => p.id && parcStatus(p) !== "Dispensada");
+  const grupo = sts => todas.filter(p => sts.indexOf(parcStatus(p)) >= 0);
+  const novas = grupo(["Sugestão"]), conversa = grupo(["Mandei mensagem", "Negociando"]), fechadas = grupo(["Fechado"]), nao = grupo(["Recusou"]);
+  const cl = conteudo().cliques || {};
+  COPY.push(VIP_PAG + "?r=daledaia");
+  const topo = '<article class="card"><p class="how"><b>Como funciona:</b> todo dia o robô procura influenciadoras pequenas (até 30 mil seguidores), de outros assuntos, com público de mulheres de 24 a 60 anos que compram pela internet. Toque no @ para ver o perfil. Não gostou? Toque no ✕.</p>' +
+    '<ol class="script"><li><b>Abrir conversa</b> e mandar a 1ª mensagem (pergunta como ela trabalha).</li><li>Ela respondeu? Marque <b>Negociando</b> e mande a proposta (complete os valores).</li><li>Fechou? Marque <b>Fechado</b>. O link dela conta os cliques sozinho.</li></ol>' +
+    '<p class="meta-falta">O WhatsApp não diz quem entrou por qual link. O app conta os <b>cliques</b> de cada link. As entradas no grupo você vê no total de pessoas do grupo.</p>' +
+    '<div class="actions"><button class="btn" data-copy="' + (COPY.length - 1) + '">Copiar o meu link do grupo</button></div>' + (cl.daledaia ? '<p class="meta-falta">Cliques no seu link: <b>' + cl.daledaia + '</b></p>' : '') + '</article>';
+  const bloco = (t, ls, vazio) => '<h2>' + t + ' <small class="why">' + ls.length + '</small></h2>' + (ls.length ? '<div class="list">' + ls.map(parceriaCard).join("") + '</div>' : '<p class="note">' + vazio + '</p>');
+  $("parcBox").innerHTML = topo + bloco("🤝 Em conversa", conversa, "Ninguém ainda. Escolha uma sugestão abaixo e mande a 1ª mensagem.") +
+    bloco("✅ Fechadas", fechadas, "Quando fechar com alguém, ela aparece aqui com os cliques.") +
+    bloco("💡 Sugestões de hoje", novas.slice().reverse(), "O robô coloca sugestões novas todo dia (precisa do computador ligado).") +
+    (nao.length ? bloco("🚫 Recusaram", nao, "") : "");
+}
+async function mudarParceria(id, st){
+  state.parc = state.parc || {}; state.parc[id] = {st, quando: todayKey}; save(); renderParcerias();
+  try { await fetch(ROBO + "?" + new URLSearchParams({acao: "parceria", id, st})); } catch(_) {}
+}
+$("parcBox").addEventListener("click", e => {
+  const cb = e.target.closest("button[data-copy]"); if (cb) { copyText(COPY[Number(cb.dataset.copy)]); return; }
+  const card = e.target.closest("[data-parc]");
+  const ps = e.target.closest("button[data-pst]"); if (ps && card) { mudarParceria(card.dataset.parc, ps.dataset.pst); toast(P_EMO[ps.dataset.pst] + " " + ps.dataset.pst); return; }
+  const pd = e.target.closest("button[data-pdisp]"); if (pd) { mudarParceria(pd.dataset.pdisp, "Dispensada"); toast("Tirei da lista. Amanhã vêm outras."); }
+});
+
+// ---------- CURSO: o que aplicar da Mentoria Afiliada com Propósito ----------
+// A aba "App - Aulas" diz, para cada aula: o que ensina, o que fazer e se o app já faz (st = app / manual).
+function renderCurso(){
+  const aulas = conteudo().aulas || [], f = state.cursoFiltro || "fazer", feito = state.cursoFeito || {}, busca = (state.cursoBusca || "").toLowerCase();
+  const chave = a => a.m + "|" + a.a;
+  const passa = a => (f === "todas" || (f === "app" && /app/i.test(a.st)) || (f === "fazer" && !/app/i.test(a.st) && a.fazer && !feito[chave(a)]) || (f === "feito" && feito[chave(a)])) &&
+    (!busca || (a.m + " " + a.a + " " + a.diz + " " + a.fazer).toLowerCase().indexOf(busca) >= 0);
+  const lista = aulas.filter(passa).sort((x, y) => ({alta: 0, media: 1, baixa: 2}[String(x.p).toLowerCase()] ?? 1) - ({alta: 0, media: 1, baixa: 2}[String(y.p).toLowerCase()] ?? 1));
+  const mods = {}; lista.forEach(a => { (mods[a.m] = mods[a.m] || []).push(a); });
+  const n = s => aulas.filter(a => s(a)).length;
+  const chip = (v, t) => '<button type="button" class="chip" data-cfil="' + v + '" aria-pressed="' + (f === v) + '">' + t + '</button>';
+  $("cursoBox").innerHTML = (aulas.length ? '' : '<article class="card"><p class="how">Estou lendo o curso. As aulas aparecem aqui assim que eu terminar.</p></article>') +
+    '<div class="chips">' + chip("fazer", "✋ Você faz (" + n(a => !/app/i.test(a.st) && a.fazer && !feito[chave(a)]) + ")") + chip("app", "🤖 O app já faz (" + n(a => /app/i.test(a.st)) + ")") + chip("feito", "✓ Já fiz (" + Object.keys(feito).length + ")") + chip("todas", "Todas (" + aulas.length + ")") + '</div>' +
+    '<div class="field" style="margin-top:10px"><input class="input" id="cBusca" placeholder="Procurar: TikTok, story, live, Shopee Vídeo…" value="' + esc(state.cursoBusca || "") + '"></div>' +
+    Object.keys(mods).map(m => '<details class="secao"' + (busca || Object.keys(mods).length < 4 ? ' open' : '') + '><summary><span class="sec-txt"><b>' + esc(m) + '</b><small>' + mods[m].length + ' aula' + (mods[m].length > 1 ? 's' : '') + '</small></span><span class="sec-seta" aria-hidden="true"></span></summary><div class="sec-corpo">' +
+      mods[m].map(a => '<article class="card aula' + (feito[chave(a)] ? ' done' : '') + '"><div class="meta"><span class="tag ' + (/alta/i.test(a.p) ? 'serie' : 'casa') + '">' + esc(a.p || "") + '</span><span class="why">' + (/app/i.test(a.st) ? '🤖 no app' : '✋ manual') + '</span></div>' +
+        '<h3 class="title">' + esc(a.a) + '</h3><p class="how">' + esc(a.diz) + '</p>' + (a.fazer ? '<div class="say"><small>O que fazer</small>' + esc(a.fazer) + '</div>' : '') +
+        (a.app ? '<p class="meta-falta">📍 ' + esc(a.app) + '</p>' : '') +
+        (!/app/i.test(a.st) && a.fazer ? '<div class="actions"><button class="btn main" data-cfeito="' + esc(chave(a)) + '">' + (feito[chave(a)] ? 'Feito ✓' : 'Marcar como feito') + '</button></div>' : '') + '</article>').join("") + '</div></details>').join("") +
+    (aulas.length && !lista.length ? '<p class="note">Nada aqui.</p>' : '');
+}
+$("cursoBox").addEventListener("click", e => {
+  const c = e.target.closest("[data-cfil]"); if (c) { state.cursoFiltro = c.dataset.cfil; save(); renderCurso(); return; }
+  const d = e.target.closest("[data-cfeito]"); if (d) { state.cursoFeito = state.cursoFeito || {}; const k = d.dataset.cfeito; if (state.cursoFeito[k]) delete state.cursoFeito[k]; else state.cursoFeito[k] = todayKey; save(); renderCurso(); }
+});
+$("cursoBox").addEventListener("input", e => { if (e.target.id !== "cBusca") return; state.cursoBusca = e.target.value; save(); clearTimeout(renderCurso.t); renderCurso.t = setTimeout(() => { renderCurso(); const i = $("cBusca"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 400); });
+
 // ---------- abas ----------
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   if (!$("tab-" + t)) t = "hoje";
-  ["hoje","criar","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","criar","parcerias","curso","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  if (t === "ia") renderIA(); if (t === "criar") renderCriar();
+  if (t === "ia") renderIA(); if (t === "criar") renderCriar(); if (t === "parcerias") renderParcerias(); if (t === "curso") renderCurso();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}
