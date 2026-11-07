@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Como está tudo</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:wght@400;700;800&display=swap">
+<style>
+:root{--bg:#FBF7F2;--card:#fff;--fg:#3B2A22;--muted:#8a7468;--wine:#7A1F2B;--gold:#C9A46A;--sand:#D9C4B0;--line:#eadfd3;--ok:#2f6b4f;--wait:#b07a12;--zap:#e7f6e9;--zapd:#d9fdd3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 "Nunito Sans",sans-serif;padding:20px max(16px,env(safe-area-inset-right,0px)) 50px max(16px,env(safe-area-inset-left,0px))}
+.w{max-width:640px;margin:0 auto;display:grid;gap:14px}
+a.voltar{color:var(--wine);font-weight:800;text-decoration:none}
+h1{font:400 34px/1.1 "DM Serif Display",serif;margin:6px 0 0}h1 em{color:var(--wine)}
+h2{font:400 26px/1.15 "DM Serif Display",serif;margin:18px 0 0}
+.sub{color:var(--muted);margin:0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:8px}
+.st{display:flex;gap:10px;align-items:flex-start;border-top:1px solid var(--line);padding-top:10px}.st:first-of-type{border:0;padding:0}
+.st i{font-style:normal;font-size:20px;line-height:1.2}
+.st b{display:block}.st small{color:var(--muted)}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
+.passo{display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start}
+.num{width:44px;height:44px;border-radius:50%;background:var(--wine);color:#fff;font:400 24px/44px "DM Serif Display",serif;text-align:center}
+.cena{grid-column:1/-1;background:#efe7dc;border-radius:16px;padding:12px;display:grid;gap:8px}
+.zap{background:#e5ddd5;border-radius:14px;padding:10px;display:grid;gap:6px}
+.zap .topo{font-weight:800;font-size:13px;color:#075e54}
+.bolha{background:#fff;border-radius:10px;padding:8px 10px;font-size:14px;max-width:88%;box-shadow:0 1px 1px rgba(0,0,0,.1);overflow-wrap:anywhere}
+.bolha.eu{background:var(--zapd);justify-self:end}
+.lk{color:#1a5fb4}
+.troca{display:grid;gap:6px;font-size:14px}
+.chip{display:inline-block;padding:4px 10px;border-radius:99px;background:#fff;border:1px solid var(--line);overflow-wrap:anywhere}
+.chip.velho{text-decoration:line-through;color:var(--muted)}
+.chip.novo{border-color:var(--wine);color:var(--wine);font-weight:800}
+.app{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px;display:grid;gap:6px}
+.app .t{font:400 20px "DM Serif Display",serif}
+.bt{display:inline-block;background:var(--wine);color:#fff;border-radius:99px;padding:8px 14px;font-weight:800;font-size:14px}
+.bt.b{background:#fff;color:var(--wine);border:1px solid var(--wine)}
+.pc{font-size:40px;text-align:center}
+.aviso{border-left:4px solid var(--gold)}
+.mud{border-left:4px solid var(--wine)}
+ul{margin:0;padding-left:20px}li{margin:4px 0}
+</style>
+</head>
+<body>
+<div class="w">
+  <a class="voltar" href="./">‹ Voltar ao app</a>
+  <h1>Como está <em>tudo</em></h1>
+  <p class="sub">Tudo o que você pediu, numa página só. Atualizado em 07/11/2026.</p>
+  <div class="leg"><span>✅ pronto</span><span>⏳ falta pouco</span><span>🙋 preciso de você</span></div>
+
+  <h2>Os robôs</h2>
+  <div class="card">
+    <div class="st"><i>✅</i><div><b>Robô do Google (dentro da planilha)</b><small>Funcionando. Escolhe os 3 produtos da Shopee Vídeo, converte link da Shopee, guarda suas notas. Ele cria os conteúdos da aba Criar, mas <b>hoje</b> a IA grátis dele acabou: volta amanhã. Hoje use o botão “Fazer no Claude”.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Robô do computador (todo dia à meia-noite)</b><small>Olha seu TikTok e Instagram, acha 8 a 10 influenciadoras, escreve o “O que está bombando”, lê os seus salvos. Precisa do computador ligado com o Chrome aberto.</small></div></div>
+    <div class="st"><i>⏳</i><div><b>Robô das ofertas do grupo</b><small>Novo. Roda pela 1ª vez hoje à meia-noite. Veja abaixo como funciona.</small></div></div>
+    <div class="st"><i>🙋</i><div><b>Olhar as redes 4 vezes por dia</b><small>Hoje ele olha 1 vez por dia. Para olhar às 9h, 13h, 17h e 21h, eu preciso que você diga “pode criar”.</small></div></div>
+  </div>
+
+  <h2>Robô das ofertas, passo a passo</h2>
+  <div class="card">
+    <div class="passo"><div class="num">1</div><div><b>Meia-noite: o computador lê o grupo</b><br><small>Ele abre o WhatsApp do computador e <b>só lê</b> o grupo arquivado “Promoções do Dia #17”. Nunca escreve nada lá.</small></div>
+      <div class="cena"><div class="zap"><div class="topo">Promoções do Dia #17</div><div class="bolha">🔥 Porta-tempero giratório com 16 potes<br><span class="lk">https://s.shopee.com.br/xxxx</span> (link de outra pessoa)</div><div class="bolha">⚡ Air fryer em oferta<br><span class="lk">https://meli.la/xxxx</span></div></div></div></div>
+  </div>
+  <div class="card">
+    <div class="passo"><div class="num">2</div><div><b>Troca pelo SEU link</b><br><small>A comissão passa a ser sua.</small></div>
+      <div class="cena troca"><div>Shopee: <span class="chip velho">link de outra pessoa</span> → <span class="chip novo">seu link ✅</span></div><div>Magalu: <span class="chip novo">sua loja magazinedaledaia ✅</span></div><div>Natura: <span class="chip novo">sua consultoria daledaia ✅</span></div><div>Mercado Livre: <span class="chip">ainda não 🙋</span> (falta 1 link seu de exemplo)</div></div></div>
+  </div>
+  <div class="card">
+    <div class="passo"><div class="num">3</div><div><b>De manhã, aparece no seu app</b><br><small>Em ⚙️ Ajustes › 🛒 Ofertas do grupo, já com texto bonitinho e sem preço.</small></div>
+      <div class="cena"><div class="app"><div class="t">Ofertas do grupo</div><div>✨ Porta-tempero giratório: chega de procurar o tempero na hora de cozinhar! 🤍<br>👉 <span class="lk">seu link</span></div><div><span class="bt">💬 Mandar no grupo</span> <span class="bt b">📋 Copiar</span></div></div></div></div>
+  </div>
+  <div class="card">
+    <div class="passo"><div class="num">4</div><div><b>Você toca em “Mandar no grupo”</b><br><small>O WhatsApp abre com o texto pronto. Você escolhe o grupo “OFERTAS DO DIA @daledaia” e envia. Pronto.</small></div>
+      <div class="cena"><div class="zap"><div class="topo">OFERTAS DO DIA @daledaia</div><div class="bolha eu">✨ Porta-tempero giratório: chega de procurar o tempero na hora de cozinhar! 🤍<br>👉 <span class="lk">seu link</span></div></div></div></div>
+  </div>
+  <div class="card aviso">
+    <b>Diferença para a Gigi</b>
+    <ul><li>A Gigi manda sozinha, a toda hora. O meu robô <b>não manda sozinho</b>: ele prepara e <b>você toca para enviar</b>. Assim não tem risco de bloquear seu WhatsApp e é grátis.</li><li>Ele busca 1 vez por dia (meia-noite), até 10 ofertas.</li><li>Para funcionar: computador ligado, Chrome aberto e o WhatsApp Web conectado (já está).</li><li>Você não precisa ativar nada. Amanhã de manhã, olhe em Ajustes › Ofertas do grupo.</li></ul>
+  </div>
+
+  <h2>Tudo o que você pediu</h2>
+  <div class="card">
+    <div class="st"><i>✅</i><div><b>Influenciadoras novas todo dia</b><small>Aba Parcerias. 8 a 10 por dia.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Quanto oferecer e mensagem editável</b><small>Parcerias › “Quanto oferecer?” e botões ✍️.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Relatório de especialista</b><small>Hoje › 💡 O que está bombando (as 1ªs ideias chegam depois da meia-noite).</small></div></div>
+    <div class="st"><i>✅</i><div><b>Seus salvos do TikTok e Instagram</b><small>Criar › 📌 Seus salvos.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Criar: onde postar, formato, vários produtos, foto sem link</b><small>Aba Criar. Dá 3 conteúdos, dores, ganchos, legendas e os melhores links.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Temas, manual e cronograma escondidos</b><small>Tudo no ⚙️ Ajustes.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Bloco de notas, frases editáveis e links úteis</b><small>Aba Bloco (com as notas boas dos seus prints).</small></div></div>
+    <div class="st"><i>✅</i><div><b>TikTok Shop: mineração, amostras, 10 vídeos, 60x60</b><small>Ajustes › TikTok Shop (para quando chegar aos 2 mil).</small></div></div>
+    <div class="st"><i>✅</i><div><b>Regras da Shopee Vídeo, TikTok e Instagram, níveis e os 2 TikToks</b><small>Ajustes › Regras e níveis.</small></div></div>
+    <div class="st"><i>✅</i><div><b>Plataformas (Shein, Amazon…) e suas tags</b><small>Ajustes › Plataformas.</small></div></div>
+    <div class="st"><i>⏳</i><div><b>A limpa da Shopee Vídeo</b><small>A estratégia está pronta (Regras e níveis). A lista dos seus vídeos só aparece no app da Shopee do celular, então eu não consigo apagar por você.</small></div></div>
+    <div class="st"><i>⏳</i><div><b>Avatar de IA</b><small>As aulas liberam em 11/11. Eu leio e te passo.</small></div></div>
+    <div class="st"><i>🙋</i><div><b>Repaginada do app</b><small>Ajustes › Repaginada: me diga os números que você quer.</small></div></div>
+    <div class="st"><i>🙋</i><div><b>Mercado Livre no robô de ofertas</b><small>Me mande 1 link do ML que a Gigi já converteu (o link, não as configurações).</small></div></div>
+  </div>
+
+  <h2>O que eu mudei de lugar</h2>
+  <div class="card mud">
+    <p class="sub">Nada foi apagado. Só isto mudou:</p>
+    <ul>
+      <li><b>IAs</b> saiu do menu de baixo e foi para ⚙️ Ajustes. No lugar entrou o <b>Bloco</b>.</li>
+      <li>Ícones do topo (cronograma, manual, cores) viraram o ⚙️.</li>
+      <li>Parcerias: “Copiar 1ª mensagem” e “Copiar proposta” viraram ✍️ (abre o texto para você mudar antes de copiar).</li>
+      <li>Criar: agora começa com “vender na Shopee” (antes era TikTok Shop) e a chamada do Instagram usa a palavra do produto (“comente COZINHA”) em vez de “QUERO”.</li>
+    </ul>
+    <p class="sub">Não gostou de alguma? Me fala que eu volto como era.</p>
+  </div>
+</div>
+</body>
+</html>

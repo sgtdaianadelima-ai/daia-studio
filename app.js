@@ -346,6 +346,7 @@ function salvosCard(){
 function renderAjustes(){
   const bt = (attrs, em, t, s) => '<' + (attrs.startsWith("href") ? 'a ' : 'button type="button" ') + 'class="aj-bt" ' + attrs + '><span>' + em + '</span><div><b>' + t + '</b><small>' + s + '</small></div></' + (attrs.startsWith("href") ? 'a' : 'button') + '>';
   $("ajBox").innerHTML =
+    bt('href="como-esta.html"', '🧭', 'Como está tudo', 'os robôs, o que já funciona e o que mudou') +
     bt('data-pagina="tiktokshop"', '🛍️', 'TikTok Shop', 'mineração, amostras, 10 vídeos por produto e 60x60 (para os 2 mil)') +
     bt('data-pagina="regras"', '📏', 'Regras e níveis', 'Shopee Vídeo nível 2, a limpa, diretrizes e os 2 TikToks') +
     bt('data-pagina="plataformas"', '🏪', 'Plataformas e minhas tags', 'Shein, Amazon e as outras: vale a pena? como entrar') +
