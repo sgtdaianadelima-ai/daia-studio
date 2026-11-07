@@ -208,8 +208,9 @@ function renderHoje(){
   $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok · cronograma", posts.length ? "o que gravar hoje (poste também no Reels)" : "sem plano neste dia", hoje ? conta("tiktok") : done + "/" + posts.length, hoje ? okL("tiktok") : posts.length && done === posts.length, postadosCard(/tiktok/i) + videos + extrasNoPlano +
-      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '') + '<div class="actions"><a class="btn" style="text-decoration:none" href="cronograma.html">🗓️ Ver o cronograma completo</a></div>') +
+      (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
     secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +
+    (hoje ? secao("insights", "💡", "O que está bombando", insightsSub(), "", false, insightsCard()) : "") +
     (hoje ? secao("relatorio", "📈", "Relatório · rumo aos 2.000", tts.length ? tts.map(l => l.c + " " + l.n.toLocaleString("pt-BR")).join(" · ") : "seguidores e análise do Claude", "", false, relatorioCard()) +
       secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
       secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, semanaCard()) +
@@ -293,6 +294,72 @@ function relatorioCard(){
     (a ? '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag serie">Análise do Claude</span><span class="why">atualiza todo dia</span></div><p class="how" style="white-space:pre-line">' + esc(a) + '</p></article>' : '') +
     '<div class="actions"><a class="btn" style="text-decoration:none" href="' + DOC_METRICAS + '" target="_blank" rel="noopener">📄 Relatório completo (todo dia)</a></div>';
 }
+// ---------- INSIGHTS (a tarefa do computador escreve na aba "App - Insights") ----------
+function insightsHoje(){
+  const ins = conteudo().insights || [];
+  if (!ins.length) return [];
+  const ult = ins[ins.length - 1].data;
+  return ins.filter(x => x.data === ult);
+}
+function insightsSub(){
+  const b = insightsHoje().find(x => /bomb/i.test(x.tipo));
+  return b ? "🔥 " + b.t : "o Claude analisa seus posts e cria em cima";
+}
+function statusRobo(){
+  const s = conteudo().status;
+  return s ? '<p class="ins-st">👀 O robô olhou suas redes: <b>' + esc(s) + '</b> (olha 4 vezes por dia)</p>' : '';
+}
+function insightsCard(){
+  const ls = insightsHoje();
+  if (!ls.length) return statusRobo() + '<article class="card"><p class="how">O Claude olha seus posts do TikTok e do Instagram, vê o que deu mais certo e cria ideias em cima. As primeiras aparecem aqui amanhã cedo.</p></article>';
+  const de = re => ls.filter(x => re.test(x.tipo));
+  const verLink = x => x.link ? '<a href="' + esc(x.link) + '" target="_blank" rel="noopener">Ver o post</a>' : '';
+  const bomb = de(/bomb/i), pad = de(/padr/i), faca = de(/fa[cç]a/i), ruim = de(/ruim|evit/i);
+  return statusRobo() +
+    (bomb.length ? '<article class="card"><div class="meta"><span class="tag trend">🔥 Seus campeões</span><span class="why">' + esc(ls[0].data) + '</span></div>' +
+      bomb.map(x => '<div class="ref-item"><b>' + esc(x.t) + '</b>' + (x.m ? '<span class="ins-m">' + esc(x.m) + '</span>' : '') + '<p class="how">' + esc(x.txt) + '</p>' + verLink(x) + '</div>').join("") + '</article>' : '') +
+    (pad.length ? '<article class="card"><div class="meta"><span class="tag serie">🧠 Por que deu certo</span></div><ul class="script">' + pad.map(x => '<li><b>' + esc(x.t) + '</b> ' + esc(x.txt) + '</li>').join("") + '</ul></article>' : '') +
+    faca.map(x => '<article class="card" style="border-color:var(--wine)"><div class="meta"><span class="tag casa">✨ Faça em cima disso</span></div><h3 class="title">' + esc(x.t) + '</h3><p class="how" style="white-space:pre-line">' + esc(x.txt) + '</p>' +
+      '<div class="actions"><button class="btn wine" data-emcima="' + esc(x.t + ". " + x.txt) + '">Criar roteiro</button>' + verLink(x) + '</div></article>').join("") +
+    (ruim.length ? '<article class="card"><div class="meta"><span class="tag">🙅 Não repita</span></div><ul class="script">' + ruim.map(x => '<li><b>' + esc(x.t) + '</b> ' + esc(x.txt) + '</li>').join("") + '</ul></article>' : '');
+}
+// Leva um texto para a aba Criar (modo trend) e abre.
+function criarEmCima(texto){
+  const c = CR(); c.modo = "trend"; c.texto = texto; c.atual = null; save(); show("criar");
+  setTimeout(() => { const t = $("cTxt"); if (t) t.focus(); }, 200);
+}
+// ---------- SALVOS (o que ela salva no TikTok e no Instagram; aba "App - Referências") ----------
+function salvosCard(){
+  const fora = state.refFora || {};
+  const rs = (conteudo().refs || []).filter(r => r.link && !fora[r.link]).slice(-20).reverse();
+  if (!rs.length) return '<h2>📌 Seus salvos</h2><article class="card"><p class="how">Tudo o que você salva no TikTok e no Instagram aparece aqui, com a ideia de como fazer do seu jeito. O robô olha todo dia.</p></article>';
+  return '<h2>📌 Seus salvos · ' + rs.length + '</h2><p class="note">O que você salvou no TikTok e no Instagram, com a sua versão.</p><div class="list">' + rs.map(r =>
+    '<article class="card"><div class="meta"><span class="tag trend">' + esc(r.rede || "Salvo") + '</span>' + (r.formato ? '<span class="why">' + esc(r.formato) + '</span>' : '') + '</div>' +
+    '<h3 class="title">' + esc(r.o || "Vídeo salvo") + '</h3>' +
+    (r.jeito ? '<div class="say"><small>Do seu jeito</small>' + esc(r.jeito) + '</div>' : '') +
+    (r.audio ? '<p class="how">🎵 ' + esc(r.audio) + '</p>' : '') +
+    '<div class="actions"><button class="btn wine" data-emcima="' + esc((r.o || "") + ". " + (r.jeito || "") + (r.link ? " " + r.link : "")) + '">Criar em cima</button>' +
+    '<a class="btn" style="text-decoration:none" href="' + esc(r.link) + '" target="_blank" rel="noopener">Ver</a>' +
+    '<button class="btn" data-reffora="' + esc(r.link) + '" aria-label="Tirar da lista">✕</button></div></article>').join("") + '</div>';
+}
+// ---------- AJUSTES ----------
+function renderAjustes(){
+  const bt = (attrs, em, t, s) => '<' + (attrs.startsWith("href") ? 'a ' : 'button type="button" ') + 'class="aj-bt" ' + attrs + '><span>' + em + '</span><div><b>' + t + '</b><small>' + s + '</small></div></' + (attrs.startsWith("href") ? 'a' : 'button') + '>';
+  $("ajBox").innerHTML =
+    bt('data-personalizar', '🎨', 'Cores e tema', 'cor do app, claro ou escuro, letra grande') +
+    bt('href="cronograma.html"', '🗓️', 'Cronograma', 'o que postar em cada dia da semana') +
+    bt('href="manual.html"', '📖', 'Manual', 'como usar cada parte do app') +
+    bt('data-tabir="ideias"', '💭', 'Minhas ideias', 'ideias que você anotou') +
+    bt('data-tabir="produtos"', '📦', 'Meus produtos', 'produtos que chegaram para gravar') +
+    bt('href="' + DOC_METRICAS + '" target="_blank" rel="noopener"', '📄', 'Relatório completo', 'o Claude escreve todo dia') +
+    bt('href="' + PLANILHA + '" target="_blank" rel="noopener"', '📊', 'Planilha do robô', 'onde fica tudo o que o app mostra') +
+    statusRobo();
+}
+document.addEventListener("click", e => {
+  const ir = e.target.closest("[data-tabir]"); if (ir) { e.preventDefault(); show(ir.dataset.tabir); return; }
+  const ec = e.target.closest("[data-emcima]"); if (ec) { e.preventDefault(); criarEmCima(ec.dataset.emcima); return; }
+  const rf = e.target.closest("[data-reffora]"); if (rf) { state.refFora = state.refFora || {}; state.refFora[rf.dataset.reffora] = todayKey; save(); renderCriar(); toast("Tirei da lista."); }
+});
 function postadosCard(rede){
   const ps = postadosDe(cur).filter(p => rede.test(p.rede));
   if (!ps.length) return "";
@@ -1419,7 +1486,7 @@ function renderCriar(){
   CC = [];
   const c = CR(), h = c.atual != null ? c.hist[c.atual] : null;
   $("criarBox").innerHTML = '<div class="form">' + criarForm() + '</div><div id="cStatus"></div>' + resultadoCriar(h) +
-    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + (x.modo === "trend" ? "🔥 Trend" : "🛍️ " + esc(x.loja)) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '');
+    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + (x.modo === "trend" ? "🔥 Trend" : "🛍️ " + esc(x.loja)) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '') + salvosCard();
   if (criarFoto) { const im = $("cPrev"); im.src = URL.createObjectURL(criarFoto); im.hidden = false; $("cFotoTxt").textContent = "Trocar a foto"; }
 }
 function criarStatus(t, html){ const el = $("cStatus"); if (el) el.innerHTML = t ? '<article class="card"><p class="how">' + (html ? t : esc(t)) + '</p></article>' : ""; }
@@ -1545,9 +1612,9 @@ $("cursoBox").addEventListener("input", e => { if (e.target.id !== "cBusca") ret
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   if (!$("tab-" + t)) t = "hoje";
-  ["hoje","criar","parcerias","curso","prontos","produtos","ideias","ia"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","criar","parcerias","curso","prontos","produtos","ideias","ia","ajustes"].forEach(x => $("tab-" + x).hidden = x !== t);
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
-  if (t === "ia") renderIA(); if (t === "criar") renderCriar(); if (t === "parcerias") renderParcerias(); if (t === "curso") renderCurso();
+  if (t === "ajustes") renderAjustes(); if (t === "ia") renderIA(); if (t === "criar") renderCriar(); if (t === "parcerias") renderParcerias(); if (t === "curso") renderCurso();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
   try { sessionStorage.setItem("daia-tab", t); } catch(_) {}
