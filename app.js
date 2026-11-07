@@ -158,7 +158,7 @@ function renderHoje(){
   const posts = PLAN[cur] || [];
   const dd = fmtDay(cur, {day:"numeric", month:"short"});
   $("dayTitle").innerHTML = (cur === todayKey ? "Hoje" : esc(fmtDay(cur, {weekday:"long"}))) + ", <em>" + esc(dd) + "</em>";
-  $("daySub").innerHTML = (cur === todayKey ? "<span>" + esc(fmtDay(cur, {weekday:"long"})) + "</span>" : "") + (posts.length ? "<span>" + posts.length + " posts no plano</span>" : "");
+  $("daySub").innerHTML = (cur === todayKey ? "<span>" + esc(fmtDay(cur, {weekday:"long"})) + "</span>" : "") + (cur !== todayKey && posts.length ? "<span>" + posts.length + " posts no plano</span>" : "");
   const done = posts.filter((p, i) => state.done[cur+"-"+i]).length;
   $("barFill").style.width = (posts.length ? done/posts.length*100 : 0) + "%";
   $("progText").textContent = done === posts.length && posts.length ? "Dia completo!" : done + " de " + posts.length + " postados";
@@ -205,10 +205,10 @@ function renderHoje(){
   const okL = id => { const l = mL(id); return !!(l && l.feito >= l.n); };
   const tts = contasSeg().filter(l => /tiktok/i.test(l.rede));
   $("cards").innerHTML = (hoje ? (window.ferrPainel ? ferrPainel() : "") + metaCard(meta) + (window.facaAgoraCard ? facaAgoraCard(posts, meta) : pendentesCard()) : "") +
-    (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
+    (hoje && window.assuntoSecao ? assuntoSecao() + trendExtra(posts) : ((hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok · cronograma", posts.length ? "o que gravar hoje (poste também no Reels)" : "sem plano neste dia", hoje ? conta("tiktok") : done + "/" + posts.length, hoje ? okL("tiktok") : posts.length && done === posts.length, postadosCard(/tiktok/i) + videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
-    secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +
+    secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +"")) +
     (hoje ? secao("insights", "💡", "O que está bombando", insightsSub(), "", false, insightsCard()) : "") +
     "";
 }
