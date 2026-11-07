@@ -208,7 +208,7 @@ function criar_(q) {
   const formato = String(q.formato || 'Reels / vídeo');
   const vender = q.objetivo === 'vender', loja = /tiktok/i.test(q.loja) ? 'TikTok Shop' : 'Shopee';
   const REGRAS = {
-    'Instagram': 'Instagram: chamada para comentar uma palavra (ex.: QUERO) e receber o link no direct.',
+    'Instagram': 'Instagram: chamada para comentar a PALAVRA do produto (ex.: COZINHA, ÁRVORE; nunca QUERO) e receber o link no direct; até 5 hashtags e palavras-chave na legenda.',
     'TikTok @daledaia': 'TikTok @daledaia: conta nova, o foco agora é VIRALIZAR e ganhar seguidores (meta 2 mil; ela faz a trend Garotas Apoiam Garotas). Conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, 7 a 25 s, áudio em alta, perguntas que geram comentário. Sem link, sem preço, sem citar Shopee ou outras redes.',
     'TikTok @daiana.lima95': 'TikTok @daiana.lima95: perfil pessoal com o rosto dela, rotina e bastidores da casa, autoral; não repetir o Reels igual (mudar gancho e começo).',
     'Shopee Vídeo': 'Shopee Vídeo: autoral, vertical, mais de 10 s, produto igual ao do link (cor e modelo), mostrar todas as cores, chamada "toca na sacolinha", sem citar outras redes, sem marca famosa, sem criança, faca, bebida ou animal na cena.'
@@ -236,7 +236,7 @@ function criar_(q) {
       '"dores":["12 dores reais, do jeito que a cliente fala"],"ganchos":["10 ganchos de até 3 segundos, cada um nascendo de uma dor"],' +
       '"conteudos":[' + comoConteudo + '],' + legendas + ',"dica":"1 dica prática para esse objetivo"}. ' +
       'Dê 3 conteúdos diferentes entre si (ex.: POV, storytelling, antes e depois, resposta a comentário). Chamada: ' +
-      (vender && loja === 'TikTok Shop' ? 'carrinho laranja' : redes.indexOf('Shopee Vídeo') >= 0 ? 'tocar na sacolinha' : vender ? 'comentar QUERO e receber o link' : 'comentar, salvar e seguir') + '.';
+      (vender && loja === 'TikTok Shop' ? 'carrinho laranja' : redes.indexOf('Shopee Vídeo') >= 0 ? 'tocar na sacolinha' : vender ? 'comentar a palavra do produto (ex.: COZINHA) e receber o link' : 'comentar, salvar e seguir') + '.';
   }
   const partes = fotos.map(f => ({inline_data: {mime_type: 'image/jpeg', data: f}}));
   const txt = gemini_(prompt, false, partes, {temperature: 0.9, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
