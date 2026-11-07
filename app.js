@@ -3,7 +3,7 @@ let DAYS = Object.keys(PLAN).sort();
 let PR = PRONTOS; // carrosséis: os do arquivo, ou os da planilha quando ela responde
 const CTA = {
   serie: "Final: \"Que nota vocês dão pra minha árvore hoje, de 0 a 10? Segue pra ver o próximo episódio.\"",
-  casa: "Final: \"Comenta QUERO que eu te mando o link.\"",
+  casa: "Final: \"Comenta a palavra do produto (ex.: BANHEIRO) que eu te mando o link.\"",
   trend: "Final: \"Segue pra mais.\""
 };
 const LABEL = {serie:"Série da árvore", casa:"Casa Shopee", trend:"Trend / vida"};
@@ -158,8 +158,7 @@ function renderHoje(){
   const posts = PLAN[cur] || [];
   const dd = fmtDay(cur, {day:"numeric", month:"short"});
   $("dayTitle").innerHTML = (cur === todayKey ? "Hoje" : esc(fmtDay(cur, {weekday:"long"}))) + ", <em>" + esc(dd) + "</em>";
-  const xm = daysToXmas(cur);
-  $("daySub").innerHTML = (xm > 0 ? "<span>Faltam <b>" + xm + " dias</b> para o Natal</span>" : "") + (posts.length ? "<span>" + posts.length + " posts no plano</span>" : "");
+  $("daySub").innerHTML = (cur === todayKey ? "<span>" + esc(fmtDay(cur, {weekday:"long"})) + "</span>" : "") + (posts.length ? "<span>" + posts.length + " posts no plano</span>" : "");
   const done = posts.filter((p, i) => state.done[cur+"-"+i]).length;
   $("barFill").style.width = (posts.length ? done/posts.length*100 : 0) + "%";
   $("progText").textContent = done === posts.length && posts.length ? "Dia completo!" : done + " de " + posts.length + " postados";
@@ -205,16 +204,13 @@ function renderHoje(){
   const conta = (id, alt, n) => { const l = mL(id); return l ? l.feito + "/" + l.n : alt + "/" + n; };
   const okL = id => { const l = mL(id); return !!(l && l.feito >= l.n); };
   const tts = contasSeg().filter(l => /tiktok/i.test(l.rede));
-  $("cards").innerHTML = (hoje ? metaCard(meta) + recadoCard() + pendentesCard() : "") +
+  $("cards").innerHTML = (hoje ? (window.ferrPainel ? ferrPainel() : "") + metaCard(meta) + (window.facaAgoraCard ? facaAgoraCard(posts, meta) : pendentesCard()) : "") +
     (hoje ? secao("shopee", "🛍️", "Shopee Vídeo", "3 vídeos de IA" + (nPacks ? " + " + nPacks + " dos packs" : ""), conta("shopee", iaFeitos, 3), okL("shopee"), iaCards() + packsCard()) : "") +
     secao("tiktok", "🎵", "TikTok · cronograma", posts.length ? "o que gravar hoje (poste também no Reels)" : "sem plano neste dia", hoje ? conta("tiktok") : done + "/" + posts.length, hoje ? okL("tiktok") : posts.length && done === posts.length, postadosCard(/tiktok/i) + videos + extrasNoPlano +
       (posts.length ? '<p class="how nota">📸 Postou no TikTok? Poste o mesmo vídeo no Reels do Instagram.</p>' : '')) +
     secao("insta", "📸", "Instagram", "carrossel pronto + Reels", hoje ? conta("insta") : (prDone ? "1/1" : "0/1"), hoje ? okL("insta") : !!prDone, postadosCard(/insta/i) + prontoCard) +
     (hoje ? secao("insights", "💡", "O que está bombando", insightsSub(), "", false, insightsCard()) : "") +
-    (hoje ? secao("relatorio", "📈", "Relatório · rumo aos 2.000", tts.length ? tts.map(l => l.c + " " + l.n.toLocaleString("pt-BR")).join(" · ") : "seguidores e análise do Claude", "", false, relatorioCard()) +
-      secao("extra", "✨", "Postei algo fora do plano", "trend, achado ou ideia sua", nExtras ? nExtras + " hoje" : "", false, extrasCard()) +
-      secao("semana", "📊", "Minha semana", resumoSem.total + " posts em 7 dias", "", false, semanaCard()) +
-      secao("ferramentas", "🧰", "Ferramentas", "converter link, respostas, lembretes", "", false, conversorCard() + respostasCard() + lembretesCard() + editarCard()) : "");
+    "";
 }
 // Tópico da tela Hoje: toca no título e abre; toca de novo e fecha. Lembra o que estava aberto.
 // ---------- META DO DIA (quanto falta postar hoje) ----------
@@ -1689,7 +1685,7 @@ $("cursoBox").addEventListener("input", e => { if (e.target.id !== "cBusca") ret
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   if (!$("tab-" + t)) t = "hoje";
-  ["hoje","criar","bloco","pagina","parcerias","curso","prontos","produtos","ideias","ia","ajustes"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","criar","crescer","bloco","pagina","parcerias","curso","prontos","produtos","ideias","ia","ajustes"].forEach(x => $("tab-" + x).hidden = x !== t);
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   if (t === "bloco" && window.renderBloco) renderBloco(); if (t === "pagina" && window.renderPagina) renderPagina();
   if (t === "ajustes") renderAjustes(); if (t === "ia") renderIA(); if (t === "criar") renderCriar(); if (t === "parcerias") renderParcerias(); if (t === "curso") renderCurso();
