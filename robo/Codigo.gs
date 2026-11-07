@@ -187,7 +187,7 @@ function resumirCurso() {
       'Se a aula mandar pôr preço ou usar Pinterest, diga no fazer que ela não faz isso (regra dela). Português simples. Não invente nada que não esteja na aula.\n\n' + texto;
     const txt = gemini_(prompt, false, null, {temperature: 0.2, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
     const j = jsonDe_(txt);
-    if (!j || !Array.isArray(j.aulas)) { if (!txt) return 'gemini sem resposta'; lote.forEach(x => { a.getRange(x.i + 2, 5).setValue('erro'); dados[x.i][4] = 'erro'; }); continue; }
+    if (!j || !Array.isArray(j.aulas)) { if (!txt) { ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'resumirCurso').forEach(t => ScriptApp.deleteTrigger(t)); return 'gemini sem resposta: parei para não gastar a cota do app'; } lote.forEach(x => { a.getRange(x.i + 2, 5).setValue('erro'); dados[x.i][4] = 'erro'; }); continue; }
     const porNome = {}; j.aulas.forEach(r => { porNome[String(r.aula || '').trim().toLowerCase()] = r; });
     const linhas = lote.map((x, k) => { const r = porNome[String(x.l[2]).trim().toLowerCase()] || j.aulas[k] || {}; return [mod, x.l[2], r.diz || '', r.fazer || '', r.app || '', /app/i.test(r.st || '') ? 'app' : 'manual', r.prioridade || 'media']; });
     saida.getRange(saida.getLastRow() + 1, 1, linhas.length, 7).setValues(linhas);
