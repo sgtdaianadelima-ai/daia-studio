@@ -298,7 +298,7 @@ function doGet(e) {
     if (q.acao === 'notafotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {notas: notasFotos_(String(q.urls || '').split(' ').filter(Boolean).slice(0, 8))} : {erro: 'chave errada'});
     if (q.acao === 'refazerfotos') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? refazerFotosAuto_() : {erro: 'chave errada'});
     if (q.link && q.acao === 'pack') return json(PACK_CHAVE && q.chave === PACK_CHAVE ? {ok: guardarPack_(q)} : {erro: 'chave errada'});
-    if (q.link) return json({link: meuLink_(q.link)});
+    if (q.link) return json(/shopee|shope.ee|shp.ee/.test(q.link) ? {link: meuLink_(q.link), loja: 'Shopee'} : converterLink_(q.link));
     if (q.pergunta) return json({resposta: perguntaDalinha_(String(q.pergunta).slice(0, 600), String(q.ctx || '').slice(0, 900))});
   } catch (err) { return json({erro: String(err.message || err)}); }
   const aba = SpreadsheetApp.getActive().getSheetByName(ABA);
@@ -388,6 +388,39 @@ function meuLink_(url) {
   return d.generateShortLink.shortLink;
 }
 
+// Converte link de qualquer loja para o link da Daia (Shopee pela API; ML, Magalu e Natura pela tag dela).
+// ML: método da tag (matt_word + matt_tool), o mesmo que a Gigi usa. Nunca usa cookie de login.
+const ML_TAG = 'gustavomachadodeassis', ML_TOOL = '35298119';
+function seguir_(u, n) {
+  for (let i = 0; i < (n || 6); i++) {
+    const r = UrlFetchApp.fetch(u, {followRedirects: false, muteHttpExceptions: true, headers: {'User-Agent': 'Mozilla/5.0'}});
+    const h = r.getHeaders(), loc = h.Location || h.location;
+    if (!loc) break;
+    u = /^https?:/.test(loc) ? loc : u.replace(/^(https?:\/\/[^\/]+).*/, '$1') + loc;
+  }
+  return u;
+}
+function converterLink_(url) {
+  let u = (String(url || '').match(/https?:\/\/\S+/) || [])[0];
+  if (!u) throw new Error('Isso não parece um link.');
+  if (/shopee|shope\.ee|shp\.ee/.test(u)) return {loja: 'Shopee', link: meuLink_(u)};
+  if (/meli\.la|mercadolivre|mercadolibre|mlb\.|mercadoli/.test(u)) {
+    if (/meli\.la/.test(u)) u = seguir_(u);
+    const base = u.split('?')[0].split('#')[0];
+    if (/\/social\//.test(base)) return {loja: 'Mercado Livre', link: '', erro: 'link de vitrine, não de produto'};
+    return {loja: 'Mercado Livre', link: base + '?matt_word=' + ML_TAG + '&matt_tool=' + ML_TOOL};
+  }
+  if (/magazineluiza|magazinevoce|magalu|mglu\.it/.test(u)) {
+    u = seguir_(u);
+    const m = u.split('?')[0].match(/\/([^\/]+\/p\/[^?#]+)/);
+    return {loja: 'Magalu', link: m ? 'https://www.magazinevoce.com.br/magazinedaledaia/' + m[1].replace(/\/?$/, '/') : ''};
+  }
+  if (/natura\.com|natura\.net/.test(u)) {
+    u = seguir_(u).split('#')[0].replace(/([?&])consultoria=[^&]*&?/, '$1').replace(/[?&]$/, '');
+    return {loja: 'Natura', link: u + (u.indexOf('?') >= 0 ? '&' : '?') + 'consultoria=daledaia'};
+  }
+  return {loja: '', link: '', erro: 'loja que eu ainda não converto'};
+}
 function chamar_(query, senha) {
   const corpo = JSON.stringify({query: query});
   const ts = Math.floor(Date.now() / 1000);
