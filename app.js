@@ -348,6 +348,7 @@ function renderAjustes(){
   $("ajBox").innerHTML =
     bt('data-pagina="tiktokshop"', '🛍️', 'TikTok Shop', 'mineração, amostras, 10 vídeos por produto e 60x60 (para os 2 mil)') +
     bt('data-pagina="regras"', '📏', 'Regras e níveis', 'Shopee Vídeo nível 2, a limpa, diretrizes e os 2 TikToks') +
+    bt('data-pagina="plataformas"', '🏪', 'Plataformas e minhas tags', 'Shein, Amazon e as outras: vale a pena? como entrar') +
     bt('data-pagina="ofertas"', '🛒', 'Ofertas do grupo', 'ofertas com o seu link para mandar no grupo VIP') +
     bt('data-tabir="ia"', '🤖', 'IAs', 'atalhos e pedidos prontos para ChatGPT, Gemini e Claude') +
     bt('href="redesign.html"', '🪄', 'Repaginada do app', 'veja como ficariam as 4 ideias') +
@@ -1458,7 +1459,7 @@ const CR = () => {
 const blobB64 = b => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => res(""); r.readAsDataURL(b); });
 // Regras que a Daia segue (curso + diretrizes). Vão no pedido e aparecem no fim do resultado.
 const REGRAS_REDE = {
-  "Instagram": "Instagram: legenda curta, chamada para comentar uma palavra (ex.: QUERO) e receber no direct; 2 h entre posts; picos 8h, 12h e 18h.",
+  "Instagram": "Instagram: legenda curta, chamada para comentar a PALAVRA do produto (ex.: COZINHA, ÁRVORE; não use QUERO) e receber no direct; até 5 hashtags + palavras-chave; 2 h entre posts; picos 8h, 12h e 18h.",
   "TikTok @daledaia": "TikTok @daledaia (conta nova, foco agora é VIRALIZAR e chegar a 2 mil seguidores com a trend Garotas Apoiam Garotas): conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, vídeos de 7 a 25 s, áudio em alta, perguntas que geram comentário. Nada de link, preço ou falar de Shopee.",
   "TikTok @daiana.lima95": "TikTok @daiana.lima95 (perfil pessoal, rosto dela): vídeo autoral com ela aparecendo, bastidores e rotina da casa, áudio em alta. Não repostar o Reels igualzinho: mudar o gancho e o começo.",
   "Shopee Vídeo": "Shopee Vídeo: só vídeo autoral (pack só editado), vertical 9:16, mais de 10 segundos (conta para o nível), o produto do vídeo IGUAL ao do link (mesma cor e modelo), mostrar todas as cores, chamada 'toca na sacolinha', sem falar de outras redes, sem marca famosa, sem criança, faca, bebida ou animal na cena, marcar se é feito com IA."
@@ -1472,7 +1473,7 @@ function pedidoCriar(c){
   const varios = c.modo === "varios";
   return base + "\n\n" + (varios ? "Quero UM conteúdo só mostrando vários produtos juntos: " : "Produto: ") + (c.texto || "o da foto") + "." +
     "\n\nMe dê: 1) 12 dores reais que " + (varios ? "esses produtos resolvem" : "esse produto resolve") + "; 2) 10 ganchos de até 3 segundos; 3) 3 conteúdos completos no formato " + c.formato +
-    " (gancho, desenvolvimento e chamada" + (c.objetivo === "vender" && /tiktok/i.test(c.loja) ? " para o carrinho laranja" : c.redes.indexOf("Shopee Vídeo") >= 0 ? " para tocar na sacolinha" : " para comentar QUERO e receber o link") + "); 4) legenda com hashtags para cada rede; 5) o nome de busca de cada produto na Shopee. Português simples.";
+    " (gancho, desenvolvimento e chamada" + (c.objetivo === "vender" && /tiktok/i.test(c.loja) ? " para o carrinho laranja" : c.redes.indexOf("Shopee Vídeo") >= 0 ? " para tocar na sacolinha" : " para comentar a palavra do produto (ex.: COZINHA) e receber o link") + "); 4) legenda com hashtags para cada rede; 5) o nome de busca de cada produto na Shopee. Português simples.";
 }
 function criarForm(){
   const c = CR();

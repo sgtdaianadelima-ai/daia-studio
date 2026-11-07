@@ -228,7 +228,7 @@ let OFS = [];
 function paginaOfertas(){
   OFS = [];
   const os = (conteudo().ofertas || []).slice().reverse();
-  const topo = '<article class="card"><p class="how">O robô do computador lê as ofertas do grupo <b>Dicas da Kami</b> (só lê), troca pelo <b>seu link</b> e coloca aqui. Você confere e toca em <b>Mandar no grupo</b>: o WhatsApp abre com o texto pronto.</p>' +
+  const topo = '<article class="card"><p class="how">O robô do computador lê as ofertas do grupo <b>Promoções do Dia #17</b> (só lê), troca pelo <b>seu link</b> e coloca aqui. Você confere e toca em <b>Mandar no grupo</b>: o WhatsApp abre com o texto pronto.</p>' +
     '<p class="meta-falta">Shopee, Magalu e Natura já trocam. Mercado Livre: me mande 1 link do ML já convertido com a sua tag para eu ver o formato.</p></article>';
   if (!os.length) return topo + '<p class="note">Ainda sem ofertas. Elas aparecem quando o robô do computador rodar (PC ligado e Chrome aberto).</p>';
   return topo + '<div class="list">' + os.map(o => {
