@@ -39,6 +39,8 @@ function oportunidade_(p) {
 const resumo_ = p => ({n: nomeCurto_(p.productName), preco: 'R$ ' + Number(p.priceMin).toFixed(2).replace('.', ','), com: (Number(p.commissionRate) * 100).toFixed(1).replace('.', ',') + '%', vendas: String(p.sales), nota: p.ratingStar ? Number(p.ratingStar).toFixed(1) : '', link: p.offerLink, foto: p.imageUrl, id: String(p.itemId)});
 
 function videoIaDoDia() {
+  // Desligado em 07/11/2026: a Daia não faz mais vídeo de IA na Shopee Vídeo (posta os mesmos vídeos do Instagram e TikTok).
+  if (PropertiesService.getScriptProperties().getProperty('VIDEO_IA') !== 'sim') return;
   const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
   if (!senha) throw new Error('Falta a Senha da API: Configurações do projeto > Propriedades do script > SHOPEE_SENHA');
   const aba = SpreadsheetApp.getActive().getSheetByName(ABA);
@@ -95,6 +97,7 @@ function doPost(e) {
     if (q.acao === 'gravaraulas') return json(gravarAulas_(q));
     if (q.acao === 'guardartextos') return json(guardarTextos_(q));
     if (q.acao === 'notas') return json(guardarNotas_(q));
+    if (q.acao === 'assunto') return json(assunto_(q));
     return json({erro: 'ação desconhecida'});
   } catch (err) { return json({erro: String(err.message || err)}); }
 }
@@ -269,6 +272,24 @@ function notasSalvas_(ss) {
   const l = a.getRange(a.getLastRow(), 1, 1, a.getLastColumn()).getValues()[0];
   try { return JSON.parse(l.slice(1).join('')); } catch (e) { return null; }
 }
+// Assunto da vez (pedido da Daia em 07/11/2026): 1 assunto = 3 vídeos diferentes, o mesmo vídeo no Reels, TikTok e Shopee Vídeo.
+// O app manda o assunto (sugerido pelo robô da noite ou escrito por ela) e o Gemini devolve os 3 vídeos completos.
+function assunto_(q) {
+  const tema = String(q.assunto || '').slice(0, 600);
+  if (!tema) return {erro: 'sem assunto'};
+  const a = SpreadsheetApp.getActive().getSheetByName('App - Curso');
+  const curso = a && a.getLastRow() > 1 ? a.getRange(2, 1, a.getLastRow() - 1, 1).getDisplayValues().map(l => l[0]).filter(Boolean).slice(0, 20).join(' | ') : '';
+  const prompt = 'Você é estrategista de conteúdo da Daia (marca Dale Daia), afiliada de casa e decoração. Tom de amiga, estética minimalista e aconchegante. NUNCA cite preço. Português do Brasil simples, frases curtas. ' +
+    (curso ? 'Dicas do curso que ela segue: ' + curso + '. ' : '') +
+    'Ela grava 1 vídeo e posta o MESMO vídeo no Reels do Instagram (@daledaia), no TikTok (@daiana.lima95) e na Shopee Vídeo (com o produto marcado; precisa ter mais de 10 segundos, produto igual ao do link, sem citar outras redes). ' +
+    'Assunto: ' + tema + '. ' + (q.extra ? 'Observação dela: ' + String(q.extra).slice(0, 300) + '. ' : '') +
+    'Crie 3 vídeos DIFERENTES sobre esse mesmo assunto, cada um num formato (ex.: POV, só as mãos mostrando, antes e depois, contando a história, erro comum, 3 motivos), para que pelo menos um tenha chance de viralizar. ' +
+    'Responda SÓ com JSON: {"assunto":"nome curto do assunto","videos":[{"formato":"POV","titulo":"...","gancho":"texto/fala dos 3 primeiros segundos","roteiro":["0 a 3 s — ...","3 a 8 s — ..."],"narracao":"texto corrido para ela narrar, 15 a 25 segundos","texto_tela":"frase curta para escrever no vídeo","legenda":"legenda curta com chamada (Instagram: comente a PALAVRA do produto, nunca QUERO)","hashtags":"#... (até 5)","audio":"tipo de som em alta"}]}. Exatamente 3 vídeos.';
+  const txt = gemini_(prompt, false, null, {temperature: 0.9, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
+  const j = jsonDe_(txt);
+  if (!j || !Array.isArray(j.videos)) return {erro: txt ? 'resposta estranha' : 'o Gemini não respondeu'};
+  return {r: j};
+}
 function legendar_(q) {
   const audio = String(q.audio || '');
   if (!audio) return {erro: 'sem áudio'};
@@ -352,6 +373,8 @@ function conteudo_(hoje) {
     status: (ler('App - Status')[0] || [])[0] || '',
     // bloco de notas do app (última versão salva)
     notas: notasSalvas_(ss),
+    // assunto da vez sugerido pelo robô da noite: Data | Assunto | Por quê | Vídeos (JSON) | Origem
+    assunto: (ler('App - Assunto').slice(-1).map(l => ({data: l[0], t: l[1], porque: l[2], videos: (function(s){ try { return JSON.parse(s); } catch (e) { return null; } })(l[3]), origem: l[4]}))[0]) || null,
     // ofertas para o grupo VIP: Data | Origem | Produto | Link original | Meu link | Loja | Texto | Foto
     ofertas: ler('App - Ofertas').slice(-40).map(l => ({data: l[0], origem: l[1], n: l[2], orig: l[3], link: l[4], loja: l[5], txt: l[6], foto: l[7]})),
     prontos: autos.concat(outros),
