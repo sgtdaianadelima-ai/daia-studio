@@ -346,6 +346,11 @@ function salvosCard(){
 function renderAjustes(){
   const bt = (attrs, em, t, s) => '<' + (attrs.startsWith("href") ? 'a ' : 'button type="button" ') + 'class="aj-bt" ' + attrs + '><span>' + em + '</span><div><b>' + t + '</b><small>' + s + '</small></div></' + (attrs.startsWith("href") ? 'a' : 'button') + '>';
   $("ajBox").innerHTML =
+    bt('data-pagina="tiktokshop"', '🛍️', 'TikTok Shop', 'mineração, amostras, 10 vídeos por produto e 60x60 (para os 2 mil)') +
+    bt('data-pagina="regras"', '📏', 'Regras e níveis', 'Shopee Vídeo nível 2, a limpa, diretrizes e os 2 TikToks') +
+    bt('data-pagina="ofertas"', '🛒', 'Ofertas do grupo', 'ofertas com o seu link para mandar no grupo VIP') +
+    bt('data-tabir="ia"', '🤖', 'IAs', 'atalhos e pedidos prontos para ChatGPT, Gemini e Claude') +
+    bt('href="redesign.html"', '🪄', 'Repaginada do app', 'veja como ficariam as 4 ideias') +
     bt('data-personalizar', '🎨', 'Cores e tema', 'cor do app, claro ou escuro, letra grande') +
     bt('href="cronograma.html"', '🗓️', 'Cronograma', 'o que postar em cada dia da semana') +
     bt('href="manual.html"', '📖', 'Manual', 'como usar cada parte do app') +
@@ -357,6 +362,7 @@ function renderAjustes(){
 }
 document.addEventListener("click", e => {
   const ir = e.target.closest("[data-tabir]"); if (ir) { e.preventDefault(); show(ir.dataset.tabir); return; }
+  const pg = e.target.closest("[data-pagina]"); if (pg && window.abrirPagina) { e.preventDefault(); abrirPagina(pg.dataset.pagina); return; }
   const ec = e.target.closest("[data-emcima]"); if (ec) { e.preventDefault(); criarEmCima(ec.dataset.emcima); return; }
   const rf = e.target.closest("[data-reffora]"); if (rf) { state.refFora = state.refFora || {}; state.refFora[rf.dataset.reffora] = todayKey; save(); renderCriar(); toast("Tirei da lista."); }
 });
@@ -1433,97 +1439,166 @@ $("iaBox").addEventListener("click", async e => {
   if (a === "gemini") { toast("Pedido copiado. No Gemini, toque e segure na caixa de texto e cole.", 5000); abrirLink("https://gemini.google.com/app"); }
 });
 
-// ---------- CRIAR: produto (dores e ganchos) ou trend (minha versão) ----------
-// O robô do Google pede ao Gemini; se ele não responder, o mesmo pedido vai para o Claude.
-let criarFoto = null, criarBusy = false, CC = [];
-const CR = () => (state.criar = state.criar || {modo: "produto", loja: "TikTok Shop", texto: "", hist: []});
+// ---------- CRIAR: produto, vários produtos num vídeo só, ou trend ----------
+// Ela escolhe onde vai postar, o formato e o objetivo. O robô do Google pede ao Gemini e
+// procura os melhores links na Shopee. Se não responder, o mesmo pedido vai para o Claude.
+let criarFotos = [], criarBusy = false, CC = [];
+const C_REDES = ["Instagram", "TikTok @daledaia", "TikTok @daiana.lima95", "Shopee Vídeo"];
+const C_FORMATOS = ["Reels / vídeo", "Carrossel", "Stories"];
+const CR = () => {
+  const c = state.criar = state.criar || {};
+  if (!c.modo) c.modo = "produto";
+  if (!c.hist) c.hist = [];
+  if (!c.redes || !c.redes.length) c.redes = ["TikTok @daledaia"];
+  if (!c.formato) c.formato = "Reels / vídeo";
+  if (!c.objetivo) c.objetivo = "viralizar";
+  if (!c.loja || c.loja === "TikTok Shop" && !c.lojaEscolhida) c.loja = "Shopee";
+  return c;
+};
 const blobB64 = b => new Promise(res => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1] || ""); r.onerror = () => res(""); r.readAsDataURL(b); });
+// Regras que a Daia segue (curso + diretrizes). Vão no pedido e aparecem no fim do resultado.
+const REGRAS_REDE = {
+  "Instagram": "Instagram: legenda curta, chamada para comentar uma palavra (ex.: QUERO) e receber no direct; 2 h entre posts; picos 8h, 12h e 18h.",
+  "TikTok @daledaia": "TikTok @daledaia (conta nova, foco agora é VIRALIZAR e chegar a 2 mil seguidores com a trend Garotas Apoiam Garotas): conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, vídeos de 7 a 25 s, áudio em alta, perguntas que geram comentário. Nada de link, preço ou falar de Shopee.",
+  "TikTok @daiana.lima95": "TikTok @daiana.lima95 (perfil pessoal, rosto dela): vídeo autoral com ela aparecendo, bastidores e rotina da casa, áudio em alta. Não repostar o Reels igualzinho: mudar o gancho e o começo.",
+  "Shopee Vídeo": "Shopee Vídeo: só vídeo autoral (pack só editado), vertical 9:16, mais de 10 segundos (conta para o nível), o produto do vídeo IGUAL ao do link (mesma cor e modelo), mostrar todas as cores, chamada 'toca na sacolinha', sem falar de outras redes, sem marca famosa, sem criança, faca, bebida ou animal na cena, marcar se é feito com IA."
+};
 function pedidoCriar(c){
   const curso = (conteudo().curso || []).slice(0, 12).join(" | ");
-  const base = "Sou a Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização. Gravo vídeos curtos falando para a câmera, tom de amiga, estética minimalista. Nunca falo preço no vídeo." + (curso ? " Dicas do curso de TikTok Shop que eu sigo: " + curso + "." : "");
+  const base = "Sou a Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização. Tom de amiga, estética minimalista. Nunca falo preço." + (curso ? " Dicas do curso que eu sigo: " + curso + "." : "") +
+    "\nVou postar em: " + c.redes.join(", ") + ". Formato: " + c.formato + ". Objetivo: " + (c.objetivo === "vender" ? "vender (" + c.loja + ")" : "viralizar e ganhar seguidores") + ".\nRegras: " + c.redes.map(r => REGRAS_REDE[r]).join(" ");
   if (c.modo === "trend") return base + "\n\nVi esta trend e quero fazer a minha versão: " + c.texto +
-    "\n\nMe dê: 1) em 1 frase, o que é a trend e por que ela viraliza; 2) 3 versões minhas, no nicho casa (cada uma com título, gancho dos 3 primeiros segundos e roteiro curto por segundos); 3) legenda e 5 hashtags; 4) uma dica para ela dar mais seguidores. Português simples.";
-  return base + "\n\nProduto para vender no " + c.loja + ": " + (c.texto || "o da foto") + "." +
-    "\n\nMe dê: 1) 12 dores reais que esse produto resolve (frases curtas, do jeito que a cliente fala); 2) 10 ganchos de até 3 segundos, cada um nascendo de uma dor, que façam parar de rolar a tela; 3) 3 roteiros de 15 a 25 segundos (gancho, mostrar o produto resolvendo, chamada" + (/tiktok/i.test(c.loja) ? " para o carrinho laranja" : " para comentar QUERO e receber o link") + "); 4) legenda e 5 hashtags. Português simples.";
+    "\n\nMe dê: 1) em 1 frase, o que é a trend e por que ela viraliza; 2) 3 versões minhas no nicho casa, no formato " + c.formato + " (título, gancho dos 3 primeiros segundos e roteiro por segundos ou slides); 3) legenda e hashtags para cada rede; 4) uma dica para dar mais seguidores. Português simples.";
+  const varios = c.modo === "varios";
+  return base + "\n\n" + (varios ? "Quero UM conteúdo só mostrando vários produtos juntos: " : "Produto: ") + (c.texto || "o da foto") + "." +
+    "\n\nMe dê: 1) 12 dores reais que " + (varios ? "esses produtos resolvem" : "esse produto resolve") + "; 2) 10 ganchos de até 3 segundos; 3) 3 conteúdos completos no formato " + c.formato +
+    " (gancho, desenvolvimento e chamada" + (c.objetivo === "vender" && /tiktok/i.test(c.loja) ? " para o carrinho laranja" : c.redes.indexOf("Shopee Vídeo") >= 0 ? " para tocar na sacolinha" : " para comentar QUERO e receber o link") + "); 4) legenda com hashtags para cada rede; 5) o nome de busca de cada produto na Shopee. Português simples.";
 }
 function criarForm(){
   const c = CR();
   const chip = (attr, v, on, txt) => '<button type="button" class="chip" ' + attr + '="' + esc(v) + '" aria-pressed="' + !!on + '">' + (txt || esc(v)) + '</button>';
-  const prod = c.modo !== "trend";
-  return '<div class="chips modo">' + chip("data-cmodo", "produto", prod, "🛍️ Produto") + chip("data-cmodo", "trend", !prod, "🔥 Trend") + '</div>' +
-    (prod ? '<div class="field"><span class="lab">Vai vender onde?</span><div class="chips">' + ["TikTok Shop", "Shopee"].map(v => chip("data-cloja", v, c.loja === v)).join("") + '</div></div>' : '') +
-    '<label class="photo" for="cFoto"><img id="cPrev" alt="" hidden><span id="cFotoTxt">' + (prod ? "Foto do produto (opcional)" : "Print da trend (opcional)") + '</span><input type="file" id="cFoto" accept="image/*"></label>' +
-    '<div class="field"><label for="cTxt">' + (prod ? "O que é o produto?" : "O que você viu?") + '</label><textarea class="input" id="cTxt" rows="3" placeholder="' + (prod ? "Ex.: organizador de gaveta de acrílico. Pode colar o link." : "Ex.: a trend do “eu antes / eu depois” com o som X. Pode colar o link.") + '">' + esc(c.texto || "") + '</textarea></div>' +
-    '<div class="actions"><button class="btn wine full" data-cgerar="1">' + (prod ? "✨ Gerar dores e ganchos" : "✨ Fazer a minha versão") + '</button></div>';
+  const trend = c.modo === "trend", varios = c.modo === "varios";
+  return '<div class="chips modo">' + chip("data-cmodo", "produto", c.modo === "produto", "🛍️ Produto") + chip("data-cmodo", "varios", varios, "🧺 Vários") + chip("data-cmodo", "trend", trend, "🔥 Trend") + '</div>' +
+    '<div class="field"><span class="lab">Onde vai postar? <small class="why">pode marcar mais de um</small></span><div class="chips">' + C_REDES.map(v => chip("data-crede", v, c.redes.indexOf(v) >= 0)).join("") + '</div></div>' +
+    '<div class="field"><span class="lab">O que você quer?</span><div class="chips">' + C_FORMATOS.map(v => chip("data-cform", v, c.formato === v)).join("") + '</div></div>' +
+    (trend ? '' : '<div class="field"><span class="lab">Objetivo</span><div class="chips">' + chip("data-cobj", "viralizar", c.objetivo === "viralizar", "🚀 Viralizar (seguidores)") + chip("data-cobj", "vender", c.objetivo === "vender", "💰 Vender") + '</div></div>' +
+      (c.objetivo === "vender" ? '<div class="field"><span class="lab">Vende onde?</span><div class="chips">' + chip("data-cloja", "Shopee", c.loja === "Shopee") + chip("data-cloja", "TikTok Shop", c.loja === "TikTok Shop", "TikTok Shop <small>(depois dos 2 mil)</small>") + '</div></div>' : '')) +
+    '<div class="cr-fotos">' + criarFotos.map((f, i) => '<div class="cr-foto"><img data-cfprev="' + i + '" alt=""><button type="button" class="btn mini" data-cftira="' + i + '" aria-label="Tirar foto">✕</button></div>').join("") +
+      (criarFotos.length < (varios ? 6 : 1) ? '<label class="photo cr-add" for="cFoto"><span>' + (trend ? "📷 Print da trend" : varios ? "📷 + Foto de um produto" : "📷 Foto do produto") + '<small>' + (trend ? "opcional" : "sem link? eu acho o link pela foto") + '</small></span><input type="file" id="cFoto" accept="image/*"' + (varios ? " multiple" : "") + '></label>' : '') + '</div>' +
+    '<div class="field"><label for="cTxt">' + (trend ? "O que você viu?" : varios ? "Quais produtos? (um por linha)" : "O que é o produto?") + '</label><textarea class="input" id="cTxt" rows="' + (varios ? 4 : 3) + '" placeholder="' +
+      (trend ? "Ex.: a trend do “eu antes / eu depois” com o som X. Pode colar o link." : varios ? "Ex.:\nporta-tempero giratório\norganizador de gaveta\ntapete de pia" : "Ex.: organizador de gaveta de acrílico. Pode colar o link ou só mandar a foto.") + '">' + esc(c.texto || "") + '</textarea></div>' +
+    '<div class="actions"><button class="btn wine full" data-cgerar="1">' + (trend ? "✨ Fazer a minha versão" : "✨ Gerar 3 conteúdos") + '</button></div>';
 }
 function crLista(titulo, itens, numerada){
   if (!itens || !itens.length) return "";
   CC.push(itens.join("\n"));
-  return '<div class="cr-bloco"><div class="cr-tit"><b>' + titulo + '</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div>' +
-    '<' + (numerada ? 'ol' : 'ul') + ' class="script">' + itens.map(t => { CC.push(t); return '<li><button type="button" class="cr-item" data-ccopy="' + (CC.length - 1) + '">' + esc(t) + '</button></li>'; }).join("") + '</' + (numerada ? 'ol' : 'ul') + '></div>';
+  return '<details class="cr-bloco"' + (numerada === "aberto" ? " open" : "") + '><summary class="cr-tit"><b>' + titulo + ' <small class="why">' + itens.length + '</small></b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></summary>' +
+    '<ol class="script">' + itens.map(t => { CC.push(t); return '<li><button type="button" class="cr-item" data-ccopy="' + (CC.length - 1) + '">' + esc(t) + '</button></li>'; }).join("") + '</ol></details>';
 }
-function crRoteiros(rs){
+function crConteudos(rs, rotulo){
   if (!rs || !rs.length) return "";
-  return '<div class="cr-bloco"><div class="cr-tit"><b>🎬 Roteiros</b></div>' + rs.map(r => {
-    const falas = r.roteiro || r.falas || []; CC.push((r.titulo || "") + (r.gancho ? "\nGancho: " + r.gancho : "") + "\n" + falas.join("\n"));
-    return '<div class="cr-rot"><div class="cr-tit"><b>' + esc(r.titulo || "") + '</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div>' +
-      (r.gancho ? '<div class="say"><small>Gancho</small>' + esc(r.gancho) + '</div>' : '') + (falas.length ? '<ol class="script">' + falas.map(f => '<li>' + esc(f) + '</li>').join("") + '</ol>' : '') + '</div>';
+  return '<div class="cr-bloco"><div class="cr-tit"><b>' + rotulo + '</b></div>' + rs.map((r, n) => {
+    const falas = r.roteiro || r.slides || r.falas || [];
+    CC.push((r.titulo || "") + (r.gancho ? "\nGancho: " + r.gancho : "") + "\n" + falas.join("\n") + (r.cta ? "\nChamada: " + r.cta : ""));
+    return '<div class="cr-rot"><div class="cr-tit"><b>' + (n + 1) + '. ' + esc(r.titulo || "") + '</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div>' +
+      (r.gancho ? '<div class="say"><small>Gancho (3 s)</small>' + esc(r.gancho) + '</div>' : '') +
+      (falas.length ? '<ol class="script">' + falas.map(f => '<li>' + esc(f) + '</li>').join("") + '</ol>' : '') +
+      (r.cta ? '<p class="how"><b>Chamada:</b> ' + esc(r.cta) + '</p>' : '') + (r.audio ? '<p class="meta-falta">🎵 ' + esc(r.audio) + '</p>' : '') + '</div>';
   }).join("") + '</div>';
+}
+function crLegendas(r, redes){
+  let ls = r.legendas;
+  if (!ls || typeof ls !== "object") ls = r.legenda ? {"Todas": r.legenda + (r.hashtags ? "\n\n" + r.hashtags : "")} : null;
+  if (!ls) return "";
+  return '<div class="cr-bloco"><div class="cr-tit"><b>✍️ Legendas</b></div>' + Object.keys(ls).map(k => {
+    const t = String(ls[k] || ""); CC.push(t);
+    return '<div class="cr-leg"><div class="cr-tit"><small class="lab">' + esc(k) + '</small><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div><p class="how">' + esc(t).replace(/\n/g, "<br>") + '</p></div>';
+  }).join("") + '</div>';
+}
+function crLinks(links){
+  if (!links || !links.length) return "";
+  return '<div class="cr-bloco"><div class="cr-tit"><b>🔗 Melhores links na Shopee</b></div><p class="why">Escolhi pelo equilíbrio: vende bem, comissão boa, nota alta. Confira se é IGUAL ao seu produto (cor e modelo).</p>' +
+    links.map(g => '<div class="cr-link-grupo"><small class="lab">' + esc(g.busca || "") + '</small>' + (g.produtos || []).map((p, i) => {
+      CC.push(p.link);
+      const com = p.com ? (Number(p.com) * 100).toFixed(0) + "%" : "";
+      return '<div class="cr-link' + (i === 0 ? " top" : "") + '">' + (p.img ? '<img src="' + esc(String(p.img).replace(/^(?!http)/, "https://down-br.img.susercontent.com/file/")) + '" alt="" loading="lazy">' : '') +
+        '<div><b>' + (i === 0 ? "⭐ " : "") + esc(p.n || "") + '</b><small>' + [p.vendas ? esc(p.vendas) + " vendidos" : "", com ? "comissão " + com : "", p.nota ? "nota " + esc(p.nota) : ""].filter(Boolean).join(" · ") + '</small>' +
+        '<div class="actions"><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar link</button><a class="btn mini" href="' + esc(p.link) + '" target="_blank" rel="noopener">Ver</a></div></div></div>';
+    }).join("") + '</div>').join("") + '</div>';
 }
 function resultadoCriar(h){
   if (!h) return "";
-  const r = h.r || {};
-  CC.push([r.legenda, r.hashtags].filter(Boolean).join("\n\n"));
-  const leg = r.legenda ? '<div class="cr-bloco"><div class="cr-tit"><b>✍️ Legenda</b><button class="btn mini" data-ccopy="' + (CC.length - 1) + '">Copiar</button></div><p class="how">' + esc(r.legenda) + (r.hashtags ? '<br><span class="why">' + esc(r.hashtags) + '</span>' : '') + '</p></div>' : '';
+  const r = h.r || {}, redes = h.redes || [h.loja || ""];
   const topo = h.modo === "trend" ? (r.trend ? '<p class="how"><b>A trend:</b> ' + esc(r.trend) + '</p>' : '') :
-    '<p class="how"><b>' + esc(r.produto || h.texto || "Produto") + '</b> · ' + esc(h.loja) + (r.publico ? '<br>Para quem: ' + esc(r.publico) : '') + '</p>';
+    '<p class="how"><b>' + esc(r.produto || h.texto || "Produto") + '</b><br><small class="why">' + esc(redes.join(" · ")) + ' · ' + esc(h.formato || "") + ' · ' + (h.objetivo === "vender" ? "💰 vender (" + esc(h.loja) + ")" : "🚀 viralizar") + '</small>' + (r.publico ? '<br>Para quem: ' + esc(r.publico) : '') + '</p>';
+  const rot = /carrossel/i.test(h.formato || "") ? "🖼️ 3 carrosséis" : /stories/i.test(h.formato || "") ? "📱 3 sequências de stories" : "🎬 3 roteiros";
   return '<article class="card cr-res">' + topo +
-    (h.modo === "trend" ? crRoteiros(r.versoes) : crLista("💔 Dores que ele resolve", r.dores, true) + crLista("⚡ Ganchos de 3 segundos", r.ganchos, true) + crRoteiros(r.roteiros)) +
-    leg + (r.dica ? '<p class="meta-falta">💡 ' + esc(r.dica) + '</p>' : '') +
+    (h.modo === "trend" ? crConteudos(r.versoes || r.conteudos, rot) : crLista("💔 Dores que resolve", r.dores, "aberto") + crLista("⚡ Ganchos de 3 segundos", r.ganchos) + crConteudos(r.conteudos || r.roteiros, rot)) +
+    crLegendas(r, redes) + crLinks(r.links) +
+    (r.dica ? '<p class="meta-falta">💡 ' + esc(r.dica) + '</p>' : '') +
+    '<details class="cr-bloco"><summary class="cr-tit"><b>📏 Antes de postar, confira</b></summary><ul class="script">' + redes.map(x => REGRAS_REDE[x] ? '<li>' + esc(REGRAS_REDE[x]) + '</li>' : '').join("") + '<li>Nunca preço, nunca foto do Pinterest.</li></ul></details>' +
+    '<div class="actions"><button class="btn" data-cnota="1">📝 Guardar no Bloco</button></div>' +
     '<p class="why">Toque numa frase para copiar.</p></article>';
 }
 function renderCriar(){
   CC = [];
   const c = CR(), h = c.atual != null ? c.hist[c.atual] : null;
   $("criarBox").innerHTML = '<div class="form">' + criarForm() + '</div><div id="cStatus"></div>' + resultadoCriar(h) +
-    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + (x.modo === "trend" ? "🔥 Trend" : "🛍️ " + esc(x.loja)) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '') + salvosCard();
-  if (criarFoto) { const im = $("cPrev"); im.src = URL.createObjectURL(criarFoto); im.hidden = false; $("cFotoTxt").textContent = "Trocar a foto"; }
+    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + ({trend: "🔥 Trend", varios: "🧺 Vários"}[x.modo] || "🛍️ Produto") + ' · ' + esc((x.redes || [x.loja]).join(", ")) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '') + salvosCard();
+  document.querySelectorAll("[data-cfprev]").forEach(im => { const f = criarFotos[Number(im.dataset.cfprev)]; if (f) im.src = URL.createObjectURL(f); });
 }
 function criarStatus(t, html){ const el = $("cStatus"); if (el) el.innerHTML = t ? '<article class="card"><p class="how">' + (html ? t : esc(t)) + '</p></article>' : ""; }
 async function gerarCriar(){
   if (criarBusy) return;
   const c = CR(); c.texto = $("cTxt").value.trim(); save();
-  if (!c.texto && !criarFoto) { toast(c.modo === "trend" ? "Conte o que você viu ou mande o print." : "Escreva o produto ou mande a foto."); return; }
-  criarBusy = true; criarStatus("✨ Pensando nas melhores ideias… leva uns 20 segundos.");
+  if (!c.texto && !criarFotos.length) { toast(c.modo === "trend" ? "Conte o que você viu ou mande o print." : "Escreva o produto ou mande a foto."); return; }
+  criarBusy = true; criarStatus("✨ Pensando nos conteúdos e procurando os melhores links… leva uns 30 segundos.");
   const btn = document.querySelector("[data-cgerar]"); if (btn) btn.disabled = true;
   let j = null;
   try {
-    const corpo = {acao: "criar", modo: c.modo, loja: c.loja, texto: c.texto, foto: criarFoto ? await blobB64(criarFoto) : ""};
-    const ctl = new AbortController(), lim = setTimeout(() => ctl.abort(), 90000);
+    const fotos = []; for (const f of criarFotos) fotos.push(await blobB64(f));
+    const corpo = {acao: "criar", modo: c.modo, loja: c.loja, objetivo: c.objetivo, formato: c.formato, redes: c.redes, texto: c.texto, foto: fotos[0] || "", fotos: fotos};
+    const ctl = new AbortController(), lim = setTimeout(() => ctl.abort(), 100000);
     try { j = await (await fetch(ROBO, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"}, body: JSON.stringify(corpo), signal: ctl.signal})).json(); } finally { clearTimeout(lim); }
   } catch(_) { j = null; }
   criarBusy = false;
   if (j && j.r) {
-    c.hist.unshift({modo: c.modo, loja: c.loja, texto: c.texto, data: todayKey, r: j.r}); c.hist = c.hist.slice(0, 30); c.atual = 0;
-    criarFoto = null; c.texto = ""; save(); renderCriar(); window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); return;
+    c.hist.unshift({modo: c.modo, loja: c.loja, objetivo: c.objetivo, formato: c.formato, redes: c.redes.slice(), texto: c.texto, data: todayKey, r: j.r}); c.hist = c.hist.slice(0, 30); c.atual = 0;
+    criarFotos = []; c.texto = ""; save(); renderCriar(); window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); return;
   }
   if (btn) btn.disabled = false;
   CC.push(pedidoCriar(c));
   criarStatus('A IA grátis não respondeu agora (pode ser o limite do dia). Leve o pedido para o Claude: ele faz igualzinho.' +
     '<div class="actions" style="margin-top:8px"><button class="btn wine" data-cclaude="' + (CC.length - 1) + '">Fazer no Claude</button><button class="btn" data-cgerar="1">Tentar de novo</button></div>', true);
 }
+function textoDoCriado(h){
+  const r = h.r || {}, l = [];
+  l.push((r.produto || r.trend || h.texto || "Conteúdo") + " — " + (h.redes || []).join(", ") + " · " + (h.formato || ""));
+  (r.conteudos || r.roteiros || r.versoes || []).forEach((x, i) => l.push("\n" + (i + 1) + ". " + (x.titulo || "") + (x.gancho ? "\nGancho: " + x.gancho : "") + "\n" + (x.roteiro || x.slides || []).join("\n")));
+  (r.links || []).forEach(g => (g.produtos || []).slice(0, 1).forEach(p => l.push("\n🔗 " + (p.n || g.busca) + ": " + p.link)));
+  return l.join("\n");
+}
 $("criarBox").addEventListener("click", async e => {
-  const m = e.target.closest("[data-cmodo]"); if (m) { CR().modo = m.dataset.cmodo; CR().texto = $("cTxt").value; CR().atual = null; save(); renderCriar(); return; }
-  const l = e.target.closest("[data-cloja]"); if (l) { CR().loja = l.dataset.cloja; l.parentNode.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", x === l)); save(); return; }
+  const c = CR();
+  const m = e.target.closest("[data-cmodo]"); if (m) { c.modo = m.dataset.cmodo; c.texto = $("cTxt").value; c.atual = null; if (c.modo !== "varios") criarFotos = criarFotos.slice(0, 1); save(); renderCriar(); return; }
+  const rd = e.target.closest("[data-crede]"); if (rd) { const v = rd.dataset.crede, i = c.redes.indexOf(v); if (i >= 0) { if (c.redes.length > 1) c.redes.splice(i, 1); } else c.redes.push(v); c.texto = $("cTxt").value; save(); renderCriar(); return; }
+  const fm = e.target.closest("[data-cform]"); if (fm) { c.formato = fm.dataset.cform; c.texto = $("cTxt").value; save(); renderCriar(); return; }
+  const ob = e.target.closest("[data-cobj]"); if (ob) { c.objetivo = ob.dataset.cobj; c.texto = $("cTxt").value; save(); renderCriar(); return; }
+  const l = e.target.closest("[data-cloja]"); if (l) { c.loja = l.dataset.cloja; c.lojaEscolhida = true; c.texto = $("cTxt").value; save(); renderCriar(); return; }
+  const ft = e.target.closest("[data-cftira]"); if (ft) { criarFotos.splice(Number(ft.dataset.cftira), 1); c.texto = $("cTxt").value; renderCriar(); return; }
   if (e.target.closest("[data-cgerar]")) { gerarCriar(); return; }
-  const cp = e.target.closest("[data-ccopy]"); if (cp) { copyText(CC[Number(cp.dataset.ccopy)]); return; }
+  if (e.target.closest("[data-cnota]")) { const h = c.hist[c.atual]; if (h && window.blocoNovo) { blocoNovo("ideias", (h.r && (h.r.produto || h.r.trend)) || h.texto || "Conteúdo", textoDoCriado(h)); toast("Guardei no Bloco 📝"); } return; }
+  const cp = e.target.closest("[data-ccopy]"); if (cp) { e.preventDefault(); copyText(CC[Number(cp.dataset.ccopy)]); return; }
   const cl = e.target.closest("[data-cclaude]"); if (cl) { const t = CC[Number(cl.dataset.cclaude)]; try { await navigator.clipboard.writeText(t); } catch(_) {}
-    if (criarFoto) toast("Pedido copiado. No Claude, anexe a foto e cole.", 5000); abrirLink("https://claude.ai/new?q=" + encodeURIComponent(t)); return; }
-  const hb = e.target.closest("[data-chist]"); if (hb) { const c = CR(), i = Number(hb.dataset.chist); c.atual = c.atual === i ? null : i; save(); renderCriar(); if (c.atual != null) window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); }
+    if (criarFotos.length) toast("Pedido copiado. No Claude, anexe a foto e cole.", 5000); abrirLink("https://claude.ai/new?q=" + encodeURIComponent(t)); return; }
+  const hb = e.target.closest("[data-chist]"); if (hb) { const i = Number(hb.dataset.chist); c.atual = c.atual === i ? null : i; save(); renderCriar(); if (c.atual != null) window.scrollTo(0, $("criarBox").querySelector(".cr-res")?.offsetTop - 70 || 0); }
 });
 $("criarBox").addEventListener("change", async e => {
-  if (e.target.id !== "cFoto" || !e.target.files[0]) return;
-  CR().texto = $("cTxt").value; criarFoto = await shrink(e.target.files[0], 1024); renderCriar();
+  if (e.target.id !== "cFoto" || !e.target.files.length) return;
+  const c = CR(); c.texto = $("cTxt").value;
+  const max = c.modo === "varios" ? 6 : 1;
+  for (const f of [...e.target.files]) { if (criarFotos.length >= max) criarFotos.shift(); criarFotos.push(await shrink(f, 1024)); }
+  renderCriar();
 });
 $("criarBox").addEventListener("input", e => { if (e.target.id === "cTxt") { CR().texto = e.target.value; save(); } });
 
@@ -1563,7 +1638,7 @@ function renderParcerias(){
   const topo = '<article class="card"><p class="how"><b>Como funciona:</b> todo dia o robô procura influenciadoras pequenas (até 30 mil seguidores), de outros assuntos, com público de mulheres de 24 a 60 anos que compram pela internet. Toque no @ para ver o perfil. Não gostou? Toque no ✕.</p>' +
     '<ol class="script"><li><b>Abrir conversa</b> e mandar a 1ª mensagem (pergunta como ela trabalha).</li><li>Ela respondeu? Marque <b>Negociando</b> e mande a proposta (complete os valores).</li><li>Fechou? Marque <b>Fechado</b>. O link dela conta os cliques sozinho.</li></ol>' +
     '<p class="meta-falta">O WhatsApp não diz quem entrou por qual link. O app conta os <b>cliques</b> de cada link. As entradas no grupo você vê no total de pessoas do grupo.</p>' +
-    '<div class="actions"><button class="btn" data-copy="' + (COPY.length - 1) + '">Copiar o meu link do grupo</button></div>' + (cl.daledaia ? '<p class="meta-falta">Cliques no seu link: <b>' + cl.daledaia + '</b></p>' : '') + '</article>';
+    '<div class="actions"><button class="btn" data-copy="' + (COPY.length - 1) + '">Copiar o meu link do grupo</button></div>' + (cl.daledaia ? '<p class="meta-falta">Cliques no seu link: <b>' + cl.daledaia + '</b></p>' : '') + '</article>' + (window.valoresCard ? valoresCard() : '');
   const bloco = (t, ls, vazio) => '<h2>' + t + ' <small class="why">' + ls.length + '</small></h2>' + (ls.length ? '<div class="list">' + ls.map(parceriaCard).join("") + '</div>' : '<p class="note">' + vazio + '</p>');
   $("parcBox").innerHTML = topo + bloco("🤝 Em conversa", conversa, "Ninguém ainda. Escolha uma sugestão abaixo e mande a 1ª mensagem.") +
     bloco("✅ Fechadas", fechadas, "Quando fechar com alguém, ela aparece aqui com os cliques.") +
@@ -1612,8 +1687,9 @@ $("cursoBox").addEventListener("input", e => { if (e.target.id !== "cBusca") ret
 function show(t){
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
   if (!$("tab-" + t)) t = "hoje";
-  ["hoje","criar","parcerias","curso","prontos","produtos","ideias","ia","ajustes"].forEach(x => $("tab-" + x).hidden = x !== t);
+  ["hoje","criar","bloco","pagina","parcerias","curso","prontos","produtos","ideias","ia","ajustes"].forEach(x => $("tab-" + x).hidden = x !== t);
   document.querySelectorAll("nav.tabs button").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === t));
+  if (t === "bloco" && window.renderBloco) renderBloco(); if (t === "pagina" && window.renderPagina) renderPagina();
   if (t === "ajustes") renderAjustes(); if (t === "ia") renderIA(); if (t === "criar") renderCriar(); if (t === "parcerias") renderParcerias(); if (t === "curso") renderCurso();
   if (t === "hoje") renderHoje(); if (t === "prontos") renderProntos(); if (t === "produtos") renderProdutos(); if (t === "ideias") renderIdeias();
   window.scrollTo(0, 0);
