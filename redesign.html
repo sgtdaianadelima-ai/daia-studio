@@ -6,105 +6,179 @@
 <title>Repaginada do app</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Nunito+Sans:wght@400;700;800&display=swap">
 <style>
-:root{--bg:#FBF7F2;--card:#fff;--fg:#3B2A22;--muted:#8a7468;--wine:#7A1F2B;--gold:#C9A46A;--sand:#D9C4B0;--line:#eadfd3}
+:root{--bg:#FBF7F2;--card:#fff;--fg:#3B2A22;--muted:#8a7468;--wine:#7A1F2B;--gold:#C9A46A;--sand:#D9C4B0;--line:#eadfd3;--cream:#f6efe6}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.45 "Nunito Sans",sans-serif;padding:20px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px))}
-.top{max-width:720px;margin:0 auto 18px}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 "Nunito Sans",sans-serif;padding:20px max(16px,env(safe-area-inset-right,0px)) 50px max(16px,env(safe-area-inset-left,0px))}
+.w{max-width:680px;margin:0 auto;display:grid;gap:16px}
 a.voltar{color:var(--wine);font-weight:800;text-decoration:none}
-h1{font:400 34px/1.1 "DM Serif Display",serif;margin:10px 0 6px}h1 em{color:var(--wine)}
+h1{font:400 34px/1.1 "DM Serif Display",serif;margin:6px 0 0}h1 em,h2 em{color:var(--wine)}
+h2{font:400 26px/1.15 "DM Serif Display",serif;margin:14px 0 0}
 .sub{color:var(--muted);margin:0}
-.ideia{max-width:720px;margin:26px auto 0;display:grid;gap:12px}
-.ideia h2{font:400 26px/1.15 "DM Serif Display",serif;margin:0}.ideia h2 span{color:var(--gold);margin-right:6px}
-.ideia p{margin:0}
-.tel{width:100%;max-width:300px;margin:0 auto;border:8px solid #2b201b;border-radius:34px;background:var(--bg);overflow:hidden;box-shadow:0 14px 30px rgba(59,42,34,.18);position:relative}
-.tel .tela{padding:16px 12px 70px;display:grid;gap:10px;min-height:470px}
-.brand{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:800}
-.h{font:400 24px/1.1 "DM Serif Display",serif}.h em{color:var(--wine)}
-.c{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;display:grid;gap:6px}
-.c.wine{background:var(--wine);color:#fff;border-color:var(--wine)}
-.c small{color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.c.wine small{color:#f3d9dc}
-.c b{font-size:15px}.big{font:400 40px/1 "DM Serif Display",serif}
-.bt{background:#fff;color:var(--wine);border-radius:99px;padding:8px 12px;font-weight:800;font-size:13px;text-align:center}
-.c .bt.w{background:var(--wine);color:#fff}
-.bolas{display:flex;gap:5px}.bolas i{width:16px;height:16px;border-radius:50%;border:2px solid var(--wine)}.bolas i.on{background:var(--wine)}
-.fechado{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;color:var(--muted);font-weight:700;display:flex;justify-content:space-between}
-.nav{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:8px 4px 10px;font-size:10px;font-weight:800;color:var(--muted)}
-.nav span{display:grid;justify-items:center;gap:2px}.nav span::before{content:"";width:18px;height:18px;border-radius:6px;background:var(--sand)}
+.par{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.par{grid-template-columns:1fr}}
+.rot{font-weight:800;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:center}
+.rot.novo{color:var(--wine)}
+.tel{width:100%;max-width:290px;margin:0 auto;border:7px solid #2b201b;border-radius:30px;background:var(--bg);overflow:hidden;position:relative;box-shadow:0 10px 24px rgba(59,42,34,.16)}
+.tela{padding:12px 10px 64px;display:grid;gap:8px;font-size:13px}
+.brand{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:800;display:flex;justify-content:space-between}
+.h{font:400 22px/1.1 "DM Serif Display",serif;display:flex;justify-content:space-between;align-items:center}.h em{color:var(--wine)}
+.setas{font-family:"Nunito Sans";font-size:12px;display:flex;gap:4px}.setas span{width:22px;height:22px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;background:#fff}
+.mini{font-size:11px;color:var(--muted)}
+.risco{text-decoration:line-through;color:#b9a79a}
+.c{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 10px;display:grid;gap:5px}
+.c.meta{border-color:var(--wine)}
+.c.recado{background:var(--wine);color:#fff;font-weight:800;font-size:12px}
+.c.hora{background:#fbf0dc;border-color:#e2c48b;font-size:12px}
+.c.faca{background:var(--wine);color:#fff;border-color:var(--wine)}
+.c.faca small{color:#f3d9dc;font-weight:800;font-size:10px;letter-spacing:.08em;text-transform:uppercase}
+.bt{background:#fff;color:var(--wine);border-radius:99px;padding:5px 10px;font-weight:800;font-size:11px;text-align:center;justify-self:start}
+.linha{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.bolas{display:flex;gap:3px}.bolas i{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--sand)}.bolas i.on{background:var(--wine);border-color:var(--wine)}
+.sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:7px 9px;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:12px}
+.sec small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+.sec .n{font-size:10px;background:var(--cream);border-radius:99px;padding:2px 7px}
+.sai{opacity:.45;position:relative}
+.sai::after{content:"sai daqui";position:absolute;right:8px;top:50%;transform:translateY(-50%) rotate(-6deg);background:#fff;color:var(--wine);border:1.5px solid var(--wine);border-radius:6px;font-size:10px;font-weight:800;padding:1px 5px}
+.nav{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 2px 8px;font-size:9px;font-weight:800;color:var(--muted)}
+.nav span{display:grid;justify-items:center;gap:2px}.nav span::before{content:"";width:15px;height:15px;border-radius:5px;background:var(--sand)}
 .nav span.on{color:var(--wine)}.nav span.on::before{background:var(--wine)}
-.mais{position:absolute;left:50%;bottom:30px;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;background:var(--wine);color:#fff;font-size:30px;display:grid;place-items:center;box-shadow:0 6px 14px rgba(122,31,43,.4)}
-.menu{position:absolute;left:12px;right:12px;bottom:96px;background:#fff;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:8px;display:grid}
-.menu div{padding:10px;border-bottom:1px solid var(--line);font-weight:700}.menu div:last-child{border:0}
+.nav span.mais::before{display:none}
+.mais b{width:38px;height:38px;border-radius:50%;background:var(--wine);color:#fff;font-size:24px;display:grid;place-items:center;margin-top:-18px;box-shadow:0 4px 10px rgba(122,31,43,.35)}
+.menu{position:absolute;left:10px;right:10px;bottom:62px;background:#fff;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);padding:4px 8px;display:grid;font-size:13px}
+.menu div{padding:9px 4px;border-bottom:1px solid var(--line);font-weight:700}.menu div:last-child{border:0}
 .veu{position:absolute;inset:0;background:rgba(59,42,34,.35)}
-.notif{background:#fff;border-radius:16px;padding:10px 12px;display:flex;gap:10px;align-items:flex-start;box-shadow:0 6px 16px rgba(0,0,0,.12)}
-.notif .ic{width:34px;height:34px;border-radius:9px;background:var(--wine);flex:none;color:#fff;display:grid;place-items:center;font-weight:800}
-.notif small{color:var(--muted);font-size:11px}
-.bloq{background:linear-gradient(#1f1a17,#3b2a22);min-height:470px;padding:40px 12px;display:grid;align-content:start;gap:10px}
-.hora{color:#fff;font:400 54px/1 "DM Serif Display",serif;text-align:center;margin-bottom:16px}
-.voto{display:flex;gap:8px;flex-wrap:wrap}.voto span{border:1px solid var(--line);background:#fff;border-radius:99px;padding:6px 12px;font-weight:700;font-size:13px}
-.fim{max-width:720px;margin:30px auto 0;background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
+.notif{background:#fff;border-radius:12px;padding:8px 10px;display:flex;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,.12);font-size:12px}
+.notif .ic{width:28px;height:28px;border-radius:8px;background:var(--wine);color:#fff;display:grid;place-items:center;font-weight:800;flex:none}
+.bloq{background:linear-gradient(#1f1a17,#3b2a22);min-height:420px;padding:30px 10px;display:grid;align-content:start;gap:8px}
+.hora{color:#fff;font:400 44px/1 "DM Serif Display",serif;text-align:center;margin-bottom:10px}
+.tab{display:flex;gap:6px}.tab span{flex:1;text-align:center;border:1px solid var(--line);border-radius:99px;padding:5px;font-weight:800;font-size:11px;background:#fff}.tab span.on{background:var(--wine);color:#fff;border-color:var(--wine)}
+.big{font:400 30px/1 "DM Serif Display",serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:8px}
+.card.mud{border-left:4px solid var(--wine)}.card.duv{border-left:4px solid var(--gold)}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-top:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.tw{overflow-x:auto}
+ul{margin:0;padding-left:20px}li{margin:3px 0}
 </style>
 </head>
 <body>
-<div class="top">
+<div class="w">
   <a class="voltar" href="./">‹ Voltar ao app</a>
   <h1>Repaginada <em>do app</em></h1>
-  <p class="sub">4 ideias desenhadas. Olhe cada uma e me diga os números que você quer (ex.: “quero 1 e 3”).</p>
-</div>
+  <p class="sub">Juntei as 4 ideias. <b>Ainda não mudei nada no seu app.</b> Olhe o antes e o depois, e me diga se quer assim.</p>
 
-<section class="ideia">
-  <h2><span>1</span>Tela inicial em 3 blocos</h2>
-  <p>Abriu o app, vê só a <b>próxima tarefa</b>, a <b>meta</b> e o que está <b>bombando</b>. O resto fica fechadinho embaixo.</p>
-  <div class="tel"><div class="tela">
-    <div class="brand">Daia Studio</div>
-    <div class="h">Bom dia, <em>Daia</em></div>
-    <div class="c wine"><small>Faça agora · 12h</small><b>Reels: POV do porta-tempero</b><div class="bt">Ver o roteiro</div></div>
-    <div class="c"><small>Sua meta de hoje</small><div>Shopee Vídeo <span class="bolas"><i class="on"></i><i class="on"></i><i></i></span></div><div>TikTok <span class="bolas"><i class="on"></i><i></i></span> · Insta <span class="bolas"><i></i><i></i></span></div></div>
-    <div class="c"><small>🔥 Bombando</small><b>Seu vídeo do tapete: 3x a média</b><div class="bt w">Fazer outro igual</div></div>
-    <div class="fechado">Cronograma · relatório · ferramentas <span>›</span></div>
-  </div><div class="nav"><span class="on">Hoje</span><span>Criar</span><span>Bloco</span><span>Crescer</span><span>Curso</span></div></div>
-</section>
+  <h2>1 · Tela <em>Hoje</em></h2>
+  <p class="sub">Fica igual ao que você gosta (data, setinhas, meta, emojis). Sai o que você não gosta.</p>
+  <div class="par">
+    <div><p class="rot">Antes (hoje)</p>
+      <div class="tel"><div class="tela">
+        <div class="brand"><span>Daia Studio</span><span>⚙️</span></div>
+        <div class="h"><span>Hoje, <em>7 de nov.</em></span><span class="setas"><span>‹</span><span>›</span></span></div>
+        <div class="mini">Faltam 48 dias para o Natal · 3 posts no plano</div>
+        <div class="c meta"><div class="linha">🎯 Meta de hoje <span>0 de 7</span></div><div class="linha">🛍️ Shopee Vídeo <span class="bolas"><i></i><i></i><i></i></span></div><div class="linha">🎵 TikTok <span class="bolas"><i></i><i></i></span></div><div class="linha">📷 Instagram <span class="bolas"><i></i><i></i></span></div></div>
+        <div class="c recado">Daia, arrasa: o mais importante hoje é focar na luz acolhedora do Natal…</div>
+        <div class="c hora">⏰ Já passou da hora e ainda falta: 12h · Banheiro de hotel</div>
+        <div class="sec">🛍️ Shopee Vídeo <span class="n">0/3</span></div>
+        <div class="sec">🎵 TikTok · cronograma <span class="n">0/2</span></div>
+        <div class="sec">📷 Instagram <span class="n">0/2</span></div>
+        <div class="sec">💡 O que está bombando</div>
+        <div class="sec">📈 Relatório · rumo aos 2.000</div>
+        <div class="sec">✨ Postei algo fora do plano</div>
+        <div class="sec">📊 Minha semana</div>
+        <div class="sec">🧰 Ferramentas</div>
+      </div><div class="nav"><span class="on">Hoje</span><span>Criar</span><span>Bloco</span><span>Parcerias</span><span>Curso</span><span>Prontos</span></div></div></div>
+    <div><p class="rot novo">Depois (proposta)</p>
+      <div class="tel"><div class="tela">
+        <div class="brand"><span>Daia Studio</span><span>⚙️</span></div>
+        <div class="h"><span>Hoje, <em>7 de nov.</em></span><span class="setas"><span>‹</span><span>›</span></span></div>
+        <div class="mini">sexta-feira · 3 posts no plano</div>
+        <div class="c meta"><div class="linha">🎯 Meta de hoje <span>0 de 7</span></div><div class="linha">🛍️ Shopee Vídeo <span class="bolas"><i></i><i></i><i></i></span></div><div class="linha">🎵 TikTok <span class="bolas"><i></i><i></i></span></div><div class="linha">📷 Instagram <span class="bolas"><i></i><i></i></span></div></div>
+        <div class="c faca"><small>✨ Faça agora · 12h</small><b>Reels: banheiro de hotel</b><span class="bt">Ver o roteiro</span></div>
+        <div class="sec">🛍️ Shopee Vídeo <span class="n">0/3</span></div>
+        <div class="sec">🎵 TikTok · cronograma <span class="n">0/2</span></div>
+        <div class="sec">📷 Instagram <span class="n">0/2</span></div>
+        <div class="sec">💡 O que está bombando</div>
+      </div><div class="nav"><span class="on">Hoje</span><span>Criar</span><span class="mais"><b>+</b></span><span>Crescer</span><span>Bloco</span></div></div></div>
+  </div>
+  <div class="card mud"><b>O que muda na tela Hoje</b>
+    <ul>
+      <li>❌ Sai “Faltam 48 dias para o Natal”. No lugar: o dia da semana.</li>
+      <li>❌ Sai o recado vermelho (“Daia, arrasa…”).</li>
+      <li>🔄 “Já passou da hora e ainda falta” vira o cartão <b>✨ Faça agora</b>: mostra só a próxima tarefa, grande, com o botão do roteiro.</li>
+      <li>✅ Ficam: data com as setinhas, a meta com as bolinhas, Shopee Vídeo, TikTok, Instagram e O que está bombando.</li>
+      <li>➡️ Relatório e Minha semana vão para <b>Crescer</b>. Postei algo e Ferramentas vão para o botão <b>+</b>.</li>
+    </ul></div>
 
-<section class="ideia">
-  <h2><span>2</span>Menu com 5 botões</h2>
-  <p>Menos abas e cada uma com um assunto: <b>Hoje</b>, <b>Criar</b> (com salvos e trends), <b>Postar</b> (prontos + Shopee Vídeo), <b>Crescer</b> (relatório, parcerias, grupo) e <b>Curso</b>.</p>
-  <div class="tel"><div class="tela">
-    <div class="brand">Daia Studio</div>
-    <div class="h">Crescer</div>
-    <div class="c"><small>TikTok @daledaia</small><div class="big">1.240</div><b>faltam 760 para o TikTok Shop</b></div>
-    <div class="c"><small>Grupo VIP</small><b>17 pessoas · 3 parcerias em conversa</b></div>
-    <div class="c"><small>Relatório</small><b>O que funcionou esta semana</b></div>
-  </div><div class="nav"><span>Hoje</span><span>Criar</span><span>Postar</span><span class="on">Crescer</span><span>Curso</span></div></div>
-</section>
+  <h2>2 · Menu de baixo com <em>5 botões</em></h2>
+  <p class="sub">Hoje · Criar · <b>+</b> · Crescer · Bloco</p>
+  <div class="par">
+    <div><p class="rot novo">Aba Crescer (nova)</p>
+      <div class="tel"><div class="tela">
+        <div class="brand"><span>Daia Studio</span><span>⚙️</span></div>
+        <div class="h"><span>Crescer</span></div>
+        <div class="tab"><span class="on">Números</span><span>Parcerias</span><span>Curso</span></div>
+        <div class="c"><div class="mini">TikTok @daledaia</div><div class="big">330</div><b>faltam 1.670 para o TikTok Shop</b></div>
+        <div class="c"><div class="mini">Grupo VIP</div><b>17 pessoas · 0 parcerias fechadas</b></div>
+        <div class="sec">📈 Relatório completo</div>
+        <div class="sec">📊 Minha semana</div>
+      </div><div class="nav"><span>Hoje</span><span>Criar</span><span class="mais"><b>+</b></span><span class="on">Crescer</span><span>Bloco</span></div></div></div>
+    <div><p class="rot novo">Aba Criar</p>
+      <div class="tel"><div class="tela">
+        <div class="brand"><span>Daia Studio</span><span>⚙️</span></div>
+        <div class="h"><span>Criar</span></div>
+        <div class="tab"><span class="on">Criar novo</span><span>Prontos</span></div>
+        <div class="c"><b>🛍️ Produto · 🧺 Vários · 🔥 Trend</b><div class="mini">onde vai postar, formato, objetivo… (igual hoje)</div></div>
+        <div class="c"><b>📌 Seus salvos</b><div class="mini">igual hoje</div></div>
+      </div><div class="nav"><span>Hoje</span><span class="on">Criar</span><span class="mais"><b>+</b></span><span>Crescer</span><span>Bloco</span></div></div></div>
+  </div>
+  <div class="card mud"><b>O que muda no menu</b>
+    <ul>
+      <li>🔄 <b>Parcerias</b> e <b>Curso</b> saem do menu e viram abinhas dentro de <b>Crescer</b> (com seguidores, grupo e relatório).</li>
+      <li>🔄 <b>Prontos</b> vira uma abinha dentro de <b>Criar</b>.</li>
+      <li>✅ Hoje, Criar e Bloco continuam no menu.</li>
+      <li>Nada é apagado: tudo continua lá, só muda de lugar.</li>
+    </ul></div>
 
-<section class="ideia">
-  <h2><span>3</span>Botão grande “+” no meio</h2>
-  <p>Um toque e você escolhe: <b>Postei algo</b>, <b>Anotar ideia</b>, <b>Converter link</b> ou <b>Criar conteúdo</b>. De qualquer tela.</p>
-  <div class="tel"><div class="tela">
-    <div class="brand">Daia Studio</div>
-    <div class="h">Bom dia, <em>Daia</em></div>
-    <div class="c"><small>Faça agora</small><b>Reels: POV do porta-tempero</b></div>
-    <div class="c"><small>Meta</small><span class="bolas"><i class="on"></i><i></i><i></i></span></div>
-  </div><div class="veu"></div>
-  <div class="menu"><div>✅ Postei algo</div><div>📝 Anotar ideia</div><div>🔗 Converter link</div><div>✨ Criar conteúdo</div></div>
-  <div class="mais">+</div>
-  <div class="nav"><span class="on">Hoje</span><span>Criar</span><span></span><span>Bloco</span><span>Curso</span></div></div>
-</section>
+  <h2>3 · Botão <em>+</em> no meio</h2>
+  <div class="par">
+    <div><p class="rot novo">Tocou no +</p>
+      <div class="tel"><div class="tela">
+        <div class="brand"><span>Daia Studio</span><span>⚙️</span></div>
+        <div class="h"><span>Hoje, <em>7 de nov.</em></span></div>
+        <div class="c meta"><div class="linha">🎯 Meta de hoje <span>0 de 7</span></div></div>
+        <div class="c faca"><small>✨ Faça agora</small><b>Reels: banheiro de hotel</b></div>
+      </div><div class="veu"></div>
+      <div class="menu"><div>✅ Postei algo (marca na meta)</div><div>📝 Anotar ideia (vai para o Bloco)</div><div>🔗 Converter link (Shopee, ML, Magalu, Natura)</div><div>💬 Respostas prontas</div><div>✨ Criar conteúdo</div></div>
+      <div class="nav"><span>Hoje</span><span>Criar</span><span class="mais"><b>×</b></span><span>Crescer</span><span>Bloco</span></div></div></div>
+    <div class="card mud" style="align-self:start"><b>O que muda</b><ul><li>🔄 “Postei algo fora do plano” e as “Ferramentas” saem do fim da tela Hoje e ficam no <b>+</b>, que aparece em qualquer tela.</li><li>✅ Converter link agora converte também Mercado Livre, Magalu e Natura.</li><li>➡️ Os lembretes (que estavam em Ferramentas) vão para ⚙️ Ajustes.</li></ul></div>
+  </div>
 
-<section class="ideia">
-  <h2><span>4</span>Aviso no celular</h2>
-  <p>O celular apita quando um vídeo seu <b>bomba</b>, quando chega uma <b>influenciadora nova</b> ou na <b>hora de postar</b>. Usa o app grátis ntfy, que você já tem nos lembretes.</p>
-  <div class="tel"><div class="bloq">
-    <div class="hora">13:02</div>
-    <div class="notif"><div class="ic">D</div><div><b>🔥 Seu vídeo está bombando!</b><br><small>“Porta-tempero” já tem 3x a sua média. Faça outro igual hoje.</small></div></div>
-    <div class="notif"><div class="ic">D</div><div><b>💡 3 influenciadoras novas</b><br><small>Abra Parcerias para ver.</small></div></div>
-    <div class="notif"><div class="ic">D</div><div><b>⏰ 18h: hora do TikTok</b><br><small>Trend de hoje: “a casa te cobra”.</small></div></div>
-  </div></div>
-</section>
+  <h2>4 · Aviso no <em>celular</em></h2>
+  <div class="par">
+    <div><p class="rot novo">Tela bloqueada</p>
+      <div class="tel"><div class="bloq">
+        <div class="hora">08:30</div>
+        <div class="notif"><div class="ic">D</div><div><b>🔥 Seu vídeo bombou ontem!</b><br>“Porta-tempero” fez 3x a sua média. Faça outro igual hoje.</div></div>
+        <div class="notif"><div class="ic">D</div><div><b>💡 9 influenciadoras novas</b><br>Abra Crescer › Parcerias.</div></div>
+        <div class="notif"><div class="ic">D</div><div><b>🛒 6 ofertas prontas</b><br>Toque para mandar no grupo.</div></div>
+        <div class="notif"><div class="ic">D</div><div><b>⏰ 12h: hora do Reels</b><br>Banheiro de hotel.</div></div>
+      </div></div></div>
+    <div class="card mud" style="align-self:start"><b>Como funciona</b><ul><li>Usa o app grátis <b>ntfy</b> (o mesmo dos lembretes). Você instala uma vez e assina o seu canal.</li><li>Os avisos de horário vêm do robô do Google (grátis, não gasta Claude).</li><li>“Bombou”, “influenciadoras” e “ofertas” vêm do robô da meia-noite, que já roda (não gasta nada a mais). Chegam de manhã.</li></ul></div>
+  </div>
 
-<div class="fim">
-  <b>Me responda com os números.</b>
-  <p class="sub" style="margin-top:6px">Pode escolher mais de um. Ex.: “quero 1, 3 e 4”. O que não escolher fica como está.</p>
-  <div class="voto" style="margin-top:10px"><span>1 · 3 blocos</span><span>2 · 5 botões</span><span>3 · botão +</span><span>4 · aviso</span></div>
+  <h2>Resumo: <em>o que muda</em></h2>
+  <div class="card tw"><table>
+    <tr><th>Hoje está em</th><th>Vai para</th></tr>
+    <tr><td>Faltam X dias para o Natal</td><td>❌ sai (fica o dia da semana)</td></tr>
+    <tr><td>Recado vermelho motivacional</td><td>❌ sai</td></tr>
+    <tr><td>Já passou da hora</td><td>🔄 vira “Faça agora”</td></tr>
+    <tr><td>Relatório, Minha semana</td><td>Crescer</td></tr>
+    <tr><td>Postei algo, Ferramentas</td><td>Botão +</td></tr>
+    <tr><td>Lembretes</td><td>⚙️ Ajustes</td></tr>
+    <tr><td>Menu: Parcerias, Curso</td><td>Crescer (abinhas)</td></tr>
+    <tr><td>Menu: Prontos</td><td>Criar (abinha)</td></tr>
+    <tr><td>Data, setinhas, meta, Shopee Vídeo, TikTok, Instagram, Bombando, Bloco</td><td>✅ ficam iguais</td></tr>
+  </table></div>
+  <div class="card duv"><b>Me responda</b><p class="sub">“Pode fazer tudo”, ou me diga o que não quer (ex.: “tudo menos o menu novo”).</p></div>
 </div>
 </body>
 </html>
