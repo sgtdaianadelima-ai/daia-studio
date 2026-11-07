@@ -94,6 +94,7 @@ function doPost(e) {
     if (q.acao === 'resumir') return json(resumirAulas_(q));
     if (q.acao === 'gravaraulas') return json(gravarAulas_(q));
     if (q.acao === 'guardartextos') return json(guardarTextos_(q));
+    if (q.acao === 'notas') return json(guardarNotas_(q));
     return json({erro: 'ação desconhecida'});
   } catch (err) { return json({erro: String(err.message || err)}); }
 }
@@ -197,30 +198,76 @@ function resumirCurso() {
 
 // Aba Criar do app: produto (dores, ganchos, roteiros) ou trend (a versão da Daia). Usa as dicas do curso da aba "App - Curso".
 function criar_(q) {
-  const texto = String(q.texto || '').slice(0, 1500), foto = String(q.foto || '');
-  if (!texto && !foto) return {erro: 'sem produto'};
-  if (foto.length > 4000000) return {erro: 'foto grande demais'};
+  const texto = String(q.texto || '').slice(0, 2000);
+  const fotos = (Array.isArray(q.fotos) && q.fotos.length ? q.fotos : (q.foto ? [q.foto] : [])).map(String).filter(Boolean).slice(0, 6);
+  if (!texto && !fotos.length) return {erro: 'sem produto'};
+  if (fotos.join('').length > 9000000) return {erro: 'fotos grandes demais'};
   const a = SpreadsheetApp.getActive().getSheetByName('App - Curso');
   const curso = a && a.getLastRow() > 1 ? a.getRange(2, 1, a.getLastRow() - 1, 1).getDisplayValues().map(l => l[0]).filter(Boolean).slice(0, 25).join(' | ') : '';
-  const base = 'Você é estrategista de conteúdo da Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização no TikTok (@daledaia) e Instagram. ' +
-    'Ela grava vídeos curtos falando para a câmera, tom de amiga, estética minimalista. NUNCA cite preço. Português do Brasil simples, frases curtas, sem clichê. ' +
-    (curso ? 'Siga estas dicas do curso de TikTok Shop dela: ' + curso + '. ' : '') + (foto ? 'Veja a imagem enviada. ' : '');
+  const redes = (Array.isArray(q.redes) && q.redes.length ? q.redes : [q.loja || 'TikTok']).map(String).slice(0, 4);
+  const formato = String(q.formato || 'Reels / vídeo');
+  const vender = q.objetivo === 'vender', loja = /tiktok/i.test(q.loja) ? 'TikTok Shop' : 'Shopee';
+  const REGRAS = {
+    'Instagram': 'Instagram: chamada para comentar uma palavra (ex.: QUERO) e receber o link no direct.',
+    'TikTok @daledaia': 'TikTok @daledaia: conta nova, o foco agora é VIRALIZAR e ganhar seguidores (meta 2 mil; ela faz a trend Garotas Apoiam Garotas). Conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, 7 a 25 s, áudio em alta, perguntas que geram comentário. Sem link, sem preço, sem citar Shopee ou outras redes.',
+    'TikTok @daiana.lima95': 'TikTok @daiana.lima95: perfil pessoal com o rosto dela, rotina e bastidores da casa, autoral; não repetir o Reels igual (mudar gancho e começo).',
+    'Shopee Vídeo': 'Shopee Vídeo: autoral, vertical, mais de 10 s, produto igual ao do link (cor e modelo), mostrar todas as cores, chamada "toca na sacolinha", sem citar outras redes, sem marca famosa, sem criança, faca, bebida ou animal na cena.'
+  };
+  const regras = redes.map(r => REGRAS[r] || r).join(' ');
+  const base = 'Você é estrategista de conteúdo da Daia (marca Dale Daia), afiliada de achadinhos de casa, decoração e organização. ' +
+    'Tom de amiga, estética minimalista. NUNCA cite preço. Português do Brasil simples, frases curtas, sem clichê. ' +
+    (curso ? 'Siga estas dicas do curso dela: ' + curso + '. ' : '') +
+    'Ela vai postar em: ' + redes.join(', ') + '. Formato: ' + formato + '. Objetivo: ' + (vender ? 'vender no ' + loja : 'viralizar e ganhar seguidores (venda vem depois)') + '. Regras de cada rede: ' + regras + ' ' +
+    (fotos.length ? 'Veja as imagens enviadas. ' : '');
+  const comoConteudo = /carrossel/i.test(formato)
+    ? '{"titulo":"...","gancho":"texto da capa que faz parar","slides":["slide 2 — ...","slide 3 — ..."],"cta":"último slide","audio":"tipo de som em alta"}'
+    : /stories/i.test(formato)
+      ? '{"titulo":"...","gancho":"1º story","slides":["story 2 — ...","story 3 — ..."],"cta":"último story (figurinha/enquete/link)"}'
+      : '{"titulo":"...","gancho":"fala/texto dos 3 primeiros segundos","roteiro":["0 a 3 s — ...","3 a 8 s — ..."],"cta":"chamada final","audio":"tipo de som em alta"}';
+  const legendas = '"legendas":{' + redes.map(r => '"' + r + '":"legenda própria para essa rede, curta, com 4 a 6 hashtags no fim"').join(',') + '}';
   let prompt;
   if (q.modo === 'trend') {
     prompt = base + 'Ela salvou esta trend e quer fazer a versão dela no nicho casa: ' + (texto || 'a da imagem') + '. ' +
-      'Responda SÓ com JSON: {"trend":"o que é a trend e por que viraliza, 1 frase","versoes":[{"titulo":"...","gancho":"fala dos 3 primeiros segundos","roteiro":["0 a 3 s — ...","3 a 8 s — ..."]}],"legenda":"até 2 frases","hashtags":"#... (5)","dica":"1 dica para ganhar seguidores com isso"}. Dê 3 versões.';
+      'Responda SÓ com JSON: {"trend":"o que é e por que viraliza, 1 frase","versoes":[' + comoConteudo + '],' + legendas + ',"dica":"1 dica para ganhar seguidores com isso"}. Dê 3 versões.';
   } else {
-    const loja = /tiktok/i.test(q.loja) ? 'TikTok Shop' : 'Shopee';
-    prompt = base + 'Produto para vender no ' + loja + ': ' + (texto || 'o da imagem') + '. ' +
-      'Responda SÓ com JSON: {"produto":"nome curto","publico":"para quem é, 1 frase","dores":["12 dores reais que ele resolve, do jeito que a cliente fala"],"ganchos":["10 ganchos de até 3 segundos, cada um nascendo de uma dor, que façam parar de rolar a tela"],' +
-      '"roteiros":[{"titulo":"...","gancho":"...","roteiro":["0 a 3 s — ...","..."]}],"legenda":"até 2 frases","hashtags":"#... (5)","dica":"1 dica de ' + loja + ' para vender mais"}. ' +
-      'Dê 3 roteiros de 15 a 25 segundos: gancho, produto resolvendo a dor, chamada ' + (loja === 'TikTok Shop' ? 'para o carrinho laranja' : 'para comentar QUERO e receber o link') + '.';
+    const varios = q.modo === 'varios';
+    prompt = base + (varios ? 'Ela quer UM conteúdo só mostrando vários produtos juntos: ' : 'Produto: ') + (texto || (varios ? 'os das imagens' : 'o da imagem')) + '. ' +
+      'Responda SÓ com JSON: {"produto":"nome curto' + (varios ? ' do conjunto' : '') + '","publico":"para quem é, 1 frase","buscas":["' + (varios ? 'nome de busca de CADA produto na Shopee (2 a 5 palavras), um por produto' : 'nome de busca do produto na Shopee, 2 a 5 palavras') + '"],' +
+      '"dores":["12 dores reais, do jeito que a cliente fala"],"ganchos":["10 ganchos de até 3 segundos, cada um nascendo de uma dor"],' +
+      '"conteudos":[' + comoConteudo + '],' + legendas + ',"dica":"1 dica prática para esse objetivo"}. ' +
+      'Dê 3 conteúdos diferentes entre si (ex.: POV, storytelling, antes e depois, resposta a comentário). Chamada: ' +
+      (vender && loja === 'TikTok Shop' ? 'carrinho laranja' : redes.indexOf('Shopee Vídeo') >= 0 ? 'tocar na sacolinha' : vender ? 'comentar QUERO e receber o link' : 'comentar, salvar e seguir') + '.';
   }
-  const partes = foto ? [{inline_data: {mime_type: 'image/jpeg', data: foto}}] : [];
+  const partes = fotos.map(f => ({inline_data: {mime_type: 'image/jpeg', data: f}}));
   const txt = gemini_(prompt, false, partes, {temperature: 0.9, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}});
   const j = jsonDe_(txt);
   if (!j) return {erro: txt ? 'resposta estranha' : 'o Gemini não respondeu'};
+  // Melhores links na Shopee (equilíbrio de vendas, comissão e nota) para cada produto.
+  if (q.modo !== 'trend') {
+    const buscas = (Array.isArray(j.buscas) ? j.buscas : [j.produto]).map(s => String(s || '').trim()).filter(Boolean).slice(0, 6);
+    j.links = [];
+    buscas.forEach(b => { try { const r = buscaProduto_(b); if (r.produtos && r.produtos.length) j.links.push({busca: b, produtos: r.produtos.slice(0, 3)}); } catch (e) {} });
+  }
   return {r: j};
+}
+// Bloco de notas do app: cada vez que muda, o app manda tudo e o robô guarda uma linha nova
+// na aba "App - Notas" (Data | pedaços do JSON nas colunas B em diante). Nada é apagado: dá para voltar atrás.
+function guardarNotas_(q) {
+  const json = String(q.notas || '');
+  if (!json || json.length > 900000) return {erro: 'notas vazias ou grandes demais'};
+  try { const o = JSON.parse(json); if (!o || !Array.isArray(o.notas)) return {erro: 'formato estranho'}; } catch (e) { return {erro: 'formato estranho'}; }
+  const ss = SpreadsheetApp.getActive();
+  let a = ss.getSheetByName('App - Notas');
+  if (!a) { a = ss.insertSheet('App - Notas'); a.appendRow(['Data', 'Notas (JSON)']); a.setFrozenRows(1); }
+  const pedacos = []; for (let i = 0; i < json.length; i += 45000) pedacos.push(json.slice(i, i + 45000));
+  a.getRange(a.getLastRow() + 1, 1, 1, pedacos.length + 1).setValues([[Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'dd/MM/yyyy HH:mm:ss')].concat(pedacos)]);
+  return {ok: true};
+}
+function notasSalvas_(ss) {
+  const a = ss.getSheetByName('App - Notas');
+  if (!a || a.getLastRow() < 2) return null;
+  const l = a.getRange(a.getLastRow(), 1, 1, a.getLastColumn()).getValues()[0];
+  try { return JSON.parse(l.slice(1).join('')); } catch (e) { return null; }
 }
 function legendar_(q) {
   const audio = String(q.audio || '');
@@ -303,6 +350,10 @@ function conteudo_(hoje) {
     refs: ler('App - Referências').slice(-60).map(l => ({data: l[0], rede: l[1], link: l[2], o: l[3], formato: l[4], jeito: l[5], audio: l[6]})),
     // quando o robô do computador olhou as redes pela última vez (A2)
     status: (ler('App - Status')[0] || [])[0] || '',
+    // bloco de notas do app (última versão salva)
+    notas: notasSalvas_(ss),
+    // ofertas para o grupo VIP: Data | Origem | Produto | Link original | Meu link | Loja | Texto | Foto
+    ofertas: ler('App - Ofertas').slice(-40).map(l => ({data: l[0], origem: l[1], n: l[2], orig: l[3], link: l[4], loja: l[5], txt: l[6], foto: l[7]})),
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
     plano: ler('App - Plano').filter(l => l[0] && l[3]).map(l => ({data: l[0], h: l[1], k: (l[2] || 'casa').toLowerCase().trim(), t: l[3], g: l[4], m: l[5], r: l[6] ? l[6].split('/').map(s => s.trim()).filter(Boolean) : null}))
@@ -764,5 +815,5 @@ function buscaProduto_(palavra) {
   if (!palavra) return {erro: 'sem palavra'};
   const senha = PropertiesService.getScriptProperties().getProperty('SHOPEE_SENHA');
   const lista = buscar_(palavra, senha).map(p => ({p: p, nota: oportunidade_(p)})).filter(x => x.nota > 0).sort((a, b) => b.nota - a.nota).slice(0, 5);
-  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, img: x.p.imageUrl, vendas: x.p.sales, com: x.p.commissionRate, id: x.p.itemId}))};
+  return {produtos: lista.map(x => ({n: nomeCurto_(x.p.productName), link: x.p.offerLink, img: x.p.imageUrl, vendas: x.p.sales, com: x.p.commissionRate, nota: x.p.ratingStar ? Number(x.p.ratingStar).toFixed(1) : '', id: x.p.itemId}))};
 }
