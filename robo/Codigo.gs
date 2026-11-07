@@ -297,6 +297,12 @@ function conteudo_(hoje) {
     // parcerias: a tarefa diária sugere; o app muda o status
     influ: ler('App - Influenciadoras').slice(-150).map(l => ({id: l[0], nome: l[1], seg: l[2], nicho: l[3], porque: l[4], link: l[5], data: l[6], obs: l[7], st: l[8], nota: l[9]})),
     cliques: contarCliques_(ss),
+    // insights do Claude: Data | Tipo (bombou/padrão/faça/ruim) | Título | Texto | Link | Métrica
+    insights: ler('App - Insights').slice(-40).map(l => ({data: l[0], tipo: l[1], t: l[2], txt: l[3], link: l[4], m: l[5]})),
+    // salvos dela no TikTok/Instagram: Data | Rede | Link | O que é | Formato | Do seu jeito | Áudio
+    refs: ler('App - Referências').slice(-60).map(l => ({data: l[0], rede: l[1], link: l[2], o: l[3], formato: l[4], jeito: l[5], audio: l[6]})),
+    // quando o robô do computador olhou as redes pela última vez (A2)
+    status: (ler('App - Status')[0] || [])[0] || '',
     prontos: autos.concat(outros),
     lembretes: PropertiesService.getScriptProperties().getProperty('NTFY_TOPICO') || '',
     plano: ler('App - Plano').filter(l => l[0] && l[3]).map(l => ({data: l[0], h: l[1], k: (l[2] || 'casa').toLowerCase().trim(), t: l[3], g: l[4], m: l[5], r: l[6] ? l[6].split('/').map(s => s.trim()).filter(Boolean) : null}))
