@@ -15,6 +15,7 @@ criarForm = function(){
   return '<div class="chips modo">' + chipV("data-cmodo", "produto", false, "🛍️ Produto") + chipV("data-cmodo", "varios", false, "🧺 Vários") + chipV("data-cmodo", "trend", false, "🔥 Trend") + chipV("data-cmodo", "video", true, "📹 Meu vídeo") + '</div>' +
     '<p class="how">Mande o vídeo (ou a foto) que você já editou. Eu olho e te dou ideias: narração, texto na tela, título, legenda e o que melhorar. <b>Não edito por você.</b></p>' +
     '<div class="field"><span class="lab">Onde vai postar? <small class="why">pode marcar mais de um</small></span><div class="chips">' + C_REDES.map(v => chipV("data-crede", v, c.redes.indexOf(v) >= 0)).join("") + '</div></div>' +
+    '<div class="card dica-gal"><b>📲 Jeito mais fácil:</b> na sua <b>Galeria</b>, abra o vídeo › <b>Compartilhar</b> › <b>Daia Studio</b>. Ele chega aqui sozinho.<br><small>Se abrir “Arquivos” nos botões abaixo, toque em <b>Vídeos</b> (são os mesmos da Galeria).</small></div>' +
     '<div class="field"><span class="lab">O vídeo já tem narração?</span><div class="chips">' + chipV("data-cnarr", "sim", c.narr === "sim", "🎙️ Tem") + chipV("data-cnarr", "nao", c.narr === "nao", "🤫 Não tem") + '</div></div>' +
     '<div class="cr-fotos">' + criarFotos.slice(0, 1).map(() => '<div class="cr-foto"><img data-cfprev="0" alt=""><button type="button" class="btn mini" data-cftira="all" aria-label="Tirar">✕</button></div>').join("") +
       '<label class="photo cr-add" for="cVid"><span>' + (vidInfo && vidInfo.tipo === "video" ? "🔄 Trocar o vídeo" : "📹 Vídeo da galeria") + '<small>' + (vidInfo && vidInfo.tipo === "video" ? Math.round(vidInfo.dur) + " segundos · " + esc(vidInfo.nome || "") : "abre os seus vídeos") + '</small></span><input type="file" id="cVid" accept="video/*"></label>' +
@@ -107,3 +108,24 @@ resultadoCriar = function(h){
     '<div class="actions"><button class="btn" data-cnota="1">📝 Guardar no Bloco</button></div><p class="why">Toque numa frase para copiar.</p></article>';
 };
 try { if (!$("tab-criar").hidden) renderCriar(); } catch(_) {}
+
+// ---------- veio da Galeria (Compartilhar › Daia Studio) ----------
+(async function(){
+  if (!/compartilhado=1/.test(location.search) || !("caches" in window)) return;
+  try { history.replaceState(null, "", location.pathname); } catch(_) {}
+  try {
+    const c = await caches.open("daia-compartilhado");
+    const r = await c.match("arquivo"), rt = await c.match("texto");
+    const c0 = CR(); c0.modo = "video"; c0.atual = null;
+    if (rt) { const t = await rt.text(); if (t && !c0.texto) c0.texto = t; }
+    save(); show("criar");
+    if (r) {
+      const tipo = r.headers.get("Content-Type") || "", nome = decodeURIComponent(r.headers.get("X-Nome") || "");
+      const blob = await r.blob();
+      if (/^image\//.test(tipo)) { criarFotos = [await shrink(new File([blob], nome || "foto.jpg", {type: tipo}), 1024)]; vidInfo = {tipo: "foto", nome, dur: 0}; renderCriar(); }
+      else { criarStatus("📹 Abrindo o vídeo que você compartilhou…"); const q = await quadrosDoVideo(new File([blob], nome || "video.mp4", {type: tipo || "video/mp4"})); criarFotos = q.fotos; vidInfo = {tipo: "video", dur: q.dur, nome}; criarStatus(""); renderCriar(); }
+      toast("Pronto! Agora toque em ✨ Me dar ideias para este vídeo.", 5000);
+    }
+    await c.delete("arquivo"); await c.delete("texto");
+  } catch(_) { criarStatus("Não consegui abrir o arquivo compartilhado. Tente de novo pela Galeria › Compartilhar › Daia Studio."); }
+})();
