@@ -17,7 +17,8 @@ criarForm = function(){
     '<div class="field"><span class="lab">Onde vai postar? <small class="why">pode marcar mais de um</small></span><div class="chips">' + C_REDES.map(v => chipV("data-crede", v, c.redes.indexOf(v) >= 0)).join("") + '</div></div>' +
     '<div class="field"><span class="lab">O vídeo já tem narração?</span><div class="chips">' + chipV("data-cnarr", "sim", c.narr === "sim", "🎙️ Tem") + chipV("data-cnarr", "nao", c.narr === "nao", "🤫 Não tem") + '</div></div>' +
     '<div class="cr-fotos">' + criarFotos.slice(0, 1).map(() => '<div class="cr-foto"><img data-cfprev="0" alt=""><button type="button" class="btn mini" data-cftira="all" aria-label="Tirar">✕</button></div>').join("") +
-      '<label class="photo cr-add" for="cVid"><span>' + (criarFotos.length ? "🔄 Trocar o vídeo" : "📹 Escolher o vídeo ou a foto") + '<small>' + (vidInfo ? (vidInfo.tipo === "video" ? Math.round(vidInfo.dur) + " segundos · " : "foto · ") + esc(vidInfo.nome || "") : "da sua galeria") + '</small></span><input type="file" id="cVid" accept="video/*,image/*"></label></div>' +
+      '<label class="photo cr-add" for="cVid"><span>' + (vidInfo && vidInfo.tipo === "video" ? "🔄 Trocar o vídeo" : "📹 Vídeo da galeria") + '<small>' + (vidInfo && vidInfo.tipo === "video" ? Math.round(vidInfo.dur) + " segundos · " + esc(vidInfo.nome || "") : "abre os seus vídeos") + '</small></span><input type="file" id="cVid" accept="video/*"></label>' +
+      '<label class="photo cr-add" for="cVidFoto"><span>' + (vidInfo && vidInfo.tipo === "foto" ? "🔄 Trocar a foto" : "🖼️ Foto da galeria") + '<small>' + (vidInfo && vidInfo.tipo === "foto" ? esc(vidInfo.nome || "") : "se for foto") + '</small></span><input type="file" id="cVidFoto" accept="image/*"></label></div>' +
     '<div class="field"><label for="cTxt">Quer contar algo? (opcional)</label><textarea class="input" id="cTxt" rows="2" placeholder="Ex.: é o ep. 6 da Operação Natal; o produto é o kit de chenille">' + esc(c.texto || "") + '</textarea></div>' +
     '<div class="actions"><button class="btn wine full" data-cgerar="1">✨ Me dar ideias para este vídeo</button></div>';
 };
@@ -42,7 +43,7 @@ function quadrosDoVideo(file){
 }
 // pega o arquivo antes do app tratar como foto
 document.addEventListener("change", async e => {
-  if (e.target.id !== "cVid" || !e.target.files.length) return;
+  if ((e.target.id !== "cVid" && e.target.id !== "cVidFoto") || !e.target.files.length) return;
   e.stopImmediatePropagation();
   const f = e.target.files[0], c = CR(); c.texto = $("cTxt") ? $("cTxt").value : c.texto;
   if (/^image\//.test(f.type)) { criarFotos = [await shrink(f, 1024)]; vidInfo = {tipo: "foto", nome: f.name, dur: 0}; renderCriar(); return; }
