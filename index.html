@@ -354,6 +354,12 @@ details.cr-bloco>summary{list-style:none;cursor:pointer}details.cr-bloco>summary
 .card.faca{background:var(--wine);color:#fff;border-color:var(--wine)}.card.faca .tag{background:rgba(255,255,255,.18);color:#fff}.card.faca .why{color:#f3d9dc}
 .card.faca .title{color:#fff}.card.faca .btn{background:#fff;color:var(--wine);border-color:#fff}.card.faca .btn.lite{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
 .card.ferr{border-color:var(--wine)}.card.ferr>.card{border:0;padding:0;margin:0}
+.mic-wrap{position:relative;display:block;width:100%}
+.mic-wrap>input,.mic-wrap>textarea{width:100%;padding-right:48px!important;box-sizing:border-box}
+.mic-bt{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);font-size:17px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer;z-index:1}
+.mic-wrap.area .mic-bt{top:auto;bottom:8px;transform:none}
+.mic-bt.on{background:var(--wine);border-color:var(--wine);animation:micpulso 1.2s infinite}
+@keyframes micpulso{0%{box-shadow:0 0 0 0 rgba(122,31,43,.5)}100%{box-shadow:0 0 0 12px rgba(122,31,43,0)}}
 body.clean .det{display:none}
 body.clean .card.aberto .det{display:revert}
 body.clean .card .title{cursor:pointer}
@@ -595,6 +601,7 @@ body.letra-grande .btn{font-size:16px}
 <script src="repaginada.js"></script>
 <script src="assunto.js"></script>
 <script src="video.js"></script>
+<script src="ditado.js"></script>
 <script src="voz.js"></script>
 <script src="tema.js"></script>
 </body>
