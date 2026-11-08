@@ -1542,7 +1542,7 @@ function renderCriar(){
   CC = [];
   const c = CR(), h = c.atual != null ? c.hist[c.atual] : null;
   $("criarBox").innerHTML = '<div class="form">' + criarForm() + '</div><div id="cStatus"></div>' + resultadoCriar(h) +
-    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + ({trend: "🔥 Trend", varios: "🧺 Vários"}[x.modo] || "🛍️ Produto") + ' · ' + esc((x.redes || [x.loja]).join(", ")) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '') + salvosCard();
+    (c.hist.length ? '<h2>Já criados</h2><div class="list">' + c.hist.map((x, i) => '<button type="button" class="cr-hist' + (i === c.atual ? ' on' : '') + '" data-chist="' + i + '"><b>' + esc((x.r && (x.r.produto || x.r.trend)) || x.texto || "Sem nome").slice(0, 70) + '</b><small>' + ({trend: "🔥 Trend", varios: "🧺 Vários", video: "📹 Meu vídeo"}[x.modo] || "🛍️ Produto") + ' · ' + esc((x.redes || [x.loja]).join(", ")) + ' · ' + esc(fmtDay(x.data, {day: "numeric", month: "short"})) + '</small></button>').join("") + '</div>' : '') + salvosCard();
   document.querySelectorAll("[data-cfprev]").forEach(im => { const f = criarFotos[Number(im.dataset.cfprev)]; if (f) im.src = URL.createObjectURL(f); });
 }
 function criarStatus(t, html){ const el = $("cStatus"); if (el) el.innerHTML = t ? '<article class="card"><p class="how">' + (html ? t : esc(t)) + '</p></article>' : ""; }
