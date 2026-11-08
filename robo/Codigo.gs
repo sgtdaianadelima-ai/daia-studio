@@ -229,7 +229,11 @@ function criar_(q) {
       : '{"titulo":"...","gancho":"fala/texto dos 3 primeiros segundos","roteiro":["0 a 3 s — ...","3 a 8 s — ..."],"cta":"chamada final","audio":"tipo de som em alta"}';
   const legendas = '"legendas":{' + redes.map(r => '"' + r + '":"legenda própria para essa rede, curta, com 4 a 6 hashtags no fim"').join(',') + '}';
   let prompt;
-  if (q.modo === 'trend') {
+  if (q.modo === 'video') {
+    const dur = Number(q.duracao) || 0;
+    prompt = base + 'Ela gravou e editou este conteúdo e quer SUGESTÕES (não editar por ela). As imagens são quadros do ' + (q.tipoArquivo === 'foto' ? 'conteúdo (foto)' : 'vídeo, em ordem, do começo ao fim') + (dur ? '; o vídeo tem ' + Math.round(dur) + ' segundos' : '') + '. ' + (q.narr === 'sim' ? 'O vídeo JÁ tem narração dela. ' : q.narr === 'nao' ? 'O vídeo NÃO tem narração. ' : '') + (texto ? 'O que ela contou: ' + texto + '. ' : '') +
+      'Analise o que aparece e responda SÓ com JSON: {"resumo":"o que o vídeo mostra, 1 frase","nota":"nota de 0 a 10 para o potencial de viralizar e por quê, 1 frase","titulo":"título curto para o vídeo","gancho":"texto/fala dos 3 primeiros segundos","narracao":{"usar":true,"porque":"por que narrar ou deixar sem narração","texto":"texto corrido para narrar, do tamanho do vídeo (vazio se não for narrar)"},"texto_tela":["frases curtas para escrever no vídeo, na ordem"],"capa":"qual momento usar de capa e que texto pôr","audio":"tipo de som em alta que combina","melhorias":["3 a 5 ajustes práticos de edição (corte, ritmo, legenda, zoom, ordem)"],"legendas":{' + redes.map(r => '"' + r + '":"legenda própria com até 5 hashtags"').join(',') + '},"shopee":"serve para a Shopee Vídeo? (mais de 10 s, produto igual ao do link, mostrar cores, sem marca famosa, sem criança/faca/bebida) — diga o que ajustar","ideias":["2 ou 3 ideias de próximos vídeos em cima deste"],"buscas":["nome de busca na Shopee de cada produto que aparece, se houver"]}.';
+  } else if (q.modo === 'trend') {
     prompt = base + 'Ela salvou esta trend e quer fazer a versão dela no nicho casa: ' + (texto || 'a da imagem') + '. ' +
       'Responda SÓ com JSON: {"trend":"o que é e por que viraliza, 1 frase","versoes":[' + comoConteudo + '],' + legendas + ',"dica":"1 dica para ganhar seguidores com isso"}. Dê 3 versões.';
   } else {
@@ -246,7 +250,7 @@ function criar_(q) {
   const j = jsonDe_(txt);
   if (!j) return {erro: txt ? 'resposta estranha' : 'o Gemini não respondeu'};
   // Melhores links na Shopee (equilíbrio de vendas, comissão e nota) para cada produto.
-  if (q.modo !== 'trend') {
+  if (q.modo !== 'trend' && !(q.modo === 'video' && !(Array.isArray(j.buscas) && j.buscas.length))) {
     const buscas = (Array.isArray(j.buscas) ? j.buscas : [j.produto]).map(s => String(s || '').trim()).filter(Boolean).slice(0, 6);
     j.links = [];
     buscas.forEach(b => { try { const r = buscaProduto_(b); if (r.produtos && r.produtos.length) j.links.push({busca: b, produtos: r.produtos.slice(0, 3)}); } catch (e) {} });
