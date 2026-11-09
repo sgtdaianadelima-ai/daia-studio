@@ -119,7 +119,7 @@ document.addEventListener("input", e => { if (e.target.id !== "bBusca") return; 
 let paginaAtual = "tiktokshop";
 function abrirPagina(p){ paginaAtual = p; show("pagina"); }
 function renderPagina(){
-  const P = {tiktokshop: [paginaTTS, "TikTok", "Shop", "Tudo pronto para quando a @daledaia chegar aos 2 mil."],
+  const P = {tiktokshop: [paginaTTS, "TikTok", "Shop", "Liberado com 1.000 seguidores (09/11). Mineração, amostras e 60x60."],
     regras: [paginaRegras, "Regras", "e níveis", "Diretrizes da Shopee Vídeo, TikTok e Instagram, níveis e a limpa."],
     ofertas: [paginaOfertas, "Ofertas", "do grupo", "Ofertas com o seu link, prontas para mandar no grupo VIP."]}[paginaAtual] || [paginaTTS, "", "", ""];
   $("pagTit").innerHTML = esc(P[1]) + ' <em>' + esc(P[2]) + '</em>'; $("pagSub").textContent = P[3];
@@ -143,14 +143,14 @@ const FORMATOS_10 = [
   ["ASMR / detalhe", "Sons e detalhes de {p}: abrir, encaixar, fechar (10 s)"]
 ];
 function paginaTTS(){
-  const seg = seguidoresDe("daledaia"), falta = Math.max(0, 2000 - seg), pct = Math.min(100, Math.round(seg / 20));
+  const seg = seguidoresDe("daledaia"), falta = Math.max(0, 1000 - seg), pct = Math.min(100, Math.round(seg / 10));
   const tts = state.tts = state.tts || {produtos: []};
   const prods = tts.produtos;
-  return '<article class="card"><div class="meta"><span class="tag serie">' + (seg >= 2000 ? "✅ Liberado" : "🔒 Ainda não") + '</span><span class="why">@daledaia</span></div>' +
-      '<h3 class="title">' + seg + ' de 2.000 seguidores</h3><div class="barra"><span style="width:' + pct + '%"></span></div>' +
-      '<p class="how">' + (seg >= 2000 ? "Chegou! Agora espere 1 semana antes de ativar (veja abaixo)." : "Faltam " + falta + ". Continue com o Garotas Apoiam Garotas, devagar (uns 10 comentários e troca uma palavra ou emoji), e postando vídeos seus todo dia.") + '</p></article>' +
+  return '<article class="card"><div class="meta"><span class="tag serie">' + (seg >= 1000 ? "✅ Liberado" : "🔒 Ainda não") + '</span><span class="why">@daledaia</span></div>' +
+      '<h3 class="title">' + seg + ' de 1.000 seguidores</h3><div class="barra"><span style="width:' + pct + '%"></span></div>' +
+      '<p class="how">' + (seg >= 1000 ? "Chegou! Agora espere 1 semana antes de ativar (veja abaixo)." : "Faltam " + falta + ". Continue com o Garotas Apoiam Garotas, devagar (uns 10 comentários e troca uma palavra ou emoji), e postando vídeos seus todo dia.") + '</p></article>' +
     '<details class="secao"><summary><span class="sec-emoji">⚠️</span><span class="sec-txt"><b>Antes de ativar</b><small>para não ser recusada por 30 dias</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
-      ck("tts1", "Bati 2 mil seguidores de verdade (nunca comprar seguidor)") + ck("tts2", "Esperei pelo menos 1 semana depois dos 2 mil, postando e interagindo") + ck("tts3", "Postei vídeo nos últimos 180 dias e tenho 18 anos ou mais") + ck("tts4", "Fiz a verificação de identidade e os dados fiscais (TikTok Studio › TikTok Shop para Criadores)") + ck("tts5", "Pus a chave Pix em Receita (pagamento toda quarta)") +
+      ck("tts1", "Bati 1.000 seguidores de verdade (nunca comprar seguidor)") + ck("tts2", "Esperei pelo menos 1 semana depois dos 2 mil, postando e interagindo") + ck("tts3", "Postei vídeo nos últimos 180 dias e tenho 18 anos ou mais") + ck("tts4", "Fiz a verificação de identidade e os dados fiscais (TikTok Studio › TikTok Shop para Criadores)") + ck("tts5", "Pus a chave Pix em Receita (pagamento toda quarta)") +
       '<p class="how">Ativar: TikTok Studio › Monetização › TikTok Shop para Criadores › Participar.<br>Integridade da conta começa com 200 pontos: confira sempre e use a pré-verificação antes de postar.</p></article></div></details>' +
     '<details class="secao"><summary><span class="sec-emoji">⛏️</span><span class="sec-txt"><b>Minerar produto</b><small>a peneira antes de pedir amostra</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
       '<p class="how">Responda e o app diz se vale:</p>' +
