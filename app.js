@@ -261,8 +261,9 @@ function marcarMeta(v){
   save(); renderHoje();
 }
 // ---------- SEGUIDORES (o robô anota todo dia) ----------
-const META_SEG = 2000;
-// Relatório: os 2 TikToks rumo aos 2.000, Instagram, grupo VIP e o texto de análise do Claude.
+// Metas da @daledaia (10/11): 2.000 (o TikTok Shop deixa postar mais de 10 vídeos por dia) e depois 10.000.
+const META_SEG = 2000, META_SEG2 = 10000;
+// Relatório: a @daledaia rumo aos 2.000 e aos 10.000, Instagram, grupo VIP e o texto de análise do Claude.
 const DOC_METRICAS = "https://claude.ai/artifact/5Pgs6xkAreQUUq4XfRujjr";
 function contasSeg(){
   const s = conteudo().seguidores || [], contas = {};
@@ -273,14 +274,15 @@ function contasSeg(){
   });
 }
 function barraSeg(l){
-  const falta = Math.max(0, META_SEG - l.n), pct = Math.min(100, l.n / META_SEG * 100);
+  const alvo = l.n < META_SEG ? META_SEG : META_SEG2, nomeAlvo = alvo.toLocaleString("pt-BR");
+  const falta = Math.max(0, alvo - l.n), pct = Math.min(100, l.n / alvo * 100);
   const ritmo = l.ganho && l.ganho > 0 ? Math.ceil(falta / (l.ganho / Math.min(7, l.dias - 1))) : null;
-  return '<div class="seg-alvo"><div class="meta-topo"><b>🎵 ' + esc(l.c) + '</b><span>' + l.n.toLocaleString("pt-BR") + '</span></div>' +
+  return '<div class="seg-alvo"><div class="meta-topo"><b>🎵 ' + esc(l.c) + '</b><span>' + l.n.toLocaleString("pt-BR") + ' de ' + nomeAlvo + '</span></div>' +
     '<div class="meta-barra"><i style="width:' + pct + '%"></i></div>' +
-    '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> para os 2.000 (TikTok Shop).' + (l.ganho !== null ? ' ' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana.' : '') + (ritmo ? ' Nesse ritmo, uns ' + ritmo + ' dias.' : '') : 'Chegou nos 2.000! Confira no TikTok Studio se o TikTok Shop liberou. 🎉') + '</p></div>';
+    '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> para os ' + nomeAlvo + (alvo === META_SEG ? ' (libera mais de 10 vídeos por dia no TikTok Shop).' : ' (a meta grande).') + (l.ganho !== null ? ' ' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana.' : '') + (ritmo ? ' Nesse ritmo, uns ' + ritmo + ' dias.' : '') : 'Chegou nos 10.000! 🎉') + '</p></div>';
 }
 function relatorioCard(){
-  const ls = contasSeg(), tts = ls.filter(l => /tiktok/i.test(l.rede)).sort((a, b) => /daledaia/i.test(a.c) ? -1 : 1), outros = ls.filter(l => !/tiktok/i.test(l.rede));
+  const ls = contasSeg(), tts = ls.filter(l => /tiktok/i.test(l.rede) && /daledaia/i.test(l.c)), outros = ls.filter(l => !tts.includes(l));
   const cl = conteudo().cliques || {}, totCl = Object.values(cl).reduce((s, n) => s + n, 0);
   const a = conteudo().analise;
   return '<article class="card">' + (tts.length ? tts.map(barraSeg).join("") : '<p class="how">O robô anota os seguidores todo dia. Os números aparecem aqui amanhã.</p>') +
@@ -343,8 +345,8 @@ function renderAjustes(){
   const bt = (attrs, em, t, s) => '<' + (attrs.startsWith("href") ? 'a ' : 'button type="button" ') + 'class="aj-bt" ' + attrs + '><span>' + em + '</span><div><b>' + t + '</b><small>' + s + '</small></div></' + (attrs.startsWith("href") ? 'a' : 'button') + '>';
   $("ajBox").innerHTML =
     bt('href="como-esta.html"', '🧭', 'Como está tudo', 'os robôs, o que já funciona e o que mudou') +
-    bt('data-pagina="tiktokshop"', '🛍️', 'TikTok Shop', 'mineração, amostras, 10 vídeos por produto e 60x60 (para os 2 mil)') +
-    bt('data-pagina="regras"', '📏', 'Regras e níveis', 'Shopee Vídeo nível 2, a limpa, diretrizes e os 2 TikToks') +
+    bt('data-pagina="tiktokshop"', '🛍️', 'TikTok Shop', 'ativo! 10 vídeos por dia até os 2 mil, mineração e 60x60') +
+    bt('data-pagina="regras"', '📏', 'Regras e níveis', 'Shopee Vídeo nível 2, a limpa, diretrizes e a @daledaia') +
     bt('data-pagina="plataformas"', '🏪', 'Plataformas e minhas tags', 'Shein, Amazon e as outras: vale a pena? como entrar') +
     bt('data-pagina="ofertas"', '🛒', 'Ofertas do grupo', 'ofertas com o seu link para mandar no grupo VIP') +
     bt('data-tabir="ia"', '🤖', 'IAs', 'atalhos e pedidos prontos para ChatGPT, Gemini e Claude') +
@@ -1441,13 +1443,14 @@ $("iaBox").addEventListener("click", async e => {
 // Ela escolhe onde vai postar, o formato e o objetivo. O robô do Google pede ao Gemini e
 // procura os melhores links na Shopee. Se não responder, o mesmo pedido vai para o Claude.
 let criarFotos = [], criarBusy = false, CC = [];
-const C_REDES = ["Instagram", "TikTok @daledaia", "TikTok @daiana.lima95", "Shopee Vídeo"];
+const C_REDES = ["Instagram", "TikTok @daledaia", "Shopee Vídeo"]; // 10/11: a @daiana.lima95 parou
 const C_FORMATOS = ["Reels / vídeo", "Carrossel", "Stories"];
 const CR = () => {
   const c = state.criar = state.criar || {};
   if (!c.modo) c.modo = "produto";
   if (!c.hist) c.hist = [];
-  if (!c.redes || !c.redes.length) c.redes = ["TikTok @daledaia"];
+  c.redes = (c.redes || []).filter(r => C_REDES.includes(r));
+  if (!c.redes.length) c.redes = ["TikTok @daledaia"];
   if (!c.formato) c.formato = "Reels / vídeo";
   if (!c.objetivo) c.objetivo = "viralizar";
   if (!c.loja || c.loja === "TikTok Shop" && !c.lojaEscolhida) c.loja = "Shopee";
@@ -1457,7 +1460,7 @@ const blobB64 = b => new Promise(res => { const r = new FileReader(); r.onload =
 // Regras que a Daia segue (curso + diretrizes). Vão no pedido e aparecem no fim do resultado.
 const REGRAS_REDE = {
   "Instagram": "Instagram: legenda curta, chamada para comentar a PALAVRA do produto (ex.: COZINHA, ÁRVORE; não use QUERO) e receber no direct; até 5 hashtags + palavras-chave; 2 h entre posts; picos 8h, 12h e 18h.",
-  "TikTok @daledaia": "TikTok @daledaia (conta nova, foco agora é VIRALIZAR e chegar a 2 mil seguidores com a trend Garotas Apoiam Garotas): conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, vídeos de 7 a 25 s, áudio em alta, perguntas que geram comentário. Nada de link, preço ou falar de Shopee.",
+  "TikTok @daledaia": "TikTok @daledaia (a única conta do TikTok dela, com TikTok Shop ativo; até 10 vídeos por dia até bater 2 mil seguidores, depois a meta é 10 mil; foco em VIRALIZAR e ganhar seguidores): conteúdo 100% autoral, gancho forte nos 3 primeiros segundos, vídeos de 7 a 25 s, áudio em alta, perguntas que geram comentário. Nada de link, preço ou falar de Shopee.",
   "TikTok @daiana.lima95": "TikTok @daiana.lima95 (perfil pessoal, rosto dela): vídeo autoral com ela aparecendo, bastidores e rotina da casa, áudio em alta. Não repostar o Reels igualzinho: mudar o gancho e o começo.",
   "Shopee Vídeo": "Shopee Vídeo: só vídeo autoral (pack só editado), vertical 9:16, mais de 10 segundos (conta para o nível), o produto do vídeo IGUAL ao do link (mesma cor e modelo), mostrar todas as cores, chamada 'toca na sacolinha', sem falar de outras redes, sem marca famosa, sem criança, faca, bebida ou animal na cena, marcar se é feito com IA."
 };
@@ -1480,7 +1483,7 @@ function criarForm(){
     '<div class="field"><span class="lab">Onde vai postar? <small class="why">pode marcar mais de um</small></span><div class="chips">' + C_REDES.map(v => chip("data-crede", v, c.redes.indexOf(v) >= 0)).join("") + '</div></div>' +
     '<div class="field"><span class="lab">O que você quer?</span><div class="chips">' + C_FORMATOS.map(v => chip("data-cform", v, c.formato === v)).join("") + '</div></div>' +
     (trend ? '' : '<div class="field"><span class="lab">Objetivo</span><div class="chips">' + chip("data-cobj", "viralizar", c.objetivo === "viralizar", "🚀 Viralizar (seguidores)") + chip("data-cobj", "vender", c.objetivo === "vender", "💰 Vender") + '</div></div>' +
-      (c.objetivo === "vender" ? '<div class="field"><span class="lab">Vende onde?</span><div class="chips">' + chip("data-cloja", "Shopee", c.loja === "Shopee") + chip("data-cloja", "TikTok Shop", c.loja === "TikTok Shop", "TikTok Shop <small>(depois dos 2 mil)</small>") + '</div></div>' : '')) +
+      (c.objetivo === "vender" ? '<div class="field"><span class="lab">Vende onde?</span><div class="chips">' + chip("data-cloja", "Shopee", c.loja === "Shopee") + chip("data-cloja", "TikTok Shop", c.loja === "TikTok Shop", "TikTok Shop") + '</div></div>' : '')) +
     '<div class="cr-fotos">' + criarFotos.map((f, i) => '<div class="cr-foto"><img data-cfprev="' + i + '" alt=""><button type="button" class="btn mini" data-cftira="' + i + '" aria-label="Tirar foto">✕</button></div>').join("") +
       (criarFotos.length < (varios ? 6 : 1) ? '<label class="photo cr-add" for="cFoto"><span>' + (trend ? "📷 Print da trend" : varios ? "📷 + Foto de um produto" : "📷 Foto do produto") + '<small>' + (trend ? "opcional" : "sem link? eu acho o link pela foto") + '</small></span><input type="file" id="cFoto" accept="image/*"' + (varios ? " multiple" : "") + '></label>' : '') + '</div>' +
     '<div class="field"><label for="cTxt">' + (trend ? "O que você viu?" : varios ? "Quais produtos? (um por linha)" : "O que é o produto?") + '</label><textarea class="input" id="cTxt" rows="' + (varios ? 4 : 3) + '" placeholder="' +

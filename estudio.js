@@ -25,7 +25,7 @@ const SEED_FRASES = [
 ];
 const SEED_LINKS = [
   ["Shopee", "Painel de afiliados (comissões e links): https://affiliate.shopee.com.br\nCentro de Criação · Shopee Vídeo (vendas por vídeo e por produto): https://creator.shopee.com.br\nMinha vitrine: https://collshp.com/daledaia?view=storefront\nCupons para divulgar: https://s.shopee.com.br/50ZwF95lgK\nRegras de originalidade da Shopee Vídeo: https://help.shopee.com.br/portal/10/article/224501\nNíveis de criador (nível 0, 1 e 2): https://help.shopee.com.br/portal/10/article/224365\n\nNo app da Shopee: Eu › Criadores e afiliados › Central do Criador (nível e Saúde do vídeo)."],
-  ["TikTok", "TikTok Studio (métricas): https://www.tiktok.com/tiktokstudio\nDiretrizes da comunidade: https://www.tiktok.com/community-guidelines/pt\n@daledaia: https://www.tiktok.com/@daledaia\n@daiana.lima95: https://www.tiktok.com/@daiana.lima95\n\nNo app: pesquise “Creator Search Insights” para ver o que suas seguidoras procuram.\nTikTok Shop (depois dos 2 mil): TikTok Studio › Monetização › TikTok Shop para Criadores."],
+  ["TikTok", "TikTok Studio (métricas): https://www.tiktok.com/tiktokstudio\nDiretrizes da comunidade: https://www.tiktok.com/community-guidelines/pt\n@daledaia: https://www.tiktok.com/@daledaia\n@daiana.lima95: https://www.tiktok.com/@daiana.lima95\n\nNo app: pesquise “Creator Search Insights” para ver o que suas seguidoras procuram.\nTikTok Shop (ativo): TikTok Studio › Monetização › TikTok Shop para Criadores."],
   ["Instagram", "@daledaia: https://www.instagram.com/daledaia/\nDiretrizes da comunidade: https://help.instagram.com/477434105621119\nMeta Business Suite (agendar posts): https://business.facebook.com\n\nNo app: Painel profissional › Insights."],
   ["Meus links", "Página de links (bio): https://daledaia.github.io\nGrupo VIP: https://chat.whatsapp.com/E6jfFnVCMfN9Byt4p1nEtm\nMagalu: https://www.magazinevoce.com.br/magazinedaledaia/\nNatura: https://www.natura.com.br/consultoria/daledaia\nMercado Livre: https://www.mercadolivre.com.br/social/gustavomachadodeassis\nApp Daia Studio: https://sgtdaianadelima-ai.github.io/daia-studio/"]
 ];
@@ -119,7 +119,7 @@ document.addEventListener("input", e => { if (e.target.id !== "bBusca") return; 
 let paginaAtual = "tiktokshop";
 function abrirPagina(p){ paginaAtual = p; show("pagina"); }
 function renderPagina(){
-  const P = {tiktokshop: [paginaTTS, "TikTok", "Shop", "Liberado com 1.000 seguidores (09/11). Mineração, amostras e 60x60."],
+  const P = {tiktokshop: [paginaTTS, "TikTok", "Shop", "Ativo! Até 10 vídeos por dia até os 2 mil. Depois, rumo aos 10 mil."],
     regras: [paginaRegras, "Regras", "e níveis", "Diretrizes da Shopee Vídeo, TikTok e Instagram, níveis e a limpa."],
     ofertas: [paginaOfertas, "Ofertas", "do grupo", "Ofertas com o seu link, prontas para mandar no grupo VIP."]}[paginaAtual] || [paginaTTS, "", "", ""];
   $("pagTit").innerHTML = esc(P[1]) + ' <em>' + esc(P[2]) + '</em>'; $("pagSub").textContent = P[3];
@@ -143,15 +143,15 @@ const FORMATOS_10 = [
   ["ASMR / detalhe", "Sons e detalhes de {p}: abrir, encaixar, fechar (10 s)"]
 ];
 function paginaTTS(){
-  const seg = seguidoresDe("daledaia"), falta = Math.max(0, 1000 - seg), pct = Math.min(100, Math.round(seg / 10));
+  const seg = seguidoresDe("daledaia"), alvo = seg < 2000 ? 2000 : 10000, falta = Math.max(0, alvo - seg), pct = Math.min(100, Math.round(seg / alvo * 100));
   const tts = state.tts = state.tts || {produtos: []};
   const prods = tts.produtos;
-  return '<article class="card"><div class="meta"><span class="tag serie">' + (seg >= 1000 ? "✅ Liberado" : "🔒 Ainda não") + '</span><span class="why">@daledaia</span></div>' +
-      '<h3 class="title">' + seg + ' de 1.000 seguidores</h3><div class="barra"><span style="width:' + pct + '%"></span></div>' +
-      '<p class="how">' + (seg >= 1000 ? "Chegou! Agora espere 1 semana antes de ativar (veja abaixo)." : "Faltam " + falta + ". Continue com o Garotas Apoiam Garotas, devagar (uns 10 comentários e troca uma palavra ou emoji), e postando vídeos seus todo dia.") + '</p></article>' +
-    '<details class="secao"><summary><span class="sec-emoji">⚠️</span><span class="sec-txt"><b>Antes de ativar</b><small>para não ser recusada por 30 dias</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
-      ck("tts1", "Bati 1.000 seguidores de verdade (nunca comprar seguidor)") + ck("tts2", "Esperei pelo menos 1 semana depois dos 2 mil, postando e interagindo") + ck("tts3", "Postei vídeo nos últimos 180 dias e tenho 18 anos ou mais") + ck("tts4", "Fiz a verificação de identidade e os dados fiscais (TikTok Studio › TikTok Shop para Criadores)") + ck("tts5", "Pus a chave Pix em Receita (pagamento toda quarta)") +
-      '<p class="how">Ativar: TikTok Studio › Monetização › TikTok Shop para Criadores › Participar.<br>Integridade da conta começa com 200 pontos: confira sempre e use a pré-verificação antes de postar.</p></article></div></details>' +
+  return '<article class="card"><div class="meta"><span class="tag serie">✅ TikTok Shop ativo</span><span class="why">@daledaia</span></div>' +
+      '<h3 class="title">' + seg.toLocaleString("pt-BR") + ' de ' + alvo.toLocaleString("pt-BR") + ' seguidores</h3><div class="barra"><span style="width:' + pct + '%"></span></div>' +
+      '<p class="how">' + (alvo === 2000 ? "Faltam " + falta.toLocaleString("pt-BR") + " para os 2 mil. Até lá, o TikTok Shop deixa postar <b>10 vídeos por dia</b>. Depois dos 2 mil, a meta é <b>10 mil</b>." : falta ? "Passou dos 2 mil: já pode postar mais de 10 por dia. Faltam " + falta.toLocaleString("pt-BR") + " para os 10 mil." : "Chegou nos 10 mil! 🎉") + '</p></article>' +
+    '<details class="secao"><summary><span class="sec-emoji">⚠️</span><span class="sec-txt"><b>Conta em dia</b><small>o que conferir no TikTok Shop</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
+      ck("tts1", "Nunca comprar seguidor (reprova na verificação do TikTok Shop)") + ck("tts3", "Postei vídeo nos últimos 180 dias e tenho 18 anos ou mais") + ck("tts4", "Fiz a verificação de identidade e os dados fiscais (TikTok Studio › TikTok Shop para Criadores)") + ck("tts5", "Pus a chave Pix em Receita (pagamento toda quarta)") +
+      '<p class="how">Integridade da conta começa com 200 pontos: confira sempre e use a pré-verificação antes de postar.</p></article></div></details>' +
     '<details class="secao"><summary><span class="sec-emoji">⛏️</span><span class="sec-txt"><b>Minerar produto</b><small>a peneira antes de pedir amostra</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
       '<p class="how">Responda e o app diz se vale:</p>' +
       '<div class="mina"><label>Nota <input class="input" id="mNota" inputmode="decimal" placeholder="4.7"></label><label>% positivas <input class="input" id="mPos" inputmode="numeric" placeholder="92"></label>' +
@@ -214,11 +214,9 @@ function paginaRegras(){
       '<li>❌ Comprar seguidores (reprova na verificação antitrapaça do TikTok Shop).</li><li>❌ Seguir dezenas de contas em poucos minutos.</li><li>❌ Link ou preço no vídeo, citar Shopee ou outras redes.</li><li>❌ Apagar vídeo que foi mal (ele pode viralizar depois).</li><li>💡 Filtre palavras nos comentários: Configurações › Privacidade › Comentários › Filtrar palavras (golpe, falso, PV, link).</li></ul></article></div></details>' +
     '<details class="secao"><summary><span class="sec-emoji">📸</span><span class="sec-txt"><b>Instagram: pode e não pode</b><small>para crescer sem bloqueio</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card"><ul class="script">' +
       '<li>✅ Fotos e vídeos seus ou de licença livre (Unsplash/Pexels). Nunca Pinterest.</li><li>✅ 2 h entre posts. Picos 8h, 12h e 18h. Story a cada 12 h.</li><li>✅ Responder comentário mandando o link no direct.</li><li>❌ Comprar seguidor, seguir/deixar de seguir em massa, apps que automatizam curtidas.</li><li>❌ Música sem licença em conta comercial (use a biblioteca do Instagram).</li><li>❌ Publicidade sem avisar: em parceria paga, marque “Parceria paga”.</li></ul></article></div></details>' +
-    '<details class="secao"><summary><span class="sec-emoji">🧭</span><span class="sec-txt"><b>Estratégia dos 2 TikToks</b><small>o que fazer em cada um</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
-      '<p class="how"><b>@daledaia (a conta do TikTok Shop):</b> continue com o Garotas Apoiam Garotas até os 2 mil, devagar, e poste 2 vídeos autorais por dia do nicho casa (POV, antes e depois, mãos). Quando bater os 2 mil, espere 1 semana e ative.</p>' +
-      '<p class="how"><b>@daiana.lima95 (pessoal):</b> repostar o Reels igualzinho não cresce. Escolha um destes caminhos:</p>' +
-      '<ol class="script"><li><b>Rosto e rotina (recomendo):</b> você aparecendo, “minha casa”, bastidores, organização real, 1 por dia. É o que o TikTok mais entrega e não concorre com a @daledaia.</li><li><b>Trends com você:</b> pegue os seus salvos (aba Criar › Seus salvos) e faça a sua versão.</li><li><b>Deixar parada:</b> se faltar tempo, foque só na @daledaia e no Instagram.</li></ol>' +
-      '<p class="why">Mesmo vídeo nas 2 contas atrapalha: mude pelo menos o gancho, o começo e o áudio.</p></article></div></details>';
+    '<details class="secao"><summary><span class="sec-emoji">🧭</span><span class="sec-txt"><b>Estratégia do TikTok</b><small>só a @daledaia</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
+      '<p class="how"><b>@daledaia (a conta do TikTok Shop):</b> é a única onde você posta agora. Até 10 vídeos por dia, espalhados no dia (veja “TikTok Shop · 10 por dia” na tela Hoje). Meta: <b>2 mil</b> (libera mais vídeos) e depois <b>10 mil</b>.</p>' +
+      '<p class="how"><b>@daiana.lima95 (pessoal):</b> parada desde 10/11. Os vídeos bons de lá voltam na @daledaia com gancho novo (os “♻️ Reciclar”).</p></article></div></details>';
 }
 
 // --- Ofertas do grupo (as que o robô pega do grupo de referência, com o seu link) ---

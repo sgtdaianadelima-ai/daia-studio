@@ -279,8 +279,9 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .meta-falta{font-size:14px;color:var(--muted)}
 .meta-linhas{display:grid;gap:6px}
 .meta-linha{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.meta-linha>span:first-child{flex:1 1 auto;min-width:0}
 .meta-linha.ok>span:first-child{color:var(--pine)}
-.bolinhas{display:flex;gap:6px}
+.bolinhas{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;max-width:190px;flex:0 0 auto}
 .bol{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--on-accent);font-weight:900;font-size:15px;padding:0;display:grid;place-items:center}
 .bol.on{background:var(--pine);border-color:var(--pine)}
 .seg-alvo{display:grid;gap:6px}
