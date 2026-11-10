@@ -81,19 +81,19 @@ document.addEventListener("change", e => {
   if (e.target.id !== "rsLink") return; state.respLink = e.target.value.trim(); save(); renderRespostas();
 });
 
-// a aba entra no menu de baixo e o "Respostas prontas" do + passa a abrir aqui
-GRUPO.respostas = "respostas";
+// abre pelo botão + › Respostas prontas (a Daia preferiu assim em 10/11; não fica no menu de baixo)
 const showResp = show;
 show = function(t){
   if (t === "respostas") {
     showResp("hoje");
     $("tab-hoje").hidden = true; $("tab-respostas").hidden = false; renderRespostas(); window.scrollTo(0, 0);
-    document.querySelectorAll("nav.tabs button[data-tab]").forEach(b => b.setAttribute("aria-selected", b.dataset.tab === "respostas"));
+    document.querySelectorAll("nav.tabs button[data-tab]").forEach(b => b.setAttribute("aria-selected", false));
     try { sessionStorage.setItem("daia-tab", "respostas"); } catch(_) {}
     return;
   }
   $("tab-respostas").hidden = true; showResp(t);
 };
+document.addEventListener("click", e => { if (e.target.closest("[data-respvoltar]")) show("hoje"); });
 document.addEventListener("click", e => {
   const ir = e.target.closest('[data-maisir="respostas"]'); if (!ir) return;
   e.stopImmediatePropagation(); maisAbrir(false); show("respostas");
