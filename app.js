@@ -273,14 +273,14 @@ function contasSeg(){
   });
 }
 function barraSeg(l){
-  const falta = Math.max(0, META_SEG - l.n), pct = Math.min(100, l.n / META_SEG * 100);
+  const alvo = l.n < 2000 ? 2000 : 10000, falta = Math.max(0, alvo - l.n), pct = Math.min(100, l.n / alvo * 100);
   const ritmo = l.ganho && l.ganho > 0 ? Math.ceil(falta / (l.ganho / Math.min(7, l.dias - 1))) : null;
   return '<div class="seg-alvo"><div class="meta-topo"><b>🎵 ' + esc(l.c) + '</b><span>' + l.n.toLocaleString("pt-BR") + '</span></div>' +
     '<div class="meta-barra"><i style="width:' + pct + '%"></i></div>' +
-    '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> para os 2.000 (TikTok Shop).' + (l.ganho !== null ? ' ' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana.' : '') + (ritmo ? ' Nesse ritmo, uns ' + ritmo + ' dias.' : '') : 'Chegou nos 2.000! Confira no TikTok Studio se o TikTok Shop liberou. 🎉') + '</p></div>';
+    '<p class="meta-falta">' + (falta ? 'Faltam <b>' + falta.toLocaleString("pt-BR") + '</b> para os ' + alvo.toLocaleString("pt-BR") + (alvo === 2000 ? ' (libera postar mais de 10 vídeos por dia).' : '.') + (l.ganho !== null ? ' ' + (l.ganho >= 0 ? '+' : '') + l.ganho + ' na semana.' : '') + (ritmo ? ' Nesse ritmo, uns ' + ritmo + ' dias.' : '') : 'Chegou nos 2.000! Confira no TikTok Studio se o TikTok Shop liberou. 🎉') + '</p></div>';
 }
 function relatorioCard(){
-  const ls = contasSeg(), tts = ls.filter(l => /tiktok/i.test(l.rede)).sort((a, b) => /daledaia/i.test(a.c) ? -1 : 1), outros = ls.filter(l => !/tiktok/i.test(l.rede));
+  const ls = contasSeg(), tts = ls.filter(l => /tiktok/i.test(l.rede) && /daledaia/i.test(l.c)).sort((a, b) => /daledaia/i.test(a.c) ? -1 : 1), outros = ls.filter(l => !(/tiktok/i.test(l.rede) && /daledaia/i.test(l.c)));
   const cl = conteudo().cliques || {}, totCl = Object.values(cl).reduce((s, n) => s + n, 0);
   const a = conteudo().analise;
   return '<article class="card">' + (tts.length ? tts.map(barraSeg).join("") : '<p class="how">O robô anota os seguidores todo dia. Os números aparecem aqui amanhã.</p>') +

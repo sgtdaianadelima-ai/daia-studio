@@ -85,3 +85,19 @@ metaDoDia = function(posts, feitosPlano, iaFeitos, prDone){
 const assuntoSecao35 = assuntoSecao;
 assuntoSecao = function(){ return ttsSecao() + assuntoSecao35(); };
 try { if (!$("tab-hoje").hidden) renderHoje(); } catch(_) {}
+
+// ---------- Faça agora: primeiro o próximo vídeo do TikTok Shop (o mais atrasado, senão o próximo horário) ----------
+const facaAgora36 = facaAgoraCard;
+facaAgoraCard = function(posts, meta){
+  const ss = ttsSlots(todayKey), feito = (state.ttsFeito || {})[todayKey] || {};
+  const agora = new Date().getHours() * 60 + new Date().getMinutes();
+  const pend = ss.map((s, i) => ({s, i, m: minDe(s.h)})).filter(x => !feito[x.i]);
+  const alvo = pend.filter(x => x.m !== null && x.m <= agora)[0] || pend[0];
+  if (alvo) {
+    const atras = pend.filter(x => x.m !== null && x.m <= agora).length;
+    return '<article class="card faca"><div class="meta"><span class="tag">✨ Faça agora</span><span class="why">TikTok Shop · ' + esc(alvo.s.h) + (atras > 1 ? ' · mais ' + (atras - 1) + ' atrasado' + (atras > 2 ? 's' : '') : '') + '</span></div>' +
+      '<h3 class="title">' + esc(alvo.s.t) + '</h3>' + (alvo.s.g ? '<p class="how">“' + esc(alvo.s.g) + '”</p>' : '') +
+      '<div class="actions"><button class="btn" data-facasec="tts">Ver os 10 de hoje</button></div></article>';
+  }
+  return facaAgora36(posts, meta);
+};

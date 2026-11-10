@@ -278,9 +278,9 @@ nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-so
 .meta-dia.ok .meta-barra i{background:var(--pine)}
 .meta-falta{font-size:14px;color:var(--muted)}
 .meta-linhas{display:grid;gap:6px}
-.meta-linha{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800;font-size:15px}
+.meta-linha{display:flex;justify-content:space-between;align-items:center;gap:8px;min-width:0;font-weight:800;font-size:15px}
 .meta-linha.ok>span:first-child{color:var(--pine)}
-.bolinhas{display:flex;gap:6px}
+.bolinhas{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:62%}
 .bol{width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--surface);color:var(--on-accent);font-weight:900;font-size:15px;padding:0;display:grid;place-items:center}
 .bol.on{background:var(--pine);border-color:var(--pine)}
 .seg-alvo{display:grid;gap:6px}
@@ -361,6 +361,9 @@ details.cr-bloco>summary{list-style:none;cursor:pointer}details.cr-bloco>summary
 .mic-bt.on{background:var(--wine);border-color:var(--wine);animation:micpulso 1.2s infinite}
 @keyframes micpulso{0%{box-shadow:0 0 0 0 rgba(122,31,43,.5)}100%{box-shadow:0 0 0 12px rgba(122,31,43,0)}}
 .dica-gal{display:block!important;line-height:1.5;background:var(--wine-soft,#f6e8ea);border-color:var(--wine);font-size:14px;margin:6px 0 10px}.dica-gal small{color:var(--muted)}
+html,body{max-width:100%;overflow-x:hidden}
+.meta-linha>span:first-child{flex:none}
+.bolinhas .bol{width:26px;height:26px;font-size:12px}
 body.clean .det{display:none}
 body.clean .card.aberto .det{display:revert}
 body.clean .card .title{cursor:pointer}
