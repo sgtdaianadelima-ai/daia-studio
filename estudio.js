@@ -256,7 +256,30 @@ function valoresCard(){
     '<p class="how"><b>Dicas:</b> peça os prints de alcance dos últimos stories antes de pagar. Comece com 1 teste. Pague metade antes e metade depois. Engajamento vale mais que número de seguidores. Peça para ela marcar “parceria paga”.</p>' +
     '<p class="why">Valores de referência de agências e guias de influência para micro e nano influenciadoras (não há tabela oficial). Guias citam R$ 300 a 1.500 por story para micro (10 a 100 mil); para perfis bem pequenos o comum é bem menos ou troca.</p></article></div></details>';
 }
-let parcEd = null; // {id, tipo: "msg1"|"prop", op}
+// Roteiros para a parceira divulgar o grupo VIP (pedido da Daia em 11/11/2026).
+// Baseado no que os perfis grandes de achadinhos fazem: stories com print das ofertas + figurinha de link,
+// vídeo "olha o que chegou", gravação da tela rolando o grupo, antes e depois da casa e destaque fixo.
+const ROTEIROS_PARC = {
+  stories: ["📱 3 stories", "📱 SEQUÊNCIA DE 3 STORIES\n\nStory 1 (você falando, até 15 s):\n“Gente, achei um grupo de achadinhos de casa que tá salvando meu bolso! Todo dia tem oferta boa 😍”\n\nStory 2 (print do grupo):\nPrint das ofertas do dia no grupo (se preferir, eu te mando) com o texto: “Olha o que tinha hoje 👀”\n\nStory 3 (link):\nFigurinha LINK com o seu link, escrito “ENTRAR NO GRUPO 💕”, e uma enquete: “Quer entrar? 😍 Sim / Já entrei”\n\n⏰ Melhor horário: entre 19h e 21h."],
+  chegou: ["📦 Vídeo: olha o que chegou", "🎬 VÍDEO “OLHA O QUE CHEGOU” (15 a 30 s, Reels)\n\n0 a 3 s: segurando o pacotinho: “Olha o que eu achei no grupo de achadinhos da @daledaia!”\n3 a 20 s: abre e mostra 1 a 3 achadinhos de casa funcionando (eu te ajudo a escolher).\n20 a 30 s: “Se você ama um achadinho como eu, o link do grupo tá nos meus stories 💕”\n\nLegenda: “Achadinhos de casa todo dia 😍 Entra no grupo VIP da @daledaia (link nos stories) 💕”\nNo mesmo dia: repostar o vídeo nos stories com a figurinha de link."],
+  tela: ["📲 Vídeo: mostrando o grupo", "🎬 VÍDEO “O GRUPO QUE EU NÃO SAIO MAIS” (10 a 20 s, Reels)\n\n0 a 3 s: você com o celular na mão e o texto na tela: “O grupo que me faz economizar toda semana 🤫”\n3 a 15 s: grava a tela rolando o grupo VIP (as ofertas do dia, com os preços).\n15 a 20 s: “Quer entrar? O link tá nos meus stories 👇”\n\nUse um áudio em alta do Instagram. No mesmo dia: story com a figurinha de link."],
+  casa: ["🏡 Vídeo: antes e depois", "🎬 VÍDEO “ANTES E DEPOIS” (15 a 25 s, Reels)\n\n0 a 3 s: um cantinho sem graça: “Meu cantinho tava assim…”\n3 a 15 s: transição para o cantinho arrumado com achadinhos que você achou no grupo.\n15 a 25 s: “Tudo achadinho do grupo VIP da @daledaia! Quer o link? Tá nos stories 💕”\n\nNo mesmo dia: story com a figurinha de link."],
+  destaque: ["📌 Destaque fixo", "📌 DESTAQUE FIXO (só 1 vez)\n\nCrie um destaque chamado “Achadinhos 🛍️” e coloque nele o story com a figurinha de link do grupo. Assim quem chegar no seu perfil depois ainda acha o grupo 💕"]
+};
+const rotTexto = (p, k) => "Oii" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! 💕 Segue o roteiro desta semana:\n\n" + ROTEIROS_PARC[k][1] +
+  "\n\n🔗 Seu link (use sempre esse, ele é só seu): " + linkVipDe(p.id) + "\n📌 Marque a @daledaia e coloque “Parceria paga” (ou #publi).\n\nQualquer dúvida me chama! 🤍";
+function roteirosCard(){
+  return '<details class="secao"><summary><span class="sec-emoji">🎬</span><span class="sec-txt"><b>O que pedir para ela fazer?</b><small>roteiros de vídeo e stories para divulgar o grupo</small></span><span class="sec-seta"></span></summary><div class="sec-corpo"><article class="card">' +
+    '<p class="how"><b>Como os perfis grandes de achadinhos divulgam o grupo:</b></p><ul class="script">' +
+    '<li>📱 <b>Stories</b> com print das ofertas do dia + figurinha de link (“entrar no grupo”) e enquete.</li>' +
+    '<li>📦 <b>“Olha o que chegou”</b>: abre o pacote e mostra o achadinho funcionando.</li>' +
+    '<li>📲 <b>Tela do grupo</b>: grava o celular rolando as ofertas, com os preços.</li>' +
+    '<li>🏡 <b>Antes e depois</b> de um cantinho da casa.</li>' +
+    '<li>📌 <b>Destaque fixo</b> “Achadinhos” com o link, para quem chega depois.</li></ul>' +
+    '<p class="how"><b>Pacote por semana (sugestão):</b> 1 vídeo + 1 sequência de 3 stories. Vá trocando o vídeo: semana 1 “olha o que chegou”, semana 2 “tela do grupo”, semana 3 “antes e depois”. O destaque fixo, só no começo.</p>' +
+    '<p class="how">Para mandar: no cartão dela, toque em <b>🎬 Roteiros</b>, escolha o formato e copie. O link dela já vai junto.</p></article></div></details>';
+}
+let parcEd = null; // {id, tipo: "msg1"|"prop"|"rot", op}
 function parceriaCard(p){
   const st = parcStatus(p), cl = (conteudo().cliques || {})[refDe(p.id)] || 0, h = refDe(p.id);
   COPY.push(linkVipDe(p.id)); const i3 = COPY.length - 1;
@@ -264,9 +287,10 @@ function parceriaCard(p){
   let editor = "";
   if (ed) {
     const fx = faixaValor(p.seg), op = ed.op || "fixo";
-    const texto = ed.tipo === "msg1" ? msg1(p) : "Que bom" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! Minha proposta:\n\n" + OPCOES_PARC[op][1].replace("{valor}", fx.v) +
+    const rk = ROTEIROS_PARC[ed.rot] ? ed.rot : "stories";
+    const texto = ed.tipo === "rot" ? rotTexto(p, rk) : ed.tipo === "msg1" ? msg1(p) : "Que bom" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! Minha proposta:\n\n" + OPCOES_PARC[op][1].replace("{valor}", fx.v) +
       "\n\nSeu link: " + linkVipDe(p.id) + "\n\nEu te mando a arte e o texto prontinhos. O que acha? 🤍";
-    editor = '<div class="parc-ed">' + (ed.tipo === "prop" ? '<div class="chips">' + Object.keys(OPCOES_PARC).map(k => '<button type="button" class="chip" data-pop="' + k + '" aria-pressed="' + (k === op) + '">' + OPCOES_PARC[k][0] + '</button>').join("") + '</div><p class="why">💡 ' + esc(fx.t) + '</p>' : '') +
+    editor = '<div class="parc-ed">' + (ed.tipo === "rot" ? '<div class="chips">' + Object.keys(ROTEIROS_PARC).map(k => '<button type="button" class="chip" data-prot="' + k + '" aria-pressed="' + (k === rk) + '">' + ROTEIROS_PARC[k][0] + '</button>').join("") + '</div>' : '') + (ed.tipo === "prop" ? '<div class="chips">' + Object.keys(OPCOES_PARC).map(k => '<button type="button" class="chip" data-pop="' + k + '" aria-pressed="' + (k === op) + '">' + OPCOES_PARC[k][0] + '</button>').join("") + '</div><p class="why">💡 ' + esc(fx.t) + '</p>' : '') +
       '<textarea class="input" id="pTxt" rows="9" aria-label="Mensagem">' + esc(texto) + '</textarea>' +
       '<div class="actions"><button class="btn wine" data-pcopiar="1">📋 Copiar</button><a class="btn" style="text-decoration:none" href="https://ig.me/m/' + esc(h) + '" target="_blank" rel="noopener">Abrir conversa</a><button class="btn" data-pfechar="1">Fechar</button></div>' +
       '<p class="why">Mude o que quiser antes de copiar.</p></div>';
@@ -276,12 +300,13 @@ function parceriaCard(p){
     '<p class="how"><b>' + esc(p.nome || "") + '</b>' + (p.seg ? ' · ' + esc(p.seg) + ' seguidores' : '') + (p.nicho ? ' · ' + esc(p.nicho) : '') + '</p>' +
     (p.porque ? '<p class="how">' + esc(p.porque) + '</p>' : '') + (p.obs ? '<p class="meta-falta">' + esc(p.obs) + '</p>' : '') +
     '<div class="chips">' + P_ST.map(s => '<button type="button" class="chip" data-pst="' + esc(s) + '" aria-pressed="' + (s === st) + '">' + P_EMO[s] + ' ' + esc(s) + '</button>').join("") + '</div>' +
-    '<div class="actions"><button class="btn wine" data-ped="msg1">✍️ 1ª mensagem</button><button class="btn" data-ped="prop">✍️ Proposta</button><button class="btn" data-copy="' + i3 + '">Copiar link dela</button></div>' +
+    '<div class="actions"><button class="btn wine" data-ped="msg1">✍️ 1ª mensagem</button><button class="btn" data-ped="prop">✍️ Proposta</button><button class="btn" data-ped="rot">🎬 Roteiros</button><button class="btn" data-copy="' + i3 + '">Copiar link dela</button></div>' +
     editor + '<p class="meta-falta">🔗 Cliques pelo link dela: <b>' + cl + '</b></p></article>';
 }
 $("parcBox").addEventListener("click", e => {
   const card = e.target.closest("[data-parc]"), q = s => e.target.closest(s);
   if (q("[data-ped]") && card) { const t = q("[data-ped]").dataset.ped; parcEd = parcEd && parcEd.id === card.dataset.parc && parcEd.tipo === t ? null : {id: card.dataset.parc, tipo: t, op: "fixo"}; renderParcerias(); setTimeout(() => { const x = $("pTxt"); if (x) x.scrollIntoView({block: "center", behavior: "smooth"}); }, 50); return; }
+  if (q("[data-prot]")) { parcEd.rot = q("[data-prot]").dataset.prot; renderParcerias(); return; }
   if (q("[data-pop]")) { parcEd.op = q("[data-pop]").dataset.pop; renderParcerias(); return; }
   if (q("[data-pcopiar]")) { copyText($("pTxt").value); return; }
   if (q("[data-pfechar]")) { parcEd = null; renderParcerias(); }
