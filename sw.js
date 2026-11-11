@@ -1,6 +1,6 @@
 // Guarda o app no celular para abrir rápido e até sem internet.
-const VERSAO = "daia-v46";
-const ARQUIVOS = ["./", "index.html", "manual.html", "cronograma.html", "plan.js", "prontos.js", "app.js", "estudio.js", "plataformas.js", "repaginada.js", "assunto.js", "video.js", "tts.js", "respostas.js", "curso2.js", "ditado.js", "voz.js", "tema.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
+const VERSAO = "daia-v47";
+const ARQUIVOS = ["./", "index.html", "manual.html", "cronograma.html", "plan.js", "prontos.js", "app.js", "estudio.js", "plataformas.js", "repaginada.js", "assunto.js", "video.js", "tts.js", "respostas.js", "curso2.js", "daiaia.js", "ditado.js", "voz.js", "tema.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const PASTA_COMP = "daia-compartilhado"; // vídeo/foto que ela compartilhou da Galeria
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSAO).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSAO && k !== PASTA_COMP).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
