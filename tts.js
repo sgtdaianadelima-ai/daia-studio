@@ -41,7 +41,7 @@ function ttsSlots(k){
       const prod = prods.length ? prods[Math.floor(idx / 1) % prods.length].n : "";
       return {h, tipo, t: prod ? prod + " · " + f[0] : "Produto · " + f[0], g: f[1].replace(/\{p\}/g, prod || "o produto"), leg: "", sem: !prod};
     }
-    return {h, tipo, t: i === 6 ? "Vídeo novo: o Assunto da vez" : "Vídeo novo ou trend do dia", g: i === 6 ? "Grave 1 dos 3 vídeos do Assunto da vez (tela Hoje)." : "Uma trend em alta com algo da sua casa, ou mais um do Assunto da vez.", leg: ""};
+    return {h, tipo, t: i === 6 ? "Garotas Apoiam Garotas (até os 2 mil)" : "Vídeo novo: Assunto da vez ou trend", g: i === 6 ? "Use a trend com algo da sua casa ao fundo (árvore, cantinho decorado) para atrair quem gosta de casa. Depois dos 2 mil, este horário vira produto." : "Grave 1 dos 3 vídeos do Assunto da vez (tela Hoje), ou uma trend de casa e decoração.", leg: i === 6 ? "Apoio todas! 💝 Bora crescer juntas? #garotasapoiamgarotas #casadecorada #natal2026" : ""};
   });
 }
 const TTS_COR = {recicla: ["casa", "♻️ Reciclar"], produto: ["serie", "🛍️ Produto"], novo: ["trend", "✨ Novo"]};
@@ -50,7 +50,7 @@ function ttsSecao(){
   const feito = (state.ttsFeito || {})[k] || {}, n = Object.keys(feito).length;
   const semProd = ss.some(s => s.sem);
   const corpo = '<article class="card"><p class="how"><b>@daledaia · 10 vídeos hoje.</b> 3 reciclados da @daiana.lima95 (com gancho novo), 5 de produto e 2 novos. Solte no horário, um de cada vez.</p>' +
-    (semProd ? '<p class="meta-falta">🛍️ Coloque os seus produtos em ⚙️ Ajustes › TikTok Shop › Meus produtos para gravar (os que você tem em casa e que existem no TikTok Shop). Aí o nome aparece aqui.</p>' : '') +
+    '<p class="meta-falta">🔁 Os 5 de produto alternam entre os seus produtos (não 10 do mesmo). Na semana, cada produto ganha uns 6 a 10 vídeos. O que vender, grave mais 10.</p>' + (semProd ? '<p class="meta-falta">🛍️ Coloque os seus produtos em ⚙️ Ajustes › TikTok Shop › Meus produtos para gravar (os que você tem em casa e que existem no TikTok Shop). Aí o nome aparece aqui.</p>' : '') +
     '<details class="cr-bloco"><summary class="cr-tit"><b>⚠️ Antes de reciclar (leia 1 vez)</b></summary><ul class="script">' +
       '<li>O TikTok pune vídeo <b>igual</b> em 2 contas. Na @daiana.lima95, se tiver TikTok Shop: Central do criador › Integridade da conta › <b>Ferramenta de autorização de conteúdo</b> › autorize a @daledaia (até 5 contas). Sem isso, <b>edite</b> cada vídeo: gancho novo nos 3 primeiros segundos, outra música, corte diferente.</li>' +
       '<li>Nada de preço no vídeo nem na legenda.</li>' +
@@ -85,3 +85,19 @@ metaDoDia = function(posts, feitosPlano, iaFeitos, prDone){
 const assuntoSecao35 = assuntoSecao;
 assuntoSecao = function(){ return ttsSecao() + assuntoSecao35(); };
 try { if (!$("tab-hoje").hidden) renderHoje(); } catch(_) {}
+
+// ---------- Faça agora: primeiro o próximo vídeo do TikTok Shop (o mais atrasado, senão o próximo horário) ----------
+const facaAgora36 = facaAgoraCard;
+facaAgoraCard = function(posts, meta){
+  const ss = ttsSlots(todayKey), feito = (state.ttsFeito || {})[todayKey] || {};
+  const agora = new Date().getHours() * 60 + new Date().getMinutes();
+  const pend = ss.map((s, i) => ({s, i, m: minDe(s.h)})).filter(x => !feito[x.i]);
+  const alvo = pend.filter(x => x.m !== null && x.m <= agora)[0] || pend[0];
+  if (alvo) {
+    const atras = pend.filter(x => x.m !== null && x.m <= agora).length;
+    return '<article class="card faca"><div class="meta"><span class="tag">✨ Faça agora</span><span class="why">TikTok Shop · ' + esc(alvo.s.h) + (atras > 1 ? ' · mais ' + (atras - 1) + ' atrasado' + (atras > 2 ? 's' : '') : '') + '</span></div>' +
+      '<h3 class="title">' + esc(alvo.s.t) + '</h3>' + (alvo.s.g ? '<p class="how">“' + esc(alvo.s.g) + '”</p>' : '') +
+      '<div class="actions"><button class="btn" data-facasec="tts">Ver os 10 de hoje</button></div></article>';
+  }
+  return facaAgora36(posts, meta);
+};
