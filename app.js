@@ -1610,7 +1610,10 @@ const P_ST = ["Sugestão", "Mandei mensagem", "Negociando", "Fechado", "Recusou"
 const P_EMO = {"Sugestão": "💡", "Mandei mensagem": "✉️", "Negociando": "🤝", "Fechado": "✅", "Recusou": "🚫"};
 const refDe = id => String(id || "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9._-]/g, "");
 const linkVipDe = id => VIP_PAG + "?r=" + encodeURIComponent(refDe(id));
-const msg1 = p => "Oi" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! Tudo bem? 🤍 Sou a Daia, do @daledaia. Tenho um grupo VIP no WhatsApp com achadinhos de casa e ofertas do dia, e acho que o seu público ia amar.\n\nVocê faz divulgação? Me conta como você trabalha (story, Reels, valores) que eu te mando uma proposta.";
+// 1ª mensagem: amigável, sem chegar com "proposta" (pedido da Daia em 11/11/2026)
+const msg1 = p => "Oii" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + "! Tudo bem? 🥰 Aqui é a Daia, do @daledaia 🤍 Amei o seu perfil!\n\n" +
+  "Você trabalha com publicidade? Se fizer, me conta como funciona com você? 😊\n\n" +
+  "E se ainda não faz, toparia fechar uma parceria comigo? Aí a gente conversa com calma e vê o que fica bom pras duas 💕✨";
 const msgProposta = p => "Que bom! Minha proposta" + (p.nome ? ", " + p.nome.split(" ")[0] : "") + ":\n\n" +
   "• 1 story por semana com o link do meu grupo VIP de ofertas (ou 1 Reels por mês, como for melhor pra você).\n" +
   "• O link é só seu: " + linkVipDe(p.id) + "\n  Assim a gente acompanha juntas quantas pessoas clicaram por ele.\n" +

@@ -1,5 +1,5 @@
 // Guarda o app no celular para abrir rápido e até sem internet.
-const VERSAO = "daia-v40";
+const VERSAO = "daia-v41";
 const ARQUIVOS = ["./", "index.html", "manual.html", "cronograma.html", "plan.js", "prontos.js", "app.js", "estudio.js", "plataformas.js", "repaginada.js", "assunto.js", "video.js", "tts.js", "respostas.js", "ditado.js", "voz.js", "tema.js", "manifest.webmanifest", "icon-192.png", "icon-512.png"];
 const PASTA_COMP = "daia-compartilhado"; // vídeo/foto que ela compartilhou da Galeria
 self.addEventListener("install", e => { e.waitUntil(caches.open(VERSAO).then(c => c.addAll(ARQUIVOS)).then(() => self.skipWaiting())); });
