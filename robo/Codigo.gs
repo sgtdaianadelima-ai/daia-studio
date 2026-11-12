@@ -98,6 +98,8 @@ function doPost(e) {
     if (q.acao === 'guardartextos') return json(guardarTextos_(q));
     if (q.acao === 'notas') return json(guardarNotas_(q));
     if (q.acao === 'assunto') return json(assunto_(q));
+    if (q.acao === 'dores') return json(dores_(q));
+    if (q.acao === 'titulos') return json(titulos_(q));
     return json({erro: 'ação desconhecida'});
   } catch (err) { return json({erro: String(err.message || err)}); }
 }
@@ -278,6 +280,31 @@ function notasSalvas_(ss) {
 }
 // Assunto da vez (pedido da Daia em 07/11/2026): 1 assunto = 3 vídeos diferentes, o mesmo vídeo no Reels, TikTok e Shopee Vídeo.
 // O app manda o assunto (sugerido pelo robô da noite ou escrito por ela) e o Gemini devolve os 3 vídeos completos.
+// Produto do dia no TikTok Shop (pedido da Daia em 12/11/2026): ela escreve só o produto e o app sugere as DORES que ele resolve.
+function dores_(q) {
+  const p = String(q.produto || '').slice(0, 200);
+  if (!p) return {erro: 'sem produto'};
+  const prompt = 'Você ajuda a Daia, afiliada de casa e decoração no TikTok Shop (público: mulheres que amam casa bonita e organizada). Produto: ' + p + '. ' +
+    'Liste 8 DORES reais que esse produto resolve na vida da cliente (problemas, incômodos, vontades), da mais forte para a mais fraca. ' +
+    'Responda SÓ com JSON: {"dores":[{"d":"a dor em 2 a 5 palavras, sem verbo no começo, ex.: gaveta bagunçada","f":"a mesma dor do jeito que a cliente fala, 1 frase curta"}]}. Português do Brasil simples. Nunca cite preço.';
+  const j = jsonDe_(gemini_(prompt, false, null, {temperature: 0.8, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}}));
+  if (!j || !Array.isArray(j.dores) || !j.dores.length) return {erro: 'o Gemini não respondeu'};
+  return {r: j};
+}
+// Títulos/ganchos novos sempre pela dor, no formato escolhido (botão "mais títulos" do app).
+function titulos_(q) {
+  const p = String(q.produto || '').slice(0, 200), f = String(q.formato || 'POV').slice(0, 60), d = String(q.dor || '').slice(0, 200);
+  if (!p) return {erro: 'sem produto'};
+  const evitar = (Array.isArray(q.evitar) ? q.evitar : []).map(String).slice(0, 15).join(' | ');
+  const prompt = 'Você cria ganchos virais para a Daia (@daledaia), afiliada de casa e decoração no TikTok Shop. Tom de amiga, minimalista, NUNCA cite preço. ' +
+    'Produto: ' + p + '. Dor que ele resolve: ' + (d || 'a principal dor desse produto') + '. Formato do vídeo: ' + f + '. ' +
+    'Crie 6 títulos/ganchos DIFERENTES para os 3 primeiros segundos, todos nascendo dessa dor, no estilo do formato (se for POV, comece com "POV:"), com até 12 palavras, citando o nome do produto quando couber (SEO). ' +
+    (evitar ? 'Não repita nem pareça com estes: ' + evitar + '. ' : '') +
+    'Responda SÓ com JSON: {"titulos":["..."]}.';
+  const j = jsonDe_(gemini_(prompt, false, null, {temperature: 1, responseMimeType: 'application/json', thinkingConfig: {thinkingBudget: 0}}));
+  if (!j || !Array.isArray(j.titulos) || !j.titulos.length) return {erro: 'o Gemini não respondeu'};
+  return {r: j};
+}
 function assunto_(q) {
   const tema = String(q.assunto || '').slice(0, 600);
   if (!tema) return {erro: 'sem assunto'};
