@@ -1,14 +1,13 @@
-// Daia Studio v51 — "Tenho um produto para hoje" (TikTok Shop · 10 por dia).
-// Ela escreve SÓ o produto. O app descobre as dores que ele resolve (robô do Google com Gemini grátis; se não responder,
-// usa uma lista de reserva) e ela escolhe as dores e os formatos virais do curso. O app monta os vídeos do dia com
-// gancho SEMPRE pela dor, texto na tela, cenas, CTA, loop, segredos da viralização e legenda. Cada gancho tem
-// "🔄 Outro título" (troca na hora) e "✨ Mais títulos" (pede novos ao robô). Sem produto, o cronograma segue como antes.
+// Daia Studio v53 — Ideias de vídeo para um produto (dentro de TikTok Shop · 10 por dia).
+// Ela escreve só o produto; o robô (Gemini grátis) sugere as dores; ela marca dores e formatos do curso e o app gera IDEIAS.
+// As ideias NÃO mudam o cronograma: ficam guardadas, tudo editável (título, texto na tela, desenvolvimento, CTA, legenda),
+// cada parte com 🔄 trocar; o título pode ir para o Bloco (🪝 Títulos guardados). Só vai para um horário se ela escolher.
 (function(){
   // {p} produto · {o} o/a · {de} do/da · {dor} dor curta (ex.: gaveta bagunçada) · {fala} a dor do jeito que a cliente fala
   const FMT = [
     {id: "pov", n: "POV", d: "um take só + frase na tela + som em alta. O mais fácil e um dos que mais viralizam.",
       g: ["POV: você cansou de {dor} e achou {o} {p}", "POV: {dor} nunca mais", "POV: você descobriu {o} {p} que acaba com {dor}", "POV: você achou {o} {p} {mais} do TikTok", "POV: chega de {dor} 🤍"],
-      tela: "POV: {dor} nunca mais", cenas: ["Um take só de {o} {p} resolvendo {dor}, bem de perto", "Som em alta, sem falar nada", "7 a 10 segundos"]},
+      tela: "POV: {dor} nunca mais", cenas: ["Um take só {de} {p} resolvendo {dor}, bem de perto", "O resultado com som em alta, sem falar nada", "Volta para o mesmo ângulo do começo (loop)"]},
     {id: "historia", n: "Contando uma história", d: "storytelling: conta o que aconteceu com você. É o que mais conecta e vende sem parecer venda.",
       g: ["Eu vivia com {dor} até achar isso aqui", "\"{fala}\" — eu dizia isso todo dia", "Ninguém me avisou que {dor} tinha solução tão simples", "Deixa eu te contar como eu resolvi {dor}"],
       tela: "como eu resolvi {dor} 🤍", cenas: ["Você contando a dor ({dor}), como se fosse pra uma amiga", "Mostra {o} {p} resolvendo, na vida real", "Termina com como ficou e a CTA"]},
@@ -35,7 +34,7 @@
       tela: "você também sofre com {dor}? 👀", cenas: ["Mostra {o} {p} sem explicar", "Revela como resolve {dor}", "Pergunta no final para as pessoas comentarem"]},
     {id: "asmr", n: "ASMR / detalhes", d: "sons e detalhes: abrir, encaixar, fechar. Prende e faz assistir de novo.",
       g: ["O som de quem venceu {dor} 🤍", "Satisfatório: adeus, {dor}", "O detalhe que acaba com {dor}"],
-      tela: "o som 🤍", cenas: ["Close nos detalhes de {o} {p}", "Sons de abrir, encaixar, arrumar (sem música alta)", "Final igual ao começo (loop)"]},
+      tela: "o som 🤍", cenas: ["Close nos detalhes {de} {p}", "Sons de abrir, encaixar, arrumar (sem música alta)", "Final igual ao começo (loop)"]},
     {id: "comparacao", n: "Comparação", d: "compara com algo caro ou com o jeito antigo (aula Chave da criatividade).",
       g: ["Jeito antigo x {p}: qual resolve {dor}?", "Gastei com o caro e {dor} continuou. Aí achei esse", "Parece de loja de decoração, mas não é"],
       tela: "o jeito antigo x {o} {p}", cenas: ["Mostra o jeito antigo (com {dor})", "Mostra {o} {p}", "Lado a lado + pergunta: qual você escolhe?"]},
@@ -44,7 +43,7 @@
       tela: "pra quem sofre com {dor}", cenas: ["Fala direto com um tipo de pessoa (casa pequena, mãe, quem trabalha fora…)", "Mostra como {o} {p} resolve {dor} pra ela", "CTA"]},
     {id: "ambiente", n: "No ambiente", d: "o produto no lugar onde ele é usado de verdade, com luz bonita.",
       g: ["O cantinho que era só {dor}", "Olha como ficou depois que acabei com {dor}", "Esse cantinho me salvou de {dor}"],
-      tela: "chega de {dor} 🤍", cenas: ["{o} {p} no lugar onde é usado", "Luz natural, câmera devagar", "8 segundos, som em alta"]},
+      tela: "chega de {dor} 🤍", cenas: ["{o} {p} no lugar onde é usado", "Luz natural, câmera devagar", "Termina com o produto no lugar, som em alta"]},
     {id: "narrado", n: "Narrado (com a sua voz)", d: "vende mais (aula SEO): narra falando o nome do produto + legenda na tela.",
       g: ["\"{fala}\"? Então você precisa conhecer {o} {p}", "Esse é {o} {p} que acabou com {dor} aqui em casa", "Se eu pudesse indicar uma coisa contra {dor}, seria isso"],
       tela: "{p} contra {dor}", cenas: ["Narra falando o nome {de} {p} (o TikTok lê o que você fala)", "Mostra enquanto fala, com legenda na tela", "CTA natural no fim"]}
@@ -90,29 +89,42 @@
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // todas as opções de gancho de um formato para as dores escolhidas (a da vez primeiro)
   function pool(f, p, dores, k){ const ord = dores.slice(k % dores.length).concat(dores.slice(0, k % dores.length)); const out = []; ord.forEach(d => f.g.forEach(t => { const s = cap(preenche(t, p, d)); if (out.indexOf(s) < 0) out.push(s); })); return out; }
-  function montar(p, dores, ids){
-    const fs = ids.map(id => FMT.find(f => f.id === id)).filter(Boolean); if (!fs.length || !dores.length) return [];
-    const P = cap(p);
-    const tags = [tg(p.replace(/\s+/g, "")), tg(p.split(/\s+/)[0] + "casa"), "#casaorganizada", "#achadosdecasa", "#tiktokshop"].filter((t, i, a) => t.length > 2 && a.indexOf(t) === i).slice(0, 5);
-    return Array.from({length: 9}, (_, i) => {
-      const f = fs[i % fs.length], d = dores[i % dores.length], volta = Math.floor(i / fs.length);
-      const pl = pool(f, p, dores, i), gi = (volta * 2) % pl.length;
-      return {f: f.n, fid: f.id, dor: d, pool: pl, gi, g: pl[gi], loop: LOOP[f.id] || "", tela: preenche(f.tela, p, d), cenas: f.cenas.map(c => preenche(c, p, d)), cta: CTAS[i % CTAS.length],
-        leg: P + ": chega de " + d.d + " 🤍 " + PERG[i % PERG.length] + "\n\n" + tags.join(" ")};
-    });
-  }
 
-  // os horários do dia: com produto escolhido, 9 vídeos dele + o Garotas Apoiam Garotas das 17h
+  // ---------- opções de cada parte do vídeo (todas pela dor) ----------
+  const TELA = ["chega de {dor} 🤍", "{p} que resolve {dor}", "você também sofre com {dor}?", "o segredo contra {dor}", "{dor}? resolvido ✨"];
+  const DEV = [
+    null, // 1ª opção = as cenas do formato
+    ["Mostra {dor} de perto, sem falar nada", "{o} {p} entrando em cena e resolvendo, passo a passo", "O resultado bonito + 1 detalhe que pouca gente repara"],
+    ["Conta rapidinho quando {dor} te incomoda (1 frase)", "Mostra 2 diferenciais {de} {p} (fala o nome: SEO)", "Mostra como ficou e a sua reação"],
+    ["Mostra {o} {p} parado, bem bonito no lugar dele", "Você usando no dia a dia, sem pressa", "Volta para a 1ª cena (loop)"]
+  ];
+  const CTA2 = ["Salva pra lembrar quando {dor} aparecer", "Me conta: {dor} também acontece aí?"];
+  const LEG = ["{P}: chega de {dor} 🤍 {perg}", "{P} que resolve {dor} de vez. {perg}", "Se você sofre com {dor}, {o} {p} é pra você 🤍 {perg}", "Eu não aguentava mais {dor}… até achar {o} {p}. {perg}"];
+  const TEMPOS = ["3–7 s", "7–14 s", "14–20 s", "20–25 s"];
+
+  const novoId = () => "v" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  function tags(p){ return [tg(p.replace(/\s+/g, "")), tg(p.split(/\s+/)[0] + "casa"), "#casaorganizada", "#achadosdecasa", "#tiktokshop"].filter((t, i, a) => t.length > 2 && a.indexOf(t) === i).slice(0, 5).join(" "); }
+  const parte = (op, i) => ({o: op, i: i % op.length, t: op[i % op.length]});
+  function ideia(p, f, d, todas, n){
+    const fill = s => cap(preenche(s, p, d));
+    const devOp = DEV.map(v => (v || f.cenas).map((c, j) => TEMPOS[j] + ": " + preenche(c, p, d)).join("\n"));
+    const legOp = LEG.map((l, j) => fill(l.replace(/\{P\}/g, "{p}").replace(/\{perg\}/g, PERG[(n + j) % PERG.length])) + "\n\n" + tags(p));
+    return {id: novoId(), p, f: f.n, fid: f.id, dor: d, data: todayKey, loop: LOOP[f.id] || "",
+      g: parte(pool(f, p, [d].concat(todas.filter(x => x.d !== d.d)), 0), 0),
+      tela: parte([fill(f.tela)].concat(TELA.map(fill)).filter((s, i, a) => a.indexOf(s) === i), 0),
+      dev: parte(devOp, 0),
+      cta: parte(CTAS.concat(CTA2.map(fill)), n),
+      leg: parte(legOp, n)};
+  }
+  const IDS = () => (state.p10i = state.p10i || []);
+  const achar = id => IDS().find(x => x.id === id);
+  const atrib = k => ((state.p10s = state.p10s || {})[k] = state.p10s[k] || {});
+
+  // ---------- cronograma: só muda o horário em que ELA escolheu colocar uma ideia ----------
   const ttsSlotsAntes = ttsSlots;
   ttsSlots = function(k){
-    const base = ttsSlotsAntes(k), pl = (state.p10 || {})[k];
-    if (!base.length || !pl || !pl.v || !pl.v.length || !pl.v[0].pool) return base;
-    let j = 0;
-    return base.map((s, i) => {
-      if (i === 6) return s;
-      const vi = j++ % pl.v.length, v = pl.v[vi];
-      return {h: s.h, tipo: "produto", t: pl.p + " · " + v.f, g: v.g, leg: v.leg, det: v, vi};
-    });
+    const base = ttsSlotsAntes(k), a = (state.p10s || {})[k] || {};
+    return base.map((s, i) => { const v = a[i] && achar(a[i]); return v ? {h: s.h, tipo: "produto", t: v.p + " · " + v.f, g: v.g.t, leg: v.leg.t, ideia: v.id} : s; });
   };
 
   async function robo(corpo, ms){
@@ -121,45 +133,64 @@
     catch(_) { return null; } finally { clearTimeout(lim); }
   }
 
-  function painel(k){
-    const pl = (state.p10 || {})[k], r = state.p10r || {};
-    if (pl && pl.v && pl.v.length && pl.v[0].pool) return '<article class="card"><div class="meta"><span class="tag serie">🎯 Produto do dia</span><button class="btn mini" data-p10mudar="1" style="margin-left:auto">Trocar</button></div>' +
-      '<h3 class="title">' + esc(pl.p) + '</h3><p class="how">Dores: <b>' + esc(pl.dores.map(d => d.d).join(", ")) + '</b>.<br>Formatos: <b>' + esc([...new Set(pl.v.map(v => v.f))].join(", ")) + '</b>.</p>' +
-      '<p class="meta-falta">Não gostou de um título? Toque em <b>🔄 Outro título</b> no vídeo.</p>' +
-      '<div class="actions"><button class="btn" data-p10claude="1">🤖 Mais detalhado no Claude</button><button class="btn" data-p10limpa="1">Voltar ao normal</button></div></article>';
-    const etapa = r.dores ? 2 : 1;
-    let h = '<article class="card"><div class="meta"><span class="tag serie">🎯 Tenho um produto para hoje</span></div>' +
+  // ---------- painel: produto → dores → formatos → gerar ideias ----------
+  function painel(){
+    const r = state.p10r || {};
+    let h = '<article class="card"><div class="meta"><span class="tag serie">🎯 Ideias de vídeo para um produto</span></div>' +
+      '<p class="how">Gera opções para você escolher. <b>Não muda o cronograma</b>: só vai para um horário se você mandar.</p>' +
       '<div class="field"><input class="input" id="p10p" placeholder="Qual produto? Ex.: vila natalina, organizador de gaveta" value="' + esc(r.p || "") + '"></div>';
     if (r.busy) h += '<p class="how">⏳ Descobrindo as dores que esse produto resolve… (até 1 minuto)</p>';
-    else if (etapa === 1) h += '<div class="actions"><button class="btn wine" data-p10ver="1">Ver as dores e os formatos</button></div>';
+    else if (!r.dores) h += '<div class="actions"><button class="btn wine" data-p10ver="1">Ver as dores e os formatos</button></div>';
     else {
       const ds = r.dSel || [], fs = r.f || [];
-      h += '<p class="how"><b>1. Que dor esse produto resolve?</b> Marque 1 ou mais. Os títulos nascem dessas dores.' + (r.reserva ? ' <small>(sugestões de reserva: o robô não respondeu agora)</small>' : '') + '</p>' +
+      h += '<p class="how"><b>1. Que dor esse produto resolve?</b> Marque 1 ou mais.' + (r.reserva ? ' <small>(sugestões de reserva: o robô não respondeu agora)</small>' : '') + '</p>' +
         '<div class="p10-fmts">' + r.dores.map((d, i) => '<label class="ck p10-f"><input type="checkbox" data-p10d="' + i + '"' + (ds.indexOf(i) >= 0 ? " checked" : "") + '><span><b>' + esc(d.d) + '</b><small>“' + esc(d.f) + '”</small></span></label>').join("") + '</div>' +
         '<div class="actions"><button class="btn mini" data-p10maisdores="1">🔄 Outras dores</button></div>' +
-        '<p class="how" style="margin-top:12px"><b>2. Quais formatos?</b> Todos do curso. Marque quantos quiser: o app reveza.</p>' +
+        '<p class="how" style="margin-top:12px"><b>2. Quais formatos?</b> Todos do curso.</p>' +
         '<div class="p10-fmts">' + FMT.map(f => '<label class="ck p10-f"><input type="checkbox" data-p10f="' + f.id + '"' + (fs.indexOf(f.id) >= 0 ? " checked" : "") + '><span><b>' + esc(f.n) + '</b><small>' + esc(f.d) + '</small></span></label>').join("") + '</div>' +
-        '<div class="actions"><button class="btn mini" data-p10todos="1">Marcar todos os formatos</button><button class="btn wine" data-p10montar="1">✨ Montar os vídeos de hoje</button></div>';
+        '<div class="actions"><button class="btn mini" data-p10todos="1">Marcar todos os formatos</button><button class="btn wine" data-p10gerar="1">✨ Gerar ideias</button></div>';
     }
-    return h + '<p class="why">O curso manda testar o mesmo produto em vários formatos e repetir o que entregar mais.</p></article>';
+    return h + '</article>';
   }
-  const detHtml = (v, vi) => '<div class="actions"><button class="btn mini" data-p10troca="' + vi + '">🔄 Outro título</button><button class="btn mini" data-p10ia="' + vi + '">✨ Mais títulos</button></div>' +
-    '<p class="why">Dor: ' + esc(v.dor.d) + ' · opção ' + (v.gi + 1) + ' de ' + v.pool.length + '</p>' +
-    '<details class="cr-bloco"><summary class="cr-tit"><b>🎬 Ver roteiro</b></summary>' +
-    '<div class="say"><small>Texto na tela</small>' + esc(v.tela) + '</div><ol class="script">' + v.cenas.map(c => '<li>' + esc(c) + '</li>').join("") + '</ol>' +
-    '<div class="say"><small>Chamada no final</small>' + esc(v.cta) + '</div>' +
-    (v.loop ? '<div class="say"><small>🔁 Loop (final emenda no começo)</small>' + esc(v.loop) + '</div>' : '') +
-    '<p class="how"><b>🚀 Segredos da viralização</b></p><ul class="script">' + SEGREDOS.map(s => '<li>' + esc(s) + '</li>').join("") + '</ul></details>';
 
-  // a seção dos 10 por dia, igual a antes + o painel do produto e o roteiro de cada vídeo
+  // ---------- uma ideia: tudo editável, cada parte com 🔄 trocar ----------
+  const campo = (v, k, rot, extra, linhas) => '<div class="p10-campo"><div class="p10-rot"><small>' + rot + '</small>' +
+      (v[k].o.length > 1 ? '<button type="button" class="btn mini" data-p10outro="' + v.id + ':' + k + '">🔄 Outro</button>' : '') + (extra || '') + '</div>' +
+    '<textarea class="input" rows="' + (linhas || 2) + '" data-p10campo="' + v.id + ':' + k + '">' + esc(v[k].t) + '</textarea></div>';
+  function ideiaHtml(v){
+    const k = cur, a = atrib(k), ss = ttsSlotsAntes(k), slot = Object.keys(a).find(i => a[i] === v.id);
+    const aberta = state.p10ab === v.id;
+    return '<details class="cr-bloco p10-ideia" data-p10id="' + v.id + '"' + (aberta ? ' open' : '') + '><summary class="cr-tit"><b>' + esc(v.f) + '</b> · ' + esc(v.g.t.slice(0, 60)) + (v.g.t.length > 60 ? '…' : '') + (slot != null ? ' <span class="tag casa">📌 ' + esc((ss[slot] || {}).h || '') + '</span>' : '') + '</summary>' +
+      '<p class="why">Dor: ' + esc(v.dor.d) + '. Escreva por cima de qualquer parte: fica salvo.</p>' +
+      campo(v, "g", "1. Título / gancho (0–3 s)", '<button type="button" class="btn mini" data-p10ia="' + v.id + '">✨ Mais</button><button type="button" class="btn mini" data-p10guarda="' + v.id + '">📝 Guardar no Bloco</button>') +
+      campo(v, "tela", "2. Texto na tela") +
+      campo(v, "dev", "3. Desenvolvimento passo a passo", "", 4) +
+      campo(v, "cta", "4. Chamada no final (CTA)") +
+      '<div class="say"><small>🔁 Loop (final emenda no começo)</small>' + esc(v.loop) + '</div>' +
+      campo(v, "leg", "5. Legenda", '<button type="button" class="btn mini" data-p10copia="' + v.id + '">📋 Copiar</button>', 4) +
+      '<details class="cr-bloco"><summary class="cr-tit"><b>🚀 Segredos da viralização</b></summary><ul class="script">' + SEGREDOS.map(s => '<li>' + esc(s) + '</li>').join("") + '</ul></details>' +
+      '<div class="actions"><select class="input p10-sel" data-p10slot="' + v.id + '"><option value="">📌 Usar num horário de hoje…</option>' +
+        ss.map((s, i) => '<option value="' + i + '"' + (String(slot) === String(i) ? ' selected' : '') + '>' + esc(s.h + ' · ' + (a[i] && a[i] !== v.id ? (achar(a[i]) || {}).f || 'outra ideia' : s.t)) + '</option>').join("") + '</select>' +
+        (slot != null ? '<button type="button" class="btn mini" data-p10tira="' + v.id + '">Tirar do horário</button>' : '') +
+        '<button type="button" class="btn mini" data-p10apaga="' + v.id + '">🗑️ Apagar ideia</button></div></details>';
+  }
+  function listaIdeias(){
+    const ls = IDS(); if (!ls.length) return "";
+    const prods = [...new Set(ls.map(v => v.p))];
+    return '<article class="card"><div class="meta"><span class="tag trend">💡 Suas ideias de vídeo</span><span class="why">' + ls.length + '</span></div>' +
+      '<p class="how">Abra uma ideia, ajuste o que quiser e, se for postar, escolha o horário. As outras ficam guardadas aqui.</p>' +
+      prods.map(p => '<p class="p10-prod">' + esc(p) + '</p>' + ls.filter(v => v.p === p).map(ideiaHtml).join("")).join("") + '</article>';
+  }
+
+  // ---------- a seção dos 10 por dia (igual a antes + ideias + legenda sempre visível) ----------
   ttsSecao = function(){
     const k = cur, ss = ttsSlots(k); if (!ss.length) return "";
     const feito = (state.ttsFeito || {})[k] || {}, n = Object.keys(feito).length;
-    const temPlano = ss.some(s => s.det);
-    const semProd = !temPlano && ss.some(s => s.sem);
-    const corpo = painel(k) + '<article class="card"><p class="how"><b>@daledaia · 10 vídeos hoje.</b> ' + (temPlano ? '9 do seu produto + o Garotas Apoiam Garotas às 17h.' : '3 reciclados da @daiana.lima95 (com gancho novo), 5 de produto e 2 novos.') + ' Solte no horário, um de cada vez.</p>' +
-      (temPlano ? '' : '<p class="meta-falta">🔁 Os 5 de produto alternam entre os seus produtos (não 10 do mesmo). Na semana, cada produto ganha uns 6 a 10 vídeos. O que vender, grave mais 10.</p>') +
-      (semProd ? '<p class="meta-falta">🛍️ Coloque os seus produtos em ⚙️ Ajustes › TikTok Shop › Meus produtos, ou use “Tenho um produto para hoje” acima.</p>' : '') +
+    const semProd = ss.some(s => s.sem);
+    const corpo = painel() + listaIdeias() +
+      '<article class="card"><p class="how"><b>@daledaia · 10 vídeos hoje.</b> 3 reciclados da @daiana.lima95 (com gancho novo), 5 de produto e 2 novos. Solte no horário, um de cada vez. Quer trocar um horário? Abra uma ideia acima e escolha “Usar num horário”.</p>' +
+      '<p class="meta-falta">🔁 Os 5 de produto alternam entre os seus produtos (não 10 do mesmo). O que vender, grave mais 10.</p>' +
+      (semProd ? '<p class="meta-falta">🛍️ Coloque os seus produtos em ⚙️ Ajustes › TikTok Shop › Meus produtos, ou gere ideias acima.</p>' : '') +
       '<details class="cr-bloco"><summary class="cr-tit"><b>⚠️ Antes de reciclar (leia 1 vez)</b></summary><ul class="script">' +
         '<li>O TikTok pune vídeo <b>igual</b> em 2 contas. Na @daiana.lima95, se tiver TikTok Shop: Central do criador › Integridade da conta › <b>Ferramenta de autorização de conteúdo</b> › autorize a @daledaia (até 5 contas). Sem isso, <b>edite</b> cada vídeo: gancho novo nos 3 primeiros segundos, outra música, corte diferente.</li>' +
         '<li>Nada de preço no vídeo nem na legenda.</li><li>Produto no carrinho só se for <b>igual</b> ao do vídeo. Sem produto igual? Poste sem link: ajuda a crescer.</li>' +
@@ -168,60 +199,72 @@
       ss.map((s, i) => {
         const ok = !!feito[i], c = TTS_COR[s.tipo];
         COPY.push(s.leg || ""); const ci = COPY.length - 1;
-        return '<article class="card tts-slot' + (ok ? ' done' : '') + '"><div class="meta"><span>' + esc(s.h) + '</span><span class="tag ' + c[0] + '">' + c[1] + '</span></div>' +
-          '<h3 class="title">' + esc(s.t) + '</h3>' + (s.g ? '<div class="say"><small>' + (s.det ? 'Título / gancho' : 'Gancho') + '</small>' + esc(s.g) + '</div>' : '') + (s.det ? detHtml(s.det, s.vi) : '') +
-          '<div class="actions"><button class="btn main" data-ttsok="' + i + '">' + (ok ? 'Postado ✓' : 'Marcar como postado') + '</button>' + (s.leg ? '<button class="btn" data-copy="' + ci + '">Copiar legenda</button>' : '') + '</div></article>';
+        return '<article class="card tts-slot' + (ok ? ' done' : '') + '"><div class="meta"><span>' + esc(s.h) + '</span><span class="tag ' + c[0] + '">' + c[1] + '</span>' + (s.ideia ? '<span class="why">📌 sua ideia</span>' : '') + '</div>' +
+          '<h3 class="title">' + esc(s.t) + '</h3>' + (s.g ? '<div class="say"><small>Gancho</small>' + esc(s.g) + '</div>' : '') +
+          (s.leg ? '<div class="say"><small>Legenda</small>' + esc(s.leg).replace(/\n/g, "<br>") + '</div>' : '') +
+          '<div class="actions"><button class="btn main" data-ttsok="' + i + '">' + (ok ? 'Postado ✓' : 'Marcar como postado') + '</button>' + (s.leg ? '<button class="btn" data-copy="' + ci + '">Copiar legenda</button>' : '') +
+          (s.ideia ? '<button class="btn" data-p10abre="' + s.ideia + '">✏️ Ver e editar</button>' : '') + '</div></article>';
       }).join("");
     return secao("tts", "🛍️", "TikTok Shop · 10 por dia", "@daledaia · " + (k === todayKey ? "hoje" : fmtDay(k, {weekday: "long"})), n + "/10", n >= 10, corpo);
   };
 
+  // ---------- ações ----------
   const guarda = () => { const r = state.p10r = state.p10r || {}; const p = $("p10p"); if (p) r.p = p.value; };
   const abreTts = () => { document.querySelectorAll("#cards details.secao").forEach(x => { if (/TikTok Shop · 10/.test(x.querySelector("summary")?.innerText || "")) x.open = true; }); };
-  const redesenha = (rolar) => { const y = scrollY; renderHoje(); abreTts(); if (rolar) { const a = $("p10p"); if (a) a.scrollIntoView({block: "center"}); } else window.scrollTo(0, y); };
+  const redesenha = (alvo) => { const y = scrollY; renderHoje(); abreTts(); const el = alvo && document.querySelector(alvo); if (el) el.scrollIntoView({block: "start"}); else window.scrollTo(0, y); };
   async function buscaDores(outras){
     const r = state.p10r, p = (r.p || "").trim();
-    r.busy = 1; save(); redesenha(true);
+    r.busy = 1; save(); redesenha("#p10p");
     const res = await robo({acao: "dores", produto: p + (outras && r.dores ? " (dê dores diferentes destas: " + r.dores.map(d => d.d).join(", ") + ")" : "")});
     const ok = res && Array.isArray(res.dores) ? res.dores.filter(d => d && d.d).map(d => ({d: String(d.d).toLowerCase().replace(/\.$/, ""), f: String(d.f || d.d).replace(/^["“]|["”]$/g, "")})) : [];
     r.busy = 0; r.reserva = !ok.length; r.dores = ok.length ? ok.slice(0, 8) : reserva(p); r.dSel = [0];
-    save(); redesenha(true);
+    save(); redesenha("#p10p");
   }
   document.addEventListener("click", async e => {
     if (!e.target.closest("#cards")) return;
-    const q = s => e.target.closest(s);
+    const q = s => e.target.closest(s), val = s => q(s).getAttribute(s.slice(1, -1));
     if (q("[data-p10ver]")) { guarda(); if (!(state.p10r.p || "").trim()) { toast("Escreva o produto primeiro."); return; } buscaDores(false); return; }
     if (q("[data-p10maisdores]")) { guarda(); buscaDores(true); return; }
     if (q("[data-p10todos]")) { guarda(); state.p10r.f = FMT.map(f => f.id); save(); redesenha(); return; }
-    if (q("[data-p10montar]")) {
-      guarda(); const r = state.p10r, p = (r.p || "").trim(), f = r.f || [], ds = (r.dSel || []).map(i => r.dores[i]).filter(Boolean);
+    if (q("[data-p10gerar]")) {
+      guarda(); const r = state.p10r, p = (r.p || "").trim(), fs = (r.f || []).map(id => FMT.find(f => f.id === id)).filter(Boolean), ds = (r.dSel || []).map(i => r.dores[i]).filter(Boolean);
       if (!p) { toast("Escreva o produto primeiro."); return; }
       if (!ds.length) { toast("Marque pelo menos 1 dor."); return; }
-      if (!f.length) { toast("Marque pelo menos 1 formato."); return; }
-      state.p10 = state.p10 || {}; state.p10[cur] = {p, dores: ds, todas: r.dores, f, v: montar(p, ds, f)};
-      state.p10r = {}; save(); redesenha(); toast("Pronto! Vídeos de hoje montados pela dor."); return;
+      if (!fs.length) { toast("Marque pelo menos 1 formato."); return; }
+      const novas = []; let n = 0;
+      fs.forEach((f, fi) => ds.forEach((d, di) => { if (novas.length < 14) novas.push(ideia(p, f, d, ds, n++)); }));
+      state.p10i = novas.concat(IDS()).slice(0, 80); state.p10ab = novas[0].id; state.p10r = {};
+      save(); redesenha('[data-p10id="' + novas[0].id + '"]'); toast(novas.length + " ideias novas. Nada mudou no cronograma."); return;
     }
-    const tr = q("[data-p10troca]");
-    if (tr) { const v = state.p10[cur].v[Number(tr.dataset.p10troca)]; v.gi = (v.gi + 1) % v.pool.length; v.g = v.pool[v.gi]; save(); redesenha(); return; }
+    const ab = q("[data-p10abre]"); if (ab) { state.p10ab = ab.dataset.p10abre; save(); redesenha('[data-p10id="' + ab.dataset.p10abre + '"]'); return; }
+    const ou = q("[data-p10outro]");
+    if (ou) { const [id, k] = ou.dataset.p10outro.split(":"), v = achar(id); if (!v) return; const p = v[k]; p.i = (p.i + 1) % p.o.length; p.t = p.o[p.i]; state.p10ab = id; save(); const ta = document.querySelector('[data-p10campo="' + id + ':' + k + '"]'); if (ta) ta.value = p.t; else redesenha(); return; }
+    const gu = q("[data-p10guarda]");
+    if (gu) { const v = achar(gu.dataset.p10guarda); if (!v) return; if (window.blocoNovo) { blocoNovo("titulos", v.g.t, "Formato: " + v.f + " · dor: " + v.dor.d + " · veio do produto: " + v.p); toast("Guardado no Bloco › 🪝 Títulos guardados"); } return; }
+    const cp = q("[data-p10copia]"); if (cp) { const v = achar(cp.dataset.p10copia); if (v) copyText(v.leg.t); return; }
     const ia = q("[data-p10ia]");
     if (ia) {
-      const pl = state.p10[cur], v = pl.v[Number(ia.dataset.p10ia)];
-      ia.disabled = true; ia.textContent = "⏳ Pensando… (até 30 s)";
-      const res = await robo({acao: "titulos", produto: pl.p, formato: v.f, dor: v.dor.f + " (" + v.dor.d + ")", evitar: v.pool.slice(-12)}, 45000);
-      const novos = res && Array.isArray(res.titulos) ? res.titulos.map(String).filter(t => t && v.pool.indexOf(t) < 0) : [];
-      if (!novos.length) { toast("O robô não respondeu agora. Use 🔄 Outro título.", 4000); ia.disabled = false; ia.textContent = "✨ Mais títulos"; return; }
-      v.pool = v.pool.concat(novos); v.gi = v.pool.length - novos.length; v.g = v.pool[v.gi]; save(); redesenha(); toast(novos.length + " títulos novos. Toque em 🔄 para ver os outros."); return;
+      const v = achar(ia.dataset.p10ia); if (!v) return;
+      ia.disabled = true; ia.textContent = "⏳ até 30 s";
+      const res = await robo({acao: "titulos", produto: v.p, formato: v.f, dor: v.dor.f + " (" + v.dor.d + ")", evitar: v.g.o.slice(-12)}, 45000);
+      const novos = res && Array.isArray(res.titulos) ? res.titulos.map(String).filter(t => t && v.g.o.indexOf(t) < 0) : [];
+      ia.disabled = false; ia.textContent = "✨ Mais";
+      if (!novos.length) { toast("O robô não respondeu agora. Use 🔄 Outro.", 4000); return; }
+      v.g.o = v.g.o.concat(novos); v.g.i = v.g.o.length - novos.length; v.g.t = v.g.o[v.g.i]; state.p10ab = v.id; save();
+      const ta = document.querySelector('[data-p10campo="' + v.id + ':g"]'); if (ta) ta.value = v.g.t;
+      toast(novos.length + " títulos novos. Toque em 🔄 Outro para ver os outros."); return;
     }
-    if (q("[data-p10mudar]")) { const pl = state.p10[cur]; state.p10r = {p: pl.p, dores: pl.todas || pl.dores, dSel: (pl.todas || pl.dores).map((d, i) => pl.dores.some(x => x.d === d.d) ? i : -1).filter(i => i >= 0), f: pl.f}; delete state.p10[cur]; save(); redesenha(true); return; }
-    if (q("[data-p10limpa]")) { delete state.p10[cur]; save(); renderHoje(); return; }
-    if (q("[data-p10claude]")) {
-      const pl = state.p10[cur];
-      const txt = "Sou a Daia (@daledaia), afiliada de casa e decoração no TikTok Shop. Estilo minimalista e aconchegante, tom de amiga, NUNCA cite preço. Regras do curso: gancho nos 3 primeiros segundos SEMPRE nascendo da dor, dor → produto como solução, CTA sem cara de venda, 7 a 25 s, falar e escrever o nome do produto (SEO), até 5 hashtags do produto, final que emenda no começo (loop).\n\n" +
-        "Produto de hoje: " + pl.p + ". Dores que ele resolve: " + pl.dores.map(d => d.d).join("; ") + ". Crie 9 roteiros de vídeo revezando estes formatos: " + [...new Set(pl.v.map(v => v.f))].join(", ") + ". Para cada vídeo: 3 opções de título/gancho pela dor, texto na tela, cenas com segundos, CTA, como fazer o loop e legenda com até 5 hashtags.";
-      try { navigator.clipboard.writeText(txt); } catch(_) {}
-      abrirLink("https://claude.ai/new?q=" + encodeURIComponent(txt)); return;
+    const ti = q("[data-p10tira]"); if (ti) { const a = atrib(cur); Object.keys(a).forEach(i => { if (a[i] === ti.dataset.p10tira) delete a[i]; }); save(); redesenha('[data-p10id="' + ti.dataset.p10tira + '"]'); return; }
+    const ap = q("[data-p10apaga]");
+    if (ap) {
+      const id = ap.dataset.p10apaga;
+      if (ap.dataset.certeza !== "1") { ap.dataset.certeza = "1"; ap.textContent = "Toque de novo para apagar"; return; }
+      state.p10i = IDS().filter(v => v.id !== id); Object.values(state.p10s || {}).forEach(a => Object.keys(a).forEach(i => { if (a[i] === id) delete a[i]; })); save(); redesenha(); return;
     }
   });
   document.addEventListener("change", e => {
+    const sl = e.target.closest("[data-p10slot]");
+    if (sl) { const id = sl.dataset.p10slot, a = atrib(cur); Object.keys(a).forEach(i => { if (a[i] === id) delete a[i]; }); if (sl.value !== "") a[sl.value] = id; state.p10ab = id; save(); redesenha('[data-p10id="' + id + '"]'); toast(sl.value !== "" ? "Pronto: essa ideia está no horário escolhido." : "Tirada do horário."); return; }
     const c = e.target.closest("[data-p10f]"), d = e.target.closest("[data-p10d]");
     if (!c && !d) return;
     guarda(); const r = state.p10r;
@@ -229,13 +272,25 @@
     if (d) { const i = Number(d.dataset.p10d); r.dSel = r.dSel || []; if (d.checked) { if (r.dSel.indexOf(i) < 0) r.dSel.push(i); } else r.dSel = r.dSel.filter(x => x !== i); }
     save();
   });
-  document.addEventListener("input", e => { if (e.target.id === "p10p") { const r = state.p10r = state.p10r || {}; if (r.dores && r.p !== e.target.value) { delete r.dores; delete r.dSel; } r.p = e.target.value; save(); } });
+  document.addEventListener("input", e => {
+    if (e.target.id === "p10p") { const r = state.p10r = state.p10r || {}; if (r.dores && r.p !== e.target.value) { delete r.dores; delete r.dSel; } r.p = e.target.value; save(); return; }
+    const ta = e.target.closest("[data-p10campo]"); if (!ta) return;
+    const [id, k] = ta.dataset.p10campo.split(":"), v = achar(id); if (!v) return;
+    v[k].t = ta.value; state.p10ab = id; save();
+  });
+  // lembra qual ideia está aberta
+  document.addEventListener("toggle", e => { const d = e.target; if (d.matches && d.matches(".p10-ideia")) { if (d.open) state.p10ab = d.dataset.p10id; else if (state.p10ab === d.dataset.p10id) state.p10ab = null; save(); } }, true);
+
+  // pasta nova no Bloco para os títulos que ela gostou
+  try { if (typeof PASTAS !== "undefined" && !PASTAS.some(x => x[0] === "titulos")) PASTAS.push(["titulos", "🪝", "Títulos guardados"]); } catch(_) {}
 
   const css = document.createElement("style");
-  css.textContent = ".p10-fmts{display:grid;gap:2px;margin:6px 0}.p10-f span{display:grid;gap:1px}.p10-f small{font-size:13px;color:var(--muted);font-weight:400;line-height:1.3}";
+  css.textContent = ".p10-fmts{display:grid;gap:2px;margin:6px 0}.p10-f span{display:grid;gap:1px}.p10-f small{font-size:13px;color:var(--muted);font-weight:400;line-height:1.3}" +
+    ".p10-campo{margin:10px 0}.p10-rot{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:4px}.p10-rot small{font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-right:auto}" +
+    ".p10-campo textarea{width:100%;box-sizing:border-box;resize:vertical;font-size:15px}.p10-sel{max-width:100%;flex:1 1 220px}.p10-prod{font-weight:800;margin:14px 0 4px;color:var(--wine)}" +
+    "@media (min-width:1000px){#cards > details:has(#p10p){column-span:all}}";
   document.head.appendChild(css);
-  // plano antigo (v49/v50, sem dores) não é usado: ela monta de novo.
-  // Se o app foi fechado enquanto o robô pensava, não fica preso em "Descobrindo as dores…".
+  // o plano antigo (v49–v52) que trocava o cronograma inteiro não é mais usado
   if (state.p10r && state.p10r.busy) { state.p10r.busy = 0; save(); }
   try { if (!$("tab-hoje").hidden) renderHoje(); } catch(_) {}
 })();
