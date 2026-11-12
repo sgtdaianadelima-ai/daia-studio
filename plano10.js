@@ -7,7 +7,7 @@
   // {p} produto · {o} o/a · {de} do/da · {dor} dor curta (ex.: gaveta bagunçada) · {fala} a dor do jeito que a cliente fala
   const FMT = [
     {id: "pov", n: "POV", d: "um take só + frase na tela + som em alta. O mais fácil e um dos que mais viralizam.",
-      g: ["POV: você cansou de {dor} e achou {o} {p}", "POV: {dor} nunca mais", "POV: você descobriu {o} {p} que acaba com {dor}", "POV: sua casa sem {dor} 🤍", "POV: você achou {o} {p} mais lindo do TikTok"],
+      g: ["POV: você cansou de {dor} e achou {o} {p}", "POV: {dor} nunca mais", "POV: você descobriu {o} {p} que acaba com {dor}", "POV: você achou {o} {p} {mais} do TikTok", "POV: chega de {dor} 🤍"],
       tela: "POV: {dor} nunca mais", cenas: ["Um take só de {o} {p} resolvendo {dor}, bem de perto", "Som em alta, sem falar nada", "7 a 10 segundos"]},
     {id: "historia", n: "Contando uma história", d: "storytelling: conta o que aconteceu com você. É o que mais conecta e vende sem parecer venda.",
       g: ["Eu vivia com {dor} até achar isso aqui", "\"{fala}\" — eu dizia isso todo dia", "Ninguém me avisou que {dor} tinha solução tão simples", "Deixa eu te contar como eu resolvi {dor}"],
@@ -34,7 +34,7 @@
       g: ["Quem aí também sofre com {dor}? 🙋‍♀️", "Duvido você adivinhar como isso resolve {dor}", "Você usaria isso pra acabar com {dor}?", "Cabe literalmente tudo aqui"],
       tela: "você também sofre com {dor}? 👀", cenas: ["Mostra {o} {p} sem explicar", "Revela como resolve {dor}", "Pergunta no final para as pessoas comentarem"]},
     {id: "asmr", n: "ASMR / detalhes", d: "sons e detalhes: abrir, encaixar, fechar. Prende e faz assistir de novo.",
-      g: ["O som de quem venceu {dor} 🤍", "Satisfatório: {dor} indo embora", "O detalhe que acaba com {dor}"],
+      g: ["O som de quem venceu {dor} 🤍", "Satisfatório: adeus, {dor}", "O detalhe que acaba com {dor}"],
       tela: "o som 🤍", cenas: ["Close nos detalhes de {o} {p}", "Sons de abrir, encaixar, arrumar (sem música alta)", "Final igual ao começo (loop)"]},
     {id: "comparacao", n: "Comparação", d: "compara com algo caro ou com o jeito antigo (aula Chave da criatividade).",
       g: ["Jeito antigo x {p}: qual resolve {dor}?", "Gastei com o caro e {dor} continuou. Aí achei esse", "Parece de loja de decoração, mas não é"],
@@ -43,8 +43,8 @@
       g: ["Se você mora em casa pequena e sofre com {dor}, olha isso", "Pra você que vive com {dor}", "Mãe que trabalha fora e não aguenta mais {dor}", "Pra quem ama casa bonita mas sofre com {dor}"],
       tela: "pra quem sofre com {dor}", cenas: ["Fala direto com um tipo de pessoa (casa pequena, mãe, quem trabalha fora…)", "Mostra como {o} {p} resolve {dor} pra ela", "CTA"]},
     {id: "ambiente", n: "No ambiente", d: "o produto no lugar onde ele é usado de verdade, com luz bonita.",
-      g: ["O cantinho que era só {dor}", "Olha como ficou sem {dor}", "Esse cantinho me salvou de {dor}"],
-      tela: "sem {dor} 🤍", cenas: ["{o} {p} no lugar onde é usado", "Luz natural, câmera devagar", "8 segundos, som em alta"]},
+      g: ["O cantinho que era só {dor}", "Olha como ficou depois que acabei com {dor}", "Esse cantinho me salvou de {dor}"],
+      tela: "chega de {dor} 🤍", cenas: ["{o} {p} no lugar onde é usado", "Luz natural, câmera devagar", "8 segundos, som em alta"]},
     {id: "narrado", n: "Narrado (com a sua voz)", d: "vende mais (aula SEO): narra falando o nome do produto + legenda na tela.",
       g: ["\"{fala}\"? Então você precisa conhecer {o} {p}", "Esse é {o} {p} que acabou com {dor} aqui em casa", "Se eu pudesse indicar uma coisa contra {dor}, seria isso"],
       tela: "{p} contra {dor}", cenas: ["Narra falando o nome {de} {p} (o TikTok lê o que você fala)", "Mostra enquanto fala, com legenda na tela", "CTA natural no fim"]}
@@ -86,7 +86,7 @@
 
   const art = p => { const w = String(p).trim().toLowerCase().split(/\s+/)[0] || ""; return /(a|ão|ade|agem|ura)$/.test(w) && !/(ma|pa)$/.test(w) ? "a" : "o"; };
   const tg = s => "#" + String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
-  function preenche(t, p, dor){ const o = art(p); return t.replace(/\{o\}/g, o).replace(/\{de\}/g, o === "a" ? "da" : "do").replace(/\{p\}/g, p).replace(/\{dor\}/g, dor.d).replace(/\{fala\}/g, dor.f); }
+  function preenche(t, p, dor){ const o = art(p); return t.replace(/\{o\}/g, o).replace(/\{de\}/g, o === "a" ? "da" : "do").replace(/\{mais\}/g, o === "a" ? "mais linda" : "mais lindo").replace(/\{p\}/g, p).replace(/\{dor\}/g, dor.d).replace(/\{fala\}/g, dor.f); }
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   // todas as opções de gancho de um formato para as dores escolhidas (a da vez primeiro)
   function pool(f, p, dores, k){ const ord = dores.slice(k % dores.length).concat(dores.slice(0, k % dores.length)); const out = []; ord.forEach(d => f.g.forEach(t => { const s = cap(preenche(t, p, d)); if (out.indexOf(s) < 0) out.push(s); })); return out; }
@@ -205,7 +205,7 @@
     const ia = q("[data-p10ia]");
     if (ia) {
       const pl = state.p10[cur], v = pl.v[Number(ia.dataset.p10ia)];
-      ia.disabled = true; ia.textContent = "⏳ Pensando…";
+      ia.disabled = true; ia.textContent = "⏳ Pensando… (até 30 s)";
       const res = await robo({acao: "titulos", produto: pl.p, formato: v.f, dor: v.dor.f + " (" + v.dor.d + ")", evitar: v.pool.slice(-12)}, 45000);
       const novos = res && Array.isArray(res.titulos) ? res.titulos.map(String).filter(t => t && v.pool.indexOf(t) < 0) : [];
       if (!novos.length) { toast("O robô não respondeu agora. Use 🔄 Outro título.", 4000); ia.disabled = false; ia.textContent = "✨ Mais títulos"; return; }
@@ -234,6 +234,8 @@
   const css = document.createElement("style");
   css.textContent = ".p10-fmts{display:grid;gap:2px;margin:6px 0}.p10-f span{display:grid;gap:1px}.p10-f small{font-size:13px;color:var(--muted);font-weight:400;line-height:1.3}";
   document.head.appendChild(css);
-  // plano antigo (v49/v50, sem dores) não é usado: ela monta de novo
+  // plano antigo (v49/v50, sem dores) não é usado: ela monta de novo.
+  // Se o app foi fechado enquanto o robô pensava, não fica preso em "Descobrindo as dores…".
+  if (state.p10r && state.p10r.busy) { state.p10r.busy = 0; save(); }
   try { if (!$("tab-hoje").hidden) renderHoje(); } catch(_) {}
 })();
