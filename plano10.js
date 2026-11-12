@@ -47,6 +47,24 @@
       g: ["Esse é {o} {p} que eu mais uso aqui em casa", "Deixa eu te mostrar {o} {p} que resolveu {dor}", "Se eu pudesse indicar uma coisa só, seria isso"],
       tela: "{p} que eu uso de verdade", cenas: ["Narra falando o nome {de} {p} (o TikTok lê o que você fala)", "Mostra enquanto fala, com legenda na tela", "CTA natural no fim"]}
   ];
+  // como fazer o final emendar no começo (loop), por formato — aula Segredo da viralização
+  const LOOP = {
+    pov: "Termine com a câmera no mesmo lugar e ângulo da 1ª cena: quando recomeça, parece continuação.",
+    historia: "Comece com a frase do meio (\"…e foi aí que eu achei isso\") e termine com o começo da história, que volta pra ela.",
+    unboxing: "Termine fechando a caixa do mesmo jeito que ela aparece no início.",
+    antesdepois: "Termine voltando para o \"antes\" num corte rápido: a pessoa revê a transformação sem perceber.",
+    maos: "Termine com as mãos colocando o produto no mesmo lugar de onde pegaram na 1ª cena.",
+    motivos: "Termine com \"e o motivo 1 é…\" cortado no meio: o vídeo recomeça no motivo 1.",
+    erro: "Termine mostrando de novo o erro, com a mesma frase do início.",
+    comentario: "Termine lendo a pergunta da pessoa, que é como o vídeo começa.",
+    engaja: "Termine antes de revelar tudo e volte para a 1ª cena: a pessoa assiste de novo pra entender.",
+    asmr: "Último som igual ao primeiro (abrir/fechar): o loop fica perfeito.",
+    comparacao: "Termine com os dois lado a lado, igual à 1ª cena.",
+    publico: "Termine com a mesma frase do começo (\"se você…\").",
+    ambiente: "Câmera que termina onde começou (vai e volta devagar).",
+    narrado: "Última frase da narração se completa com a primeira (\"…e é por isso que esse é o…\")."
+  };
+  const SEGREDOS = ["Gancho nos 3 primeiros segundos: nunca comece parada e calada", "Escreva o nome do produto no texto da tela e fale o nome (SEO)", "Legenda na tela: muita gente assiste sem som", "De 7 a 25 segundos", "Peça a ação de forma natural (salva / me conta)", "Responda os comentários com outra pergunta", "Poste todo dia: constância pesa mais que viralizar"];
   const CTAS = ["Clica no carrinho e vê se o valor tá com promoção pra você", "Confere no carrinho se ainda tem", "Salva pra não perder", "Me conta: você também passa por isso?", "Dá uma olhada no carrinho, hoje tá valendo a pena", "Corre no carrinho laranja e vê o valor pra você"];
   const PERG = ["Você também precisava de um?", "Você já tem um?", "Qual cantinho da sua casa precisa disso?", "Me conta: usaria?"];
 
@@ -61,7 +79,7 @@
     return Array.from({length: 9}, (_, i) => {
       const f = fs[i % fs.length], volta = Math.floor(i / fs.length);
       const g = preenche(f.g[volta % f.g.length], p, dor);
-      return {f: f.n, g, tela: preenche(f.tela, p, dor), cenas: f.cenas.map(c => preenche(c, p, dor)), cta: CTAS[i % CTAS.length],
+      return {f: f.n, loop: LOOP[f.id] || "", g, tela: preenche(f.tela, p, dor), cenas: f.cenas.map(c => preenche(c, p, dor)), cta: CTAS[i % CTAS.length],
         leg: P + " que resolve " + dor + " 🤍 " + PERG[i % PERG.length] + "\n\n" + tags.join(" ")};
     });
   }
@@ -96,7 +114,9 @@
   }
   const detHtml = v => '<details class="cr-bloco"><summary class="cr-tit"><b>🎬 Ver roteiro</b></summary>' +
     '<div class="say"><small>Texto na tela</small>' + esc(v.tela) + '</div><ol class="script">' + v.cenas.map(c => '<li>' + esc(c) + '</li>').join("") + '</ol>' +
-    '<div class="say"><small>Chamada no final</small>' + esc(v.cta) + '</div></details>';
+    '<div class="say"><small>Chamada no final</small>' + esc(v.cta) + '</div>' +
+    ((v.loop = v.loop || LOOP[(FMT.find(f => f.n === v.f) || {}).id]) ? '<div class="say"><small>🔁 Loop (final emenda no começo)</small>' + esc(v.loop) + '</div>' : '') +
+    '<p class="how"><b>🚀 Segredos da viralização</b></p><ul class="script">' + SEGREDOS.map(s => '<li>' + esc(s) + '</li>').join("") + '</ul></details>';
 
   // a seção dos 10 por dia, igual a antes + o painel do produto e o roteiro de cada vídeo
   ttsSecao = function(){

@@ -62,7 +62,7 @@
         card(ul(["O TikTok mostra o vídeo para um grupinho e vê a reação. Se for bem, mostra para mais gente. <b>Seguidor não importa.</b>",
           "<b>Retenção:</b> os 3 primeiros segundos decidem. Nunca comece parada e calada.",
           "<b>Engajamento:</b> curtir, comentar, compartilhar e salvar. Peça de forma natural: “salva pra não perder”, “me conta o que achou”.",
-          "<b>Ver de novo:</b> faça o final emendar no começo (loop). A pessoa assiste 2 vezes sem perceber.",
+          "<b>Ver de novo:</b> faça o final emendar no começo (loop). A pessoa assiste 2 vezes sem perceber. Como fazer: 1) termine com a câmera no mesmo lugar e ângulo da 1ª cena; 2) corte no meio de um movimento que continua no começo (pegar/guardar o produto); 3) frase final que se completa com a primeira (\"…e é por isso que esse é o…\"); 4) mesmo som no fim e no início; 5) cortes suaves, sem tela preta no fim.",
           "<b>Comentários:</b> responda sempre com outra pergunta. Ex.: “Que lindo!” → “Você já tem um?”. Dúvida boa vira vídeo novo.",
           "<b>Tamanho:</b> 7 a 25 segundos.",
           "<b>Constância:</b> sumiu uns dias, as views caem. Postar todo dia é o que mais pesa."]))) +
