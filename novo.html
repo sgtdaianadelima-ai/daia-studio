@@ -213,6 +213,8 @@ body{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
 button.missao{width:100%;text-align:left;padding:2px 0}
 .vazio{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:16px;display:grid;gap:8px;justify-items:start}.vazio p{margin:0}
 .dsel{margin-top:12px}
+.lks{display:grid;gap:6px}.lk{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}.lk a,.lk>span:first-child{flex:1;min-width:0;color:var(--ink);text-decoration:none}.lk b{font-weight:600;font-size:14.5px}.lk small{display:block;font-size:12px;color:var(--mute)}.lk i{font-style:normal;color:var(--mute)}.lk .x{color:var(--mute);padding:4px 8px}
+.lks .addrow input{width:0}
 .lprod .pn{flex:1;font-size:16px}.mini{font-size:12.5px;color:var(--mute);margin:4px 0}
 .qt{display:grid;gap:2px;margin-top:6px}.qt>div{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:3px 0}
 .qt em{font-style:normal;font-size:10.5px;color:var(--mute);margin-left:4px}
@@ -257,6 +259,7 @@ button.missao{width:100%;text-align:left;padding:2px 0}
     <button class="tile" data-ir="lote"><span class="ic">▣</span><span><b>Dia de gravar</b><small>sábado e domingo</small></span></button>
     <button class="tile" data-antigo="bloco"><span class="ic">✎</span><span><b>Bloco</b><small>notas e links</small></span></button>
     <button class="tile lib" data-ir="biblio"><span class="ic">❖</span><span><b>Biblioteca</b><small>todos os ganchos, CTAs, SEO e formatos do curso</small></span></button>
+    <button class="tile lib" data-ir="links"><span class="ic">↗</span><span><b>Links úteis</b><small>Kalodata, TikTok Studio, CapCut, Shopee e tudo fora do app</small></span></button>
     <button class="tile lib" data-antigo="hoje"><span class="ic">⋯</span><span><b>Tudo do app</b><small>as telas de antes: Hoje, Criar, Prontos, Crescer, IAs e mais</small></span></button>
   </div>
 </section>
@@ -320,6 +323,13 @@ button.missao{width:100%;text-align:left;padding:2px 0}
   <div id="semanaLote"></div>
   <h2>Próximo fim de semana</h2>
   <div id="resetBox"></div>
+</section>
+
+<!-- LINKS ÚTEIS -->
+<section class="tela" id="t-links" hidden>
+  <button class="voltar" data-ir="inicio">← Início</button>
+  <h1>Links úteis</h1>
+  <div id="lnk"></div>
 </section>
 
 <!-- BIBLIOTECA -->
@@ -686,6 +696,55 @@ document.addEventListener("click",async e=>{
 document.addEventListener("change",e=>{const c=e.target.closest("[data-ck]");if(c){L[dia].ck[Number(c.dataset.ck)].ok=c.checked;salvaL();}});
 document.addEventListener("input",e=>{const t=e.target.closest("[data-ved]");if(!t)return;const p=t.dataset.ved.split("|"),c=p.pop(),x=acharV(p.join("|"));x.v.st.ed[c]=t.value;salvaL();});
 
+/* ---------- links úteis: tudo que fica fora do app, num lugar só (editável) ---------- */
+const LINKS0=[
+ ["Métricas e pesquisa",[
+  ["Kalodata","https://www.kalodata.com","produtos e vídeos que mais vendem no TikTok Shop (aula Espionando criativos)"],
+  ["TikTok Studio","https://www.tiktok.com/tiktokstudio","as métricas dos seus vídeos e o TikTok Shop para Criadores"],
+  ["Tendências do TikTok","https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/pc/pt","hashtags, músicas e vídeos em alta (Creative Center, grátis)"],
+  ["Google Trends","https://trends.google.com.br/trends/","o que o Brasil está pesquisando agora"]]],
+ ["Postar e programar",[
+  ["Programar no TikTok","https://www.tiktok.com/tiktokstudio/upload","enviar e agendar os vídeos do fim de semana"],
+  ["Meta Business Suite","https://business.facebook.com","agendar posts e stories do Instagram"]]],
+ ["Editar",[
+  ["CapCut","https://www.capcut.com/","editar, legenda automática e modelos"]]],
+ ["Vender",[
+  ["Shopee Afiliados","https://affiliate.shopee.com.br","links e comissões da Shopee"],
+  ["Shopee Vídeo (Creator)","https://creator.shopee.com.br","seus vídeos da Shopee"],
+  ["Magalu (sua loja)","https://www.magazinevoce.com.br/magazinedaledaia/","Magazine Você"],
+  ["Natura (sua consultoria)","https://www.natura.com.br/consultoria/daledaia","sua página da Natura"],
+  ["Grupo VIP","https://app.gruposinteligentes.com/r/Daledaia","link de entrada do grupo"]]],
+ ["Seus perfis",[
+  ["Página de links","https://daledaia.github.io","daledaia.github.io"],
+  ["Instagram @daledaia","https://www.instagram.com/daledaia/","seu perfil"]]],
+ ["Estudar e IAs",[
+  ["Cursos (Kiwify)","https://dashboard.kiwify.com/courses","as aulas da mentoria"],
+  ["Claude","https://claude.ai/new",""],["ChatGPT","https://chatgpt.com/",""],["Gemini","https://gemini.google.com/app",""]]]
+];
+const LKK="daia-links-v1";
+let LNK=lerJ(LKK,null)||JSON.parse(JSON.stringify(LINKS0)),lEd=false,lApaga=null;
+const salvaLnk=()=>gravaJ(LKK,LNK);
+function links(){
+  const okUrl=u=>/^https?:\/\//i.test(u);
+  $("lnk").innerHTML='<div class="row" style="justify-content:space-between;align-items:center"><p class="sub" style="margin:0">Toque para abrir. Abre fora do app.</p><button class="bt" data-led2="1">'+(lEd?'Pronto':'Editar')+'</button></div>'+
+    LNK.map((g,gi)=>'<h2>'+esc(g[0])+'</h2><div class="lks">'+g[1].map((l,li)=>{const id=gi+"|"+li;
+      return '<div class="lk">'+(okUrl(l[1])?'<a href="'+esc(l[1])+'" target="_blank" rel="noopener">':'<span>')+'<b>'+esc(l[0])+'</b>'+(l[2]?'<small>'+esc(l[2])+'</small>':'')+(okUrl(l[1])?'</a>':'</span>')+
+      (lEd?(lApaga===id?'<span class="row"><button class="bt pri" data-lx="'+id+'">Apagar</button><button class="bt" data-lxn="1">Não</button></span>':'<button class="x" data-lq="'+id+'" aria-label="Apagar link">✕</button>'):'<i>↗</i>')+'</div>';}).join("")+
+      (lEd?'<div class="addrow"><input data-ln="'+gi+'" placeholder="Nome"><input data-lu="'+gi+'" placeholder="https://…" inputmode="url"><button class="bt pri" data-ladd="'+gi+'">+</button></div>':'')+'</div>').join("")+
+    (lEd?'<h2>Novo grupo</h2><div class="addrow"><input id="lgNovo" placeholder="Nome do grupo"><button class="bt" data-lgadd="1">Criar</button></div><p style="margin-top:18px"><button class="bt" data-lorig="1">Voltar aos links originais</button></p>':'');
+}
+document.addEventListener("click",e=>{
+  const q=s=>e.target.closest(s);
+  if(q("[data-led2]")){lEd=!lEd;lApaga=null;links();return;}
+  const lq=q("[data-lq]");if(lq){lApaga=lq.dataset.lq;links();return;}
+  if(q("[data-lxn]")){lApaga=null;links();return;}
+  const lx=q("[data-lx]");if(lx){const[g,i]=lx.dataset.lx.split("|").map(Number);LNK[g][1].splice(i,1);if(!LNK[g][1].length)LNK.splice(g,1);lApaga=null;salvaLnk();links();toast("Link apagado");return;}
+  const la=q("[data-ladd]");if(la){const g=la.dataset.ladd,n=(document.querySelector('[data-ln="'+g+'"]').value||"").trim();let u=(document.querySelector('[data-lu="'+g+'"]').value||"").trim();
+    if(!n||!u){toast("Escreva o nome e o link");return;}if(!/^https?:\/\//i.test(u))u="https://"+u;LNK[Number(g)][1].push([n,u,""]);salvaLnk();links();toast("Link guardado");return;}
+  if(q("[data-lgadd]")){const n=($("lgNovo").value||"").trim();if(!n)return;LNK.push([n,[]]);salvaLnk();links();return;}
+  if(q("[data-lorig]")){LNK=JSON.parse(JSON.stringify(LINKS0));salvaLnk();links();toast("Links originais de volta");return;}
+});
+
 /* ---------- personalizar ---------- */
 const TEMAS=[["","Padrão","Claro e neutro",["#FAF7F4","#2A2220","#7A2E3A","#ECE5E0"]],["rosa","Rosa delicado","Arredondado e fofo",["#FCEFF2","#D46F88","#FBE2E8","#FFFFFF"]],["salvia","Verde sálvia","Natural e aconchegante",["#E8ECE3","#5D7A59","#F0E6D2","#FAF8F2"]],["caderno","Caderno","Papel e post-it",["#FFFDF7","#FFF2B8","#DCEEFB","#FBE0E8"]]];
 const JINI=[["","Quadradinhos","Atalhos em grade, 2 por linha"],["ini-lista","Lista","Atalhos um embaixo do outro, com linhas finas"],["ini-grande","Botões grandes","Um atalho por linha, bem grande"]];
@@ -710,7 +769,7 @@ document.addEventListener("click",e=>{
 });
 try{sessionStorage.removeItem("daia-antigo")}catch(_){}
 aplicaP();pers();document.querySelector("[data-nv=inicio]").classList.add("on");
-bib();lote();
+bib();lote();links();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
 })();
