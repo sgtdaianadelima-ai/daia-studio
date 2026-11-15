@@ -1,0 +1,104 @@
+/* v56 — As telas de antes (index.html) vestidas com a estética nova (a mesma do novo.html).
+   Só muda aparência: cores, letras, cantos e barra de baixo. Nada de função.
+   O tema que ela escolhe em Ajustes (Padrão, Rosa, Sálvia, Caderno) vale aqui também: html[data-est]. */
+html[data-novo]{
+  --bg:#FAF7F4!important;--surface:#FFFFFF!important;--ink:#2A2220!important;--muted:#857873!important;--line:#ECE5E0!important;
+  --wine:#7A2E3A!important;--wine-soft:#F4E8E6!important;--gold:#9A6B2E!important;--gold-soft:#F6EEE2!important;--pine:#4E7363!important;--pine-soft:#E6EFEA!important;
+  --on-accent:#FFFFFF!important;
+  --body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  --display:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  --num:"Fraunces",Georgia,serif;--raio:18px;color-scheme:light;
+}
+@media (prefers-color-scheme: dark){html[data-novo]:not([data-est="rosa"]):not([data-est="salvia"]):not([data-est="caderno"]):not(.tema-claro){
+  --bg:#171413!important;--surface:#211D1B!important;--ink:#F1EBE7!important;--muted:#A99C96!important;--line:#332D2A!important;
+  --wine:#E09AA5!important;--wine-soft:#3A2427!important;--gold:#DDB57A!important;--gold-soft:#2F2619!important;--pine:#94C2AE!important;--pine-soft:#1E2B26!important;
+  --on-accent:#171413!important;color-scheme:dark}}
+html[data-novo][data-est="rosa"]{--bg:#FCEFF2!important;--surface:#FFFFFF!important;--ink:#4A2C35!important;--muted:#A07C86!important;--line:#F5D9DF!important;--wine:#D46F88!important;--wine-soft:#FBE2E8!important;--pine:#5E9A84!important;--pine-soft:#E3F2EC!important;--gold:#C98A3E!important;--gold-soft:#FFF0DD!important;
+  --body:"Quicksand",system-ui,sans-serif!important;--display:"Quicksand",system-ui,sans-serif!important;--num:"Quicksand",system-ui,sans-serif;--raio:26px}
+html[data-novo][data-est="salvia"]{--bg:#E8ECE3!important;--surface:#FAF8F2!important;--ink:#2E3A2D!important;--muted:#738070!important;--line:#D5DCCC!important;--wine:#5D7A59!important;--wine-soft:#DCE5D4!important;--pine:#5D7A59!important;--pine-soft:#DCE5D4!important;--gold:#A07A3C!important;--gold-soft:#F0E6D2!important;
+  --body:"Nunito",system-ui,sans-serif!important;--display:"Fraunces",Georgia,serif!important;--num:"Fraunces",Georgia,serif;--raio:24px}
+html[data-novo][data-est="caderno"]{--bg:#FFFDF7!important;--surface:#FFFFFF!important;--ink:#2D2A26!important;--muted:#8C857A!important;--line:#E8E0D0!important;--wine:#C2655A!important;--wine-soft:#FBE9E3!important;--pine:#4F8A6E!important;--pine-soft:#E2F1E9!important;--gold:#B08A2E!important;--gold-soft:#FFF2B8!important;
+  --body:"DM Sans",system-ui,sans-serif!important;--display:"Caveat",cursive!important;--num:"Caveat",cursive;--raio:6px}
+html[data-novo][data-est="caderno"] body{background-image:radial-gradient(#E3DACA 1px,transparent 1px);background-size:16px 16px}
+
+/* letras: títulos limpos (como no Início novo), números na letra de destaque */
+html[data-novo] body{font-size:15px;line-height:1.5}
+html[data-novo] h1{font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.15}
+html[data-novo] h1 em{font-style:normal;color:var(--ink)}
+html[data-novo] h2{font-size:18px;font-weight:600;letter-spacing:-.01em}
+html[data-novo] .title,html[data-novo] .seg-lista b{font-size:17px;font-weight:600;letter-spacing:-.01em}
+html[data-novo][data-est="salvia"] h1,html[data-novo][data-est="salvia"] h2,html[data-novo][data-est="salvia"] .title{font-weight:400}
+html[data-novo][data-est="caderno"] h1{font-size:36px;font-weight:600}html[data-novo][data-est="caderno"] h2{font-size:26px}html[data-novo][data-est="caderno"] .title{font-family:var(--body);font-weight:700}
+html[data-novo] .meta-topo span,html[data-novo] .semana b,html[data-novo] .splash div{font-family:var(--num)}
+html[data-novo] .brand{font-weight:600;letter-spacing:.08em;color:var(--muted);font-size:11px}
+html[data-novo] .progress{font-weight:600}
+html[data-novo] .tag,html[data-novo] .meta{font-weight:600}
+
+/* cartões: linha fina, sem moldura grossa, cantos do tema */
+html[data-novo] .card{border-radius:var(--raio);border:1px solid var(--line)!important;box-shadow:none}
+html[data-novo][data-est="rosa"] .card{border-color:transparent!important;box-shadow:0 6px 18px rgba(212,111,136,.12)}
+html[data-novo][data-est="salvia"] .card{border-radius:28px 8px 28px 8px}
+html[data-novo][data-est="caderno"] .card{box-shadow:1px 2px 0 rgba(0,0,0,.06)}
+html[data-novo] .ico,html[data-novo] .round{background:var(--surface);border-color:var(--line)}
+
+/* barra de baixo igual à do Início novo */
+html[data-novo] nav.tabs{background:var(--surface);padding-top:8px}
+html[data-novo] nav.tabs button{font-weight:600;font-size:10.5px;border-radius:12px}
+html[data-novo] nav.tabs svg{width:20px;height:20px;stroke-width:1.6}
+html[data-novo] nav.tabs button[aria-selected="true"]{color:var(--wine);background:var(--wine-soft)}
+html[data-novo] nav.tabs .nav-mais span,html[data-novo] nav.tabs .nav-mais{box-shadow:none}
+html[data-novo] .toast{border-radius:99px;font-weight:600}
+
+/* "Faça agora": bloco escuro igual ao "Próximo vídeo" do Início novo */
+html[data-novo]{--faca-bg:var(--ink);--faca-ink:var(--bg)}
+html[data-novo][data-est="rosa"],html[data-novo][data-est="salvia"]{--faca-bg:var(--wine);--faca-ink:#FFFFFF}
+html[data-novo][data-est="caderno"]{--faca-bg:#FFF2B8;--faca-ink:var(--ink)}
+html[data-novo] .card.faca{background:var(--faca-bg)!important;color:var(--faca-ink)!important;border-color:transparent!important}
+html[data-novo] .card.faca .title,html[data-novo] .card.faca .how{color:var(--faca-ink)!important}
+html[data-novo] .card.faca .tag{background:color-mix(in srgb,var(--faca-ink) 15%,transparent);color:var(--faca-ink)}
+html[data-novo] .card.faca .why{color:var(--faca-ink);opacity:.75}
+html[data-novo] .card.faca .btn{background:var(--faca-ink)!important;color:var(--faca-bg)!important;border-color:transparent!important}
+html[data-novo] .card.faca .btn.lite{background:transparent!important;color:var(--faca-ink)!important;border-color:color-mix(in srgb,var(--faca-ink) 45%,transparent)!important}
+html[data-novo][data-est="caderno"] .card.faca{border:1px dashed #D9C46A!important}
+
+/* botão + do meio: menor e discreto */
+html[data-novo] .nav-mais span{width:42px;height:42px;line-height:42px;font-size:24px;margin-top:-6px;background:var(--ink);color:var(--bg);box-shadow:none}
+html[data-novo][data-est="rosa"] .nav-mais span,html[data-novo][data-est="salvia"] .nav-mais span{background:var(--wine);color:#fff}
+
+/* botões e cabeçalho: ícones simples no lugar dos emojis */
+html[data-novo] .btn{border-radius:10px;font-weight:600}
+html[data-novo][data-est="rosa"] .btn{border-radius:99px}
+html[data-novo] .topo-bts .ico{font-size:0;color:var(--ink)}
+html[data-novo] .topo-bts .ico::after{font-size:17px;line-height:1}
+html[data-novo] .topo-bts .ico[aria-label="Ajustes"]::after{content:"⚙"}
+html[data-novo] .topo-bts .ico[aria-label="Início novo"]::after{content:"⌂";font-size:20px}
+html[data-novo] .topo-bts .ico[aria-label="Voltar"]::after{content:"✕"}
+
+/* botão principal escuro (como "Gravar agora") e abertura do app na cor do fundo */
+html[data-novo] .btn.wine,html[data-novo] .btn.main{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+html[data-novo][data-est="rosa"] .btn.wine,html[data-novo][data-est="salvia"] .btn.wine,html[data-novo][data-est="rosa"] .btn.main,html[data-novo][data-est="salvia"] .btn.main{background:var(--wine);border-color:var(--wine);color:#fff}
+html[data-novo] .splash{background:var(--bg);color:var(--ink)}
+html[data-novo] .splash div{font-family:var(--body);font-weight:700;font-size:30px;letter-spacing:-.02em}
+
+/* abas de cima (Criar novo / Prontos, Números / Parcerias / Curso): como o seletor Linha | Quadro */
+html[data-novo] .subtabs{background:var(--line);border-radius:12px;padding:3px;gap:3px}
+html[data-novo] .subtabs button{border:0!important;background:transparent!important;color:var(--muted)!important;border-radius:9px!important;font-weight:600!important;box-shadow:none!important}
+html[data-novo] .subtabs button[aria-pressed="true"]{background:var(--surface)!important;color:var(--ink)!important}
+/* Dalinha: botão redondo escuro, sem sombra forte */
+html[data-novo] .voz-fab{background:var(--ink)!important;box-shadow:0 4px 12px rgba(0,0,0,.12)!important}
+html[data-novo][data-est="rosa"] .voz-fab,html[data-novo][data-est="salvia"] .voz-fab{background:var(--wine)!important}
+
+/* UM APP SÓ: o menu de antes some; entra o menu do Início novo */
+html[data-novo] nav.tabs{display:none!important}
+html[data-novo] .bnav-novo{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:space-around;background:var(--surface);border-top:1px solid var(--line);padding:8px max(8px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+html[data-novo] .bnav-novo a{display:grid;justify-items:center;gap:1px;font-size:18px;color:var(--muted);padding:4px 8px;border-radius:12px;text-decoration:none;font-family:var(--body)}
+html[data-novo] .bnav-novo span{font-size:10.5px;font-weight:600}
+html[data-novo][data-est="caderno"] .bnav-novo{background:#FFFDF7}
+html[data-novo] .voz-fab{bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;width:52px!important;height:52px!important}
+/* topo: "← Início" como nas telas novas; sem "DAIA STUDIO" e sem os botões ⌂ e ⚙ de antes */
+html[data-novo] .brand > span:not(.topo-bts){display:none}
+html[data-novo] .voltar-novo{font-size:14px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--muted);text-decoration:none;padding:6px 0}
+html[data-novo] .topo-bts .ico[aria-label="Ajustes"],html[data-novo] .topo-bts .ico[aria-label="Início novo"]{display:none}
+
+/* sem tela de abertura ao passar do Início novo para estas telas: parece um app só */
+html[data-novo] .splash{display:none!important}

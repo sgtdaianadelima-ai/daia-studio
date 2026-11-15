@@ -260,7 +260,15 @@ button.missao{width:100%;text-align:left;padding:2px 0}
     <button class="tile" data-antigo="bloco"><span class="ic">✎</span><span><b>Bloco</b><small>notas e links</small></span></button>
     <button class="tile lib" data-ir="biblio"><span class="ic">❖</span><span><b>Biblioteca</b><small>todos os ganchos, CTAs, SEO e formatos do curso</small></span></button>
     <button class="tile lib" data-ir="links"><span class="ic">↗</span><span><b>Links úteis</b><small>Kalodata, TikTok Studio, CapCut, Shopee e tudo fora do app</small></span></button>
-    <button class="tile lib" data-antigo="hoje"><span class="ic">⋯</span><span><b>Tudo do app</b><small>as telas de antes: Hoje, Criar, Prontos, Crescer, IAs e mais</small></span></button>
+  </div>
+  <h2>Mais do app</h2>
+  <div class="tiles">
+    <button class="tile" data-antigo="hoje"><span class="ic">◎</span><span><b>Metas e Faça agora</b><small>Shopee Vídeo do dia, packs, post pronto</small></span></button>
+    <button class="tile" data-antigo="criar"><span class="ic">✦</span><span><b>Criar conteúdo</b><small>dores, ganchos, roteiros, legendas</small></span></button>
+    <button class="tile" data-antigo="prontos"><span class="ic">▤</span><span><b>Prontos</b><small>carrosséis desenhados</small></span></button>
+    <button class="tile" data-antigo="crescer"><span class="ic">↗</span><span><b>Crescer</b><small>números, parcerias e curso</small></span></button>
+    <button class="tile" data-antigo="ia"><span class="ic">◇</span><span><b>IAs</b><small>pedidos prontos</small></span></button>
+    <button class="tile" data-antigo="hoje" data-mais="1"><span class="ic">＋</span><span><b>Postei / anotar</b><small>marcar post, ideia, converter link</small></span></button>
   </div>
 </section>
 
@@ -297,8 +305,8 @@ button.missao{width:100%;text-align:left;padding:2px 0}
   <div class="jeitos" id="jQua"></div>
   <h2>Ao abrir o app</h2>
   <div class="jeitos" id="jAbrir"></div>
-  <h2>Telas de antes</h2>
-  <div class="jeitos"><button data-antigo="ajustes"><span><b>Ajustes de antes</b><small>robô, página de links, crescer e o resto</small></span>›</button><button data-antigo="hoje"><span><b>Tudo do app</b><small>Hoje, Criar, Prontos, Crescer, Bloco, IAs</small></span>›</button></div>
+  <h2>Mais ajustes</h2>
+  <div class="jeitos"><button data-antigo="ajustes"><span><b>Robô, página de links e mais</b><small>lembretes, cor de antes, manual, planilha</small></span>›</button></div>
 </section>
 
 <!-- DIA DE GRAVAR -->
@@ -442,7 +450,7 @@ document.addEventListener("click",async e=>{
   const le=q("[data-led]");if(le){const x=V[Number(le.dataset.led)];dia=x.d;aberto=L[x.d].prods.indexOf(x.P)+"|"+x.v.key;document.querySelectorAll("[data-dia]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.dia===dia));lote();ir("lote");const el=document.querySelector('[data-vab="'+aberto+'"]');if(el)el.scrollIntoView({block:"center"});return;}
   const ms=q("[data-mis]");if(ms){const A=lerJ("daia-app-v1",{});A.metaMan=A.metaMan||{};const m=A.metaMan[HOJE]=A.metaMan[HOJE]||{},max=MIS.find(x=>x[0]===ms.dataset.mis)[2];m[ms.dataset.mis]=(m[ms.dataset.mis]||0)>=max?0:(m[ms.dataset.mis]||0)+1;gravaJ("daia-app-v1",A);conta();return;}
   if(q("#proxBt")){diaLista=hojeIdx();V=listaDo(diaLista);const p=V.findIndex(v=>v.st!=="ok");if(p<0){ir(V.length?"noite":"lote");return;}atual=p;if(V[p].st==="id")abreRec(V[p]);else{linha();ir("noite");}return;}
-  const an=q("[data-antigo]");if(an){location.href="index.html?antigo=1&tab="+an.dataset.antigo;return;}
+  const an=q("[data-antigo]");if(an){location.href="index.html?antigo=1&tab="+an.dataset.antigo+(an.dataset.mais?"&mais=1":"");return;}
 });
 $("vLinha").onclick=()=>{$("vLinha").setAttribute("aria-pressed","true");$("vQuadro").setAttribute("aria-pressed","false");$("linha").hidden=false;$("quadro").hidden=true;};
 $("vQuadro").onclick=()=>{$("vQuadro").setAttribute("aria-pressed","true");$("vLinha").setAttribute("aria-pressed","false");$("linha").hidden=true;$("quadro").hidden=false;};
@@ -770,6 +778,7 @@ document.addEventListener("click",e=>{
 try{sessionStorage.removeItem("daia-antigo")}catch(_){}
 aplicaP();pers();document.querySelector("[data-nv=inicio]").classList.add("on");
 bib();lote();links();
+{const h=location.hash.slice(1);if(h&&document.getElementById("t-"+h))ir(h);}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
 })();
