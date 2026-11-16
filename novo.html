@@ -865,10 +865,11 @@ bib();lote();links();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
 // v60: ponte para ajustes.js, telas60.js e ia.js (o resto do app fica fechado aqui dentro)
-window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
+window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,FT,FK,salvaL,get L(){return L},get dia(){return dia},setDia(d){dia=d},get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
 })();
 </script>
 <script src="ajustes.js"></script>
 <script src="ia.js"></script>
+<script src="colar.js"></script>
 </body>
 </html>
