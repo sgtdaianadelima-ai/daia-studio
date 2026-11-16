@@ -15,6 +15,10 @@
   });
   // atalho "Postei, anotar, converter link" vindo do Início novo
   try { if (sessionStorage.getItem("daia-mais") === "1") { sessionStorage.removeItem("daia-mais"); setTimeout(() => { const m = document.querySelector("[data-mais]"); if (m) m.click(); }, 700); } } catch(_) {}
+  // v59: páginas abertas pelos Ajustes › Mais (Regras, TikTok Shop, Plataformas, Ofertas)
+  try { const pg = sessionStorage.getItem("daia-pag"); if (pg) { sessionStorage.removeItem("daia-pag"); setTimeout(() => { if (window.abrirPagina) abrirPagina(pg); }, 500); } } catch(_) {}
+  // v59: se ela escolheu "Com emojis" em Ajustes › Aparência, os emojis ficam
+  try { const V = JSON.parse(localStorage.getItem("daia-visual-v1") || "null"); if (V && V.ico === "emoji") return; } catch(_) {}
   // sem emojis em títulos, botões e etiquetas (o texto que ela copia não passa por aqui)
   const SEL = "h1,h2,h3,summary,label,button,.tag,.meta,.subtabs,.meta-dia .linha,.voltar-novo";
   const EMO = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}][️‍\p{Extended_Pictographic}]*\s?/gu;

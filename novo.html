@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <script src="sync.js"></script>
+<script src="visual.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Daia Studio</title>
 <meta name="theme-color" content="#FAF7F4">
@@ -55,7 +56,7 @@ h2{font-size:18px;font-weight:600;margin:22px 0 10px}
 .tile.big{grid-column:span 2;background:var(--ink);color:var(--bg);border-color:var(--ink);min-height:86px}
 .tile.big small{color:var(--line)}
 .tile.big .ic{background:rgba(255,255,255,.12)}
-.tile.lib{grid-column:span 2;flex-direction:row;align-items:center;min-height:0}
+.tile.lib{grid-column:span 2;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;min-height:0}
 
 /* Noite */
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:12px;padding:3px;margin:14px 0}
@@ -324,19 +325,8 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
 <!-- PERSONALIZAR -->
 <section class="tela pers" id="t-pers" hidden>
   <button class="voltar" data-ir="inicio">← Início</button>
-  <h1>Configurações</h1><p class="sub">Tema e jeito das telas. Mude quando quiser.</p>
-  <h2>Estética</h2>
-  <div class="temas" id="temas"></div>
-  <h2>Jeito do Início</h2>
-  <div class="jeitos" id="jIni"></div>
-  <h2>Jeito do Quadro (Lista de hoje)</h2>
-  <div class="jeitos" id="jQua"></div>
-  <h2>Ao abrir o app</h2>
-  <div class="jeitos" id="jAbrir"></div>
-  <h2>Aparelhos ligados</h2>
-  <div class="syncbox" id="syncBox"></div>
-  <h2>Mais ajustes</h2>
-  <div class="jeitos"><button data-antigo="ajustes"><span><b>Robô, página de links e mais</b><small>lembretes, cor de antes, manual, planilha</small></span>›</button></div>
+  <h1>Ajustes</h1><p class="sub">Tudo do app num lugar só, separado por assunto.</p>
+  <div id="ax"></div>
 </section>
 
 <!-- DIA DE GRAVAR -->
@@ -856,15 +846,10 @@ const JINI=[["","Quadradinhos","Atalhos em grade, 2 por linha"],["ini-lista","Li
 const JQUA=[["abas","Abas","Ideia, Gravado e Postado em abas, com lista"],["cols","Colunas","As 3 colunas lado a lado, sem arrastar"],["pilhas","Pilhas","3 grupos um embaixo do outro, que abrem e fecham"]];
 let P={est:"",ini:""};try{P=Object.assign(P,JSON.parse(localStorage.getItem("daia-novo-pers")||"{}"))}catch(_){}
 let abrir="novo";try{abrir=localStorage.getItem("daia-abrir")||"novo"}catch(_){}
-function aplicaP(){document.documentElement.dataset.est=P.est;
+function aplicaP(){if(window.daiaVisual&&daiaVisual.ler())daiaVisual.aplicar();else document.documentElement.dataset.est=P.est;
   {const d=new Date(),h=d.getHours();$("ola").textContent=(h<12?"Bom dia":h<18?"Boa tarde":"Boa noite")+", Daia";$("hojeData").textContent=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});}
   if($("tsw"))$("tsw").innerHTML=TEMAS.slice(1).concat([TEMAS[0]]).map(t=>'<button data-est="'+t[0]+'" aria-pressed="'+(P.est===t[0])+'">'+t[1]+'</button>').join("");const t=$("t-inicio");t.classList.remove("ini-lista","ini-grande");if(P.ini)t.classList.add(P.ini);try{localStorage.setItem("daia-novo-pers",JSON.stringify(P))}catch(_){}}
-function pers(){
-  $("temas").innerHTML=TEMAS.map(t=>'<button data-est="'+t[0]+'" aria-pressed="'+(P.est===t[0])+'"><span class="amostra" style="background:'+t[3][0]+'">'+t[3].slice(1).map(c=>'<i style="background:'+c+'"></i>').join("")+'</span><span><b>'+t[1]+'</b><small>'+t[2]+'</small></span></button>').join("");
-  $("jIni").innerHTML=JINI.map(j=>'<button data-jini="'+j[0]+'" aria-pressed="'+(P.ini===j[0])+'"><span><b>'+j[1]+'</b><small>'+j[2]+'</small></span>'+(P.ini===j[0]?'✓':'')+'</button>').join("");
-  $("jQua").innerHTML=JQUA.map(j=>'<button data-jq="'+j[0]+'" aria-pressed="'+(qj===j[0])+'"><span><b>'+j[1]+'</b><small>'+j[2]+'</small></span>'+(qj===j[0]?'✓':'')+'</button>').join("");
-  $("jAbrir").innerHTML=[["novo","Início novo","Esta tela, com atalhos e constância"],["antigo","Telas de antes","Abre direto no Hoje de antes"]].map(j=>'<button data-abrir="'+j[0]+'" aria-pressed="'+(abrir===j[0])+'"><span><b>'+j[1]+'</b><small>'+j[2]+'</small></span>'+(abrir===j[0]?'✓':'')+'</button>').join("");
-}
+function pers(){ /* v59: a tela de Ajustes agora é feita pelo ajustes.js */ }
 window.persR=pers;
 document.addEventListener("click",e=>{
   const t=e.target.closest("button[data-est]");if(t){P.est=t.dataset.est;aplicaP();pers();toast("Estética trocada");return;}
@@ -880,5 +865,6 @@ document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP()
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
 })();
 </script>
+<script src="ajustes.js"></script>
 </body>
 </html>

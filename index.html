@@ -8,9 +8,10 @@
 <script>/* v54: o app abre no Início novo (novo.html). As telas de antes continuam aqui: novo.html › "Tudo do app" abre index.html?antigo=1&tab=... */
 (function(){try{var r=document.documentElement;r.setAttribute("data-novo","");var P=JSON.parse(localStorage.getItem("daia-novo-pers")||"{}");if(P.est)r.setAttribute("data-est",P.est);}catch(e){}})();
 (function(){try{var q=new URLSearchParams(location.search);
-if(q.has("antigo")){sessionStorage.setItem("daia-antigo","1");var t=q.get("tab");if(t)sessionStorage.setItem("daia-tab",t);if(q.has("mais"))sessionStorage.setItem("daia-mais","1");history.replaceState(null,"",location.pathname);return;}
+if(q.has("antigo")){sessionStorage.setItem("daia-antigo","1");var t=q.get("tab");if(t)sessionStorage.setItem("daia-tab",t);if(q.has("mais"))sessionStorage.setItem("daia-mais","1");if(q.has("pag"))sessionStorage.setItem("daia-pag",q.get("pag"));history.replaceState(null,"",location.pathname);return;}
 if(q.has("compartilhado")||sessionStorage.getItem("daia-antigo")==="1"||localStorage.getItem("daia-abrir")==="antigo")return;
-location.replace("novo.html");}catch(e){}})();</script>
+location.replace("novo.html"+({hoje:"#noite",gravar:"#lote"}[localStorage.getItem("daia-abrir")]||""));}catch(e){}})();</script>
+<script src="visual.js"></script>
 <meta name="theme-color" content="#FAF7F4">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
