@@ -218,9 +218,33 @@ button.missao{width:100%;text-align:left;padding:2px 0}
 .lprod .pn{flex:1;font-size:16px}.mini{font-size:12.5px;color:var(--mute);margin:4px 0}
 .qt{display:grid;gap:2px;margin-top:6px}.qt>div{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:3px 0}
 .qt em{font-style:normal;font-size:10.5px;color:var(--mute);margin-left:4px}
+.qt .fn{display:flex;align-items:center;gap:2px;text-align:left;font-size:13.5px;color:var(--ink);padding:4px 0;flex:1;min-width:0}
+.qt .fn i{font-style:normal;display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--line);font-size:10.5px;color:var(--mute);margin-left:6px}
+.qt .fn.on i{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qt .fn.meu .x{padding:2px 6px;font-size:11px}
+.fdesc{margin:0 0 6px;padding:10px 12px;border-radius:12px;background:var(--acc-soft);font-size:13px;line-height:1.45;color:var(--ink)}
+.meuf{display:grid;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.meuf input:not([type]),.ideia{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;background:var(--card);color:var(--ink);width:100%}
+.ideia{resize:vertical}
+.ckl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.gesc{display:grid;gap:6px;margin:6px 0}.gesc span{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13px;background:var(--bg)}.gesc button{color:var(--mute);font-size:12px}
+.usar{width:100%;margin-top:10px}.usarbox{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
 .stp{display:flex;align-items:center;gap:8px}.stp button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);font-size:16px;line-height:1;background:var(--card)}.stp b{min-width:18px;text-align:center;font-variant-numeric:tabular-nums}
 .vids{display:grid;gap:6px}
-.vd{border:1px solid var(--line);border-radius:12px;overflow:hidden}.vd.ok{opacity:.6}
+.vd{border:1px solid var(--line);border-radius:12px;overflow:hidden}.vd.ok{opacity:.7}
+details.lprod{display:block}details.lprod>summary{list-style:none;cursor:pointer}details.lprod>summary::-webkit-details-marker,.sec>summary::-webkit-details-marker{display:none}
+details.lprod>summary::after,.sec>summary::after{content:"›";color:var(--mute);font-size:18px;transition:transform .15s;margin-left:2px}
+details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90deg)}
+.secs{display:grid;gap:6px;margin-top:10px}
+.sec{border-top:1px solid var(--line);padding-top:6px}.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px}
+.sec.ck{margin-top:18px;border-top:0}.sec.ck>summary{font-size:18px}
+.sec>summary b{flex:1;font-weight:600}.sec>summary span{font-size:12px;color:var(--mute)}
+.secb{display:grid;gap:6px;padding:4px 0 8px}
+.tgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;font-style:normal}.tg{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--ink)}
+.tg.ed{background:#F6EEE2;color:#9A6B2E}.tg.ag{background:var(--acc-soft);color:var(--acc)}.tg.ps{background:#E6EFEA;color:#4E7363}
+.sts{display:grid;grid-template-columns:1fr 1fr;gap:6px}.sts button{border:1px solid var(--line);border-radius:10px;padding:10px 6px;font-size:13px;font-weight:600;background:var(--card);color:var(--ink)}
+.sts button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.agbox{display:grid;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px}.agbox input{border:1px solid var(--line);border-radius:10px;padding:9px;font:inherit;background:var(--card);color:var(--ink)}
 .vh{width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 12px;text-align:left;font-size:13.5px}
 .vh small{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);font-weight:600}.vh i{font-style:normal;color:var(--mute)}
 .vb{padding:0 12px 12px;display:grid;gap:6px}.vb label{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600;margin-top:4px}
@@ -319,8 +343,8 @@ button.missao{width:100%;text-align:left;padding:2px 0}
     <div class="missao"><span>Fim de semana</span><span class="b"><i id="loteBar" style="width:0"></i></span><span id="loteTot">0/120</span></div>
     <p class="sub" style="margin:0">Toque em <b>Gravei</b> em cada vídeo e o número sobe sozinho.</p>
   </div>
-  <h2>Antes de começar</h2>
-  <div id="ckAntes"></div>
+  <details class="sec ck" data-k="ckAntes" open><summary><b>Antes de começar</b><span>checklist</span></summary>
+  <div id="ckAntes"></div></details>
   <h2>Seus produtos de hoje</h2>
   <p class="sub">Você escolhe. As sugestões são só ideias: toque para adicionar, ou escreva o seu.</p>
   <div id="prodAdd"></div>
@@ -353,6 +377,10 @@ button.missao{width:100%;text-align:left;padding:2px 0}
 const $=id=>document.getElementById(id);
 const toast=t=>{const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2200);};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* menus que recolhem: lembra o que ela abriu ou fechou (mesmo quando a tela se redesenha) */
+const ABT={};try{Object.assign(ABT,JSON.parse(localStorage.getItem("daia-abertos")||"{}"))}catch(_){}
+const abreK=(k,padrao)=>(k in ABT?ABT[k]:padrao)?" open":"";
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.k)return;ABT[d.dataset.k]=d.open;try{localStorage.setItem("daia-abertos",JSON.stringify(ABT))}catch(_){}},true);
 const ir=t=>{document.querySelectorAll(".tela").forEach(s=>s.hidden=s.id!=="t-"+t);document.querySelectorAll("[data-nv]").forEach(b=>b.classList.toggle("on",b.dataset.nv===t));window.scrollTo(0,0);if(t==="gravar")rec(0);};
 document.addEventListener("click",e=>{const a=e.target.closest("[data-ir]");if(a){ir(a.dataset.ir);return;}const b=e.target.closest("[data-toast]");if(b)toast(b.dataset.toast);});
 
@@ -363,14 +391,23 @@ const pad2=n=>String(n).padStart(2,"0"),keyOf=d=>d.getFullYear()+"-"+pad2(d.getM
 const HOJE=keyOf(new Date());
 const hojeIdx=()=>(new Date().getDay()+6)%7;
 let diaLista=hojeIdx(),atual=-1,V=[];
-function semanaMix(){
-  const fila=[];
-  ["sab","dom"].forEach(d=>L[d].prods.forEach(P=>fila.push(vidsDe(P).map(v=>({d,P,v,id:d+"|"+P.n+"|"+v.key})))));
-  const mix=[];let k=0;while(fila.some(f=>f.length)){const f=fila[k%fila.length];if(f.length)mix.push(f.shift());k++;}
-  return mix;
+/* semana: no máximo 1 vídeo de cada produto por dia (nada de 10 do mesmo produto no mesmo dia), até 10 por dia.
+   Vídeo agendado ou postado vai para o dia da semana da data que ela marcou. O que sobra fica de reserva. */
+const diaDaData=s=>{const p=String(s).split("-").map(Number);if(p.length!==3)return -1;return (new Date(p[0],p[1]-1,p[2]).getDay()+6)%7;};
+function plano(){
+  const dias=[[],[],[],[],[],[],[]],filas={},ordem=[];
+  ["sab","dom"].forEach(d=>L[d].prods.forEach(P=>vidsDe(P).forEach(v=>{const x={d,P,v,id:d+"|"+P.n+"|"+v.key},pd=(L.post||{})[x.id],fx=v.st.ag||(typeof pd==="string"?pd:null),di=fx?diaDaData(fx):-1;
+    if(di>=0){dias[di].push(x);return;}
+    const k=P.n.toLowerCase();if(!filas[k]){filas[k]=[];ordem.push(k);}filas[k].push(x);})));
+  let r=0;
+  for(let i=0;i<7;i++){const tem=new Set(dias[i].map(x=>x.P.n.toLowerCase()));
+    for(let t=0;t<ordem.length&&dias[i].length<10;t++){const k=ordem[(r+t)%ordem.length];if(tem.has(k)||!filas[k].length)continue;dias[i].push(filas[k].shift());tem.add(k);}
+    r++;}
+  const res=[];ordem.forEach(k=>res.push(...filas[k]));
+  return {dias,res};
 }
 const comSt=x=>Object.assign(x,{t:x.P.n+" · "+x.v.F.n,st:(L.post||{})[x.id]?"ok":x.v.st.ok?"gr":"id"});
-const listaDo=i=>semanaMix().slice(i*10,i*10+10).map(comSt);
+const listaDo=i=>plano().dias[i].map(comSt);
 function setSt(x,st){
   L.post=L.post||{};
   if(st==="id"){x.v.st.ok=false;delete L.post[x.id];}
@@ -537,6 +574,12 @@ let DB;try{DB=JSON.parse(localStorage.getItem(BK)||"null")}catch(_){DB=null}
 if(!DB)DB=ORIGINAL();
 const salvaBib=()=>{try{localStorage.setItem(BK,JSON.stringify(DB))}catch(_){}};
 const CORES=["c1","c2","c3","c4"];
+/* mandar um gancho da Biblioteca para um produto do Dia de gravar */
+function usarBox(){
+  const ps=[];["sab","dom"].forEach(d=>L[d].prods.forEach((P,pi)=>ps.push([d,pi,P.n])));
+  if(!ps.length)return '<div class="usarbox"><p class="mini">Ainda não tem produto no Dia de gravar.</p><button class="bt" data-c1="irgravar">Ir para Gravar</button></div>';
+  return '<div class="usarbox"><p class="mini">Para qual produto?</p><div class="chips2">'+ps.map(x=>'<button data-c1="gusa:'+x[0]+'|'+x[1]+'">'+(x[0]==="sab"?"Sáb":"Dom")+' · '+esc(x[2])+'</button>').join("")+'</div></div>';
+}
 let V3={sec:null,cap:null,i:null,ed:false,novo:false,apaga:false};
 function bib(){
   const v=V3;let h="";
@@ -557,6 +600,7 @@ function bib(){
       '<i>'+(v.novo?'Novo item':(v.i+1)+' de '+n)+'</i></div>'+
       (v.ed?'<div class="nav1"><button data-c1="cancela">Cancelar</button><button class="pri" data-c1="salva">Salvar</button></div>':
        '<div class="nav1"><button data-c1="ant">← Anterior</button><button class="pri" data-c1="copia">Copiar</button><button data-c1="prox">Próximo →</button></div>'+
+       (v.sec==="ganchos"?'<button class="bt pri usar" data-c1="usar">Usar este gancho num produto de gravar</button>'+(v.usar?usarBox():''):'')+
        '<div class="nav2"><button data-c1="edita">Editar</button><button data-c1="apaga">Excluir</button></div>'+
        (v.apaga===true?'<div class="conf">Excluir este item? <button class="bt pri" data-c1="apagasim">Sim, excluir</button><button class="bt" data-c1="apaganao">Não</button></div>':''));
   }
@@ -574,6 +618,9 @@ document.addEventListener("click",async e=>{
   const it=DB[v.sec].caps[v.cap].itens,a=c1.dataset.c1;
   if(a==="ant"&&it.length){v.i=(v.i+it.length-1)%it.length;v.apaga=false;}
   if(a==="prox"&&it.length){v.i=(v.i+1)%it.length;v.apaga=false;}
+  if(a==="usar"){v.usar=!v.usar;bib();return;}
+  if(a==="irgravar"){ir("lote");return;}
+  if(a.indexOf("gusa:")===0){const[d,pi]=a.slice(5).split("|"),P=L[d].prods[Number(pi)],g=it[v.i];P.gEsc=P.gEsc||[];if(P.gEsc.indexOf(g)<0)P.gEsc.push(g);salvaL();v.usar=false;bib();lote();toast("Gancho foi para "+P.n);return;}
   if(a==="copia"){try{await navigator.clipboard.writeText(it[v.i]);toast("Copiado");}catch(_){toast("Segure o texto para copiar");}return;}
   if(a==="edita"){v.ed=true;v.apaga=false;}
   if(a==="cancela"){if(v.novo)V3={sec:v.sec,cap:null};else v.ed=false;}
@@ -599,6 +646,17 @@ const FT={
  resp:{n:"Respondendo comentário",cta:true,g:["Respondendo: “{o} {p} resolve {dor} mesmo?”","Me perguntaram se isso funciona mesmo…"],r:["Use “Responder com vídeo” no comentário","Mostre exatamente o que perguntaram","CTA ou uma pergunta de volta"]}
 };
 const FK=Object.keys(FT);
+const DESC={pov:"Você filma como se a pessoa estivesse vendo pelos seus olhos. Um take só, uma frase escrita na tela e um som em alta. Sem falar. É o mais rápido de gravar.",
+maos:"Só as suas mãos aparecem: pegando, abrindo e usando o produto, passo a passo. Bom para quando você não quer aparecer.",
+historia:"Você conta uma história sua, como para uma amiga: a dor que tinha, como achou o produto e o que mudou. Vende sem parecer venda. Tem CTA no final.",
+antes:"Mostra o problema primeiro (a bagunça, o canto feio) e depois o resultado com o produto. A virada é o que prende.",
+motivos:"Uma lista: 3 motivos para ter o produto, um motivo em cada cena. Fácil de seguir e de assistir até o fim.",
+unbox:"Abrindo o pacote. Mostre o produto logo no começo, a reação e os detalhes de perto.",
+demo:"Mostra como funciona na prática, do começo ao fim. A pessoa vê que funciona mesmo.",
+engaja:"Feito para a pessoa comentar: uma pergunta, uma enquete, \"comenta EU QUERO\". O vídeo é curto; o resultado vem nos comentários.",
+narrado:"Você grava as cenas e depois narra por cima com a sua voz, falando o nome do produto. Coloque legenda igual à fala.",
+compara:"Coloca lado a lado o jeito antigo (ou o produto caro) e o produto. A pessoa vê a diferença na hora.",
+resp:"Você responde a dúvida de um comentário com um vídeo (\"Responder com vídeo\"). Mostra que é real e gera mais comentários."};
 const CTA_L=["Confere no carrinho laranja se o valor pra você também tá com promoção","Vê se ainda tá em oferta relâmpago pra você","Clica no carrinho laranja pra ver o preço, tá quase de graça","Comprei aqui no TikTok Shop, no carrinho laranja em cima do meu nome. Vê se tem cupom e frete grátis"];
 const SUGQ={pov:3,maos:2,historia:2,narrado:2,antes:1};
 const SUGP=["Organizador de gaveta","Pisca-pisca","Vila natalina","Porta-temperos","Difusor de aromas","Cesto organizador"];
@@ -618,15 +676,22 @@ const salvaL=()=>{try{localStorage.setItem(LK,JSON.stringify(L))}catch(_){}};
 /* vídeos de um produto, montados a partir das quantidades que ela escolheu */
 function vidsDe(P){
   const out=[];const dores=P.dSel.map(i=>P.dores[i]).filter(Boolean);const ds=dores.length?dores:[P.dores[0]||{d:"bagunça",f:"minha casa nunca fica arrumada"}];
-  FK.forEach(k=>{for(let j=0;j<(P.q[k]||0);j++){const key=k+"-"+j,st=P.v[key]=P.v[key]||{gi:j,ci:j,ed:{},ok:false},F=FT[k],dor=ds[j%ds.length];
+  /* formatos do app + os formatos que ela mesma escreveu (P.ex); ganchos que ela mandou da Biblioteca (P.gEsc) vão para os primeiros vídeos */
+  const esc0=P.gEsc||[];let idx=0;
+  const lista=FK.map(k=>({k,F:FT[k],q:P.q[k]||0})).concat((P.ex||[]).map((x,i)=>({k:"x"+i,F:{n:x.n,cta:!!x.cta,g:x.g?[x.g]:["Escreva o seu gancho"],r:x.r?x.r.split("\n"):["Escreva aqui como vai ser o vídeo"],meu:true},q:x.q||0})));
+  lista.forEach(({k,F,q})=>{for(let j=0;j<q;j++){const key=k+"-"+j,st=P.v[key]=P.v[key]||{gi:j,ci:j,ed:{},ok:false},dor=ds[j%ds.length];
     const gs=[];ds.forEach(d=>F.g.forEach(t=>{const s=capi(fill(t,P.n,d));if(gs.indexOf(s)<0)gs.push(s);}));
-    out.push({key,k,j,F,st,g:st.ed.g!=null?st.ed.g:gs[st.gi%gs.length],gs,
+    const gB=(st.gi===j&&idx<esc0.length)?esc0[idx]:null;idx++;
+    out.push({key,k,j,F,st,g:st.ed.g!=null?st.ed.g:gB!=null?gB:gs[st.gi%gs.length],gs,
       r:st.ed.r!=null?st.ed.r:F.r.map((x,i)=>(i+1)+". "+capi(fill(x,P.n,dor))).join("\n"),
       cta:F.cta?(st.ed.cta!=null?st.ed.cta:CTA_L[st.ci%CTA_L.length]):null,
       leg:st.ed.leg!=null?st.ed.leg:capi(P.n)+": chega de "+dor.d+" 🤍 Você também passa por isso?\n\n"+tagsDe(P.n)});}});
   return out;
 }
-const totQ=P=>FK.reduce((s,k)=>s+(P.q[k]||0),0);
+const totQ=P=>FK.reduce((s,k)=>s+(P.q[k]||0),0)+(P.ex||[]).reduce((s,x)=>s+(x.q||0),0);
+let fdAb=null,agAb=null;
+const dm=s=>{const p=String(s).split("-");return p.length===3?p[2]+"/"+p[1]:s;};
+document.addEventListener("change",e=>{const a=e.target.closest("[data-vag]");if(!a)return;const x=acharV(a.dataset.vag);if(a.value){x.v.st.ag=a.value;x.v.st.ok=true;agAb=null;aberto=null;toast("Agendado para "+dm(a.value));}else delete x.v.st.ag;salvaL();lote();});
 const feitos=d=>L[d].prods.reduce((s,P)=>s+vidsDe(P).filter(v=>v.st.ok).length,0);
 const plan=d=>L[d].prods.reduce((s,P)=>s+totQ(P),0);
 function lote(){
@@ -638,21 +703,37 @@ function lote(){
     '<div class="addrow"><input id="prodNovo" placeholder="Escreva o produto"><button class="bt pri" data-padd="1">Adicionar</button></div>';
   $("prods").innerHTML=D.prods.map((P,pi)=>{
     const vs=vidsDe(P),ok=vs.filter(v=>v.st.ok).length,tq=totQ(P);
-    return '<div class="lprod"><div class="hd"><b class="pn">'+esc(P.n)+'</b><span>'+ok+'/'+tq+' gravados</span><button class="x" data-prm="'+pi+'" aria-label="Tirar produto">✕</button></div>'+
-      '<div><p class="mini">Que dor ele resolve? (o app sugere; você marca)</p><div class="chips2">'+P.dores.map((d,i)=>'<button data-dor="'+pi+'|'+i+'" aria-pressed="'+(P.dSel.indexOf(i)>=0)+'">'+esc(d.d)+'</button>').join("")+'</div></div>'+
-      '<div><p class="mini">Quantos de cada formato? Você decide (pode ser 10 de POV).</p>'+
+    const pk="p|"+dia+"|"+P.n,sk=s=>'s|'+dia+'|'+P.n+'|'+s,completo=tq>0&&ok>=tq,nd=P.dSel.length;
+    const sec=(s,tit,res,padrao,corpo)=>'<details class="sec" data-k="'+sk(s)+'"'+abreK(sk(s),padrao)+'><summary><b>'+tit+'</b><span>'+res+'</span></summary><div class="secb">'+corpo+'</div></details>';
+    return '<details class="lprod" data-k="'+pk+'"'+abreK(pk,!completo)+'><summary class="hd"><b class="pn">'+esc(P.n)+'</b><span>'+(completo?'✓ ':'')+ok+'/'+tq+' gravados</span><button class="x" data-prm="'+pi+'" aria-label="Tirar produto">✕</button></summary><div class="secs">'+
+      sec("dor","Dor",nd+(nd===1?' marcada':' marcadas'),!tq,'<p class="mini">Que dor ele resolve? (o app sugere; você marca)</p><div class="chips2">'+P.dores.map((d,i)=>'<button data-dor="'+pi+'|'+i+'" aria-pressed="'+(P.dSel.indexOf(i)>=0)+'">'+esc(d.d)+'</button>').join("")+'</div>'+
+        '<div class="addrow"><input id="dorNova'+pi+'" placeholder="Escrever outra dor"><button class="bt" data-doradd="'+pi+'">Adicionar</button></div>')+
+      sec("fmt","Formatos",tq+' vídeos',!tq,'<p class="mini">Quantos de cada formato? Você decide (pode ser 10 de POV). Toque no nome para ver o que é.</p>'+
       (tq?'':'<button class="bt" data-sug="'+pi+'">Usar sugestão: 3 POV, 2 mãos, 2 storytelling, 2 narrados, 1 antes e depois</button>')+
-      '<div class="qt">'+FK.map(k=>'<div><span>'+FT[k].n+(FT[k].cta?'':' <em>sem CTA</em>')+'</span><span class="stp"><button data-q="'+pi+'|'+k+'|-1" aria-label="Menos">−</button><b>'+(P.q[k]||0)+'</b><button data-q="'+pi+'|'+k+'|1" aria-label="Mais">+</button></span></div>').join("")+'</div>'+
-      '<p class="mini">Total: <b>'+tq+'</b> vídeos deste produto</p></div>'+
-      (vs.length?'<div class="vids"><p class="mini">Roteiros prontos. Toque para abrir, trocar ou editar.</p>'+vs.map(v=>{const id=pi+"|"+v.key,op=aberto===id;
-        return '<div class="vd'+(v.st.ok?' ok':'')+'"><button class="vh" data-vab="'+id+'"><span><small>'+v.F.n+' '+(v.j+1)+'</small>'+esc(v.g)+'</span><i>'+(v.st.ok?'✓':'›')+'</i></button>'+
+      '<div class="qt">'+FK.map(k=>{const ab=fdAb===pi+"|"+k;return '<div><button class="fn'+(ab?' on':'')+'" data-fdesc="'+pi+'|'+k+'" aria-expanded="'+ab+'">'+FT[k].n+(FT[k].cta?'':' <em>sem CTA</em>')+'<i>'+(ab?'−':'?')+'</i></button><span class="stp"><button data-q="'+pi+'|'+k+'|-1" aria-label="Menos">−</button><b>'+(P.q[k]||0)+'</b><button data-q="'+pi+'|'+k+'|1" aria-label="Mais">+</button></span></div>'+(ab?'<p class="fdesc">'+esc(DESC[k]||"")+'</p>':'');}).join("")+
+        (P.ex||[]).map((x,xi)=>'<div><span class="fn meu">'+esc(x.n)+' <em>seu</em><button class="x" data-exrm="'+pi+'|'+xi+'" aria-label="Tirar formato">✕</button></span><span class="stp"><button data-exq="'+pi+'|'+xi+'|-1" aria-label="Menos">−</button><b>'+(x.q||0)+'</b><button data-exq="'+pi+'|'+xi+'|1" aria-label="Mais">+</button></span></div>').join("")+'</div>'+
+      '<div class="meuf"><p class="mini">Viu um vídeo diferente? Coloque o seu formato.</p><input id="exN'+pi+'" placeholder="Nome do formato (ex.: só o título na tela)"><input id="exG'+pi+'" placeholder="Gancho ou título (se quiser)"><label class="ckl"><input type="checkbox" id="exC'+pi+'"> tem CTA no final</label><button class="bt" data-exadd="'+pi+'">Adicionar formato</button></div>'+
+      '<p class="mini">Total: <b>'+tq+'</b> vídeos deste produto</p>')+
+      sec("gan","Ganchos da Biblioteca",(P.gEsc||[]).length?(P.gEsc.length+' escolhido'+(P.gEsc.length>1?'s':'')):'nenhum',false,'<p class="mini">Os ganchos que você escolher vão para os primeiros vídeos.</p>'+
+        ((P.gEsc||[]).length?'<div class="gesc">'+P.gEsc.map((g,gi)=>'<span>'+esc(g)+'<button data-gx="'+pi+'|'+gi+'" aria-label="Tirar gancho">✕</button></span>').join("")+'</div>':'')+
+        '<button class="bt" data-gbib="1">Escolher gancho na Biblioteca</button>')+
+      sec("ide","Ideia sua",P.ideia?'escrita':'vazia',false,'<textarea class="ideia" data-ideia="'+pi+'" rows="2" placeholder="Escreva o que quiser: uma cena, um cenário, um vídeo que você viu">'+esc(P.ideia||"")+'</textarea>')+
+      (vs.length?sec("rot","Roteiros",ok+'/'+tq+' gravados',true,'<div class="vids"><p class="mini">Toque para abrir, trocar ou editar.</p>'+vs.map(v=>{const id=pi+"|"+v.key,op=aberto===id;
+        const pid=dia+"|"+P.n+"|"+v.key,pos=(L.post||{})[pid],tags=(v.st.ok?'<b class="tg">Gravado</b>':'')+(v.st.edt?'<b class="tg ed">Editar</b>':'')+(v.st.ag?'<b class="tg ag">Agendado '+dm(v.st.ag)+'</b>':'')+(pos?'<b class="tg ps">Postado</b>':'');
+        return '<div class="vd'+(pos||v.st.ag?' ok':'')+'"><button class="vh" data-vab="'+id+'"><span><small>'+v.F.n+' '+(v.j+1)+'</small>'+esc(v.g)+(tags?'<em class="tgs">'+tags+'</em>':'')+'</span><i>'+(op?'−':'›')+'</i></button>'+
         (op?'<div class="vb">'+
           '<label>Gancho <button data-vtr="'+id+'|g">🔄 Trocar</button></label><textarea data-ved="'+id+'|g" rows="2">'+esc(v.g)+'</textarea>'+
           '<label>'+(v.F.cta?'Roteiro (gancho, desenvolvimento e CTA)':'Roteiro')+'</label><textarea data-ved="'+id+'|r" rows="'+(v.r.split("\n").length+1)+'">'+esc(v.r)+'</textarea>'+
           (v.cta!==null?'<label>CTA <button data-vtr="'+id+'|cta">🔄 Trocar</button></label><textarea data-ved="'+id+'|cta" rows="2">'+esc(v.cta)+'</textarea>':'<p class="mini">Sem CTA: '+v.F.n+' é vídeo curto.</p>')+
           '<label>Legenda</label><textarea data-ved="'+id+'|leg" rows="4">'+esc(v.leg)+'</textarea>'+
-          '<div class="row"><button class="bt pri" data-vok="'+id+'">'+(v.st.ok?'Gravado ✓':'Gravei')+'</button><button class="bt" data-vcp="'+id+'">Copiar legenda</button></div></div>':'')+'</div>';}).join("")+'</div>':'')+
-      '</div>';
+          '<p class="mini">Onde está este vídeo? Marque o que já fez.</p><div class="sts">'+
+            '<button data-vok="'+id+'" aria-pressed="'+!!v.st.ok+'">Gravei</button>'+
+            '<button data-vedt="'+id+'" aria-pressed="'+!!v.st.edt+'">Precisa editar</button>'+
+            '<button data-vagb="'+id+'" aria-pressed="'+!!v.st.ag+'">'+(v.st.ag?'Agendado '+dm(v.st.ag):'Agendei')+'</button>'+
+            '<button data-vpos="'+id+'" aria-pressed="'+!!pos+'">Postei</button></div>'+
+          (agAb===id?'<div class="agbox"><label>Agendado para qual dia?</label><input type="date" data-vag="'+id+'" value="'+(v.st.ag||"")+'">'+(v.st.ag?'<button class="bt" data-vagx="'+id+'">Tirar agendamento</button>':'')+'</div>':'')+
+          '<div class="row"><button class="bt" data-vcp="'+id+'">Copiar legenda</button></div></div>':'')+'</div>';}).join("")+'</div>'):'')+
+      '</div></details>';
   }).join("")||'<p class="sub" style="margin-top:10px">Nenhum produto ainda. Toque numa sugestão ou escreva o seu.</p>';
   const n=feitos(dia),t=feitos("sab")+feitos("dom"),pl=plan(dia);
   $("loteN").textContent=n;$("loteDe").textContent="gravados hoje, de "+pl+" planejados";$("loteTot").textContent=t+"/120";$("loteBar").style.width=Math.min(100,t/120*100)+"%";
@@ -669,14 +750,13 @@ document.addEventListener("click",e=>{const r=e.target.closest("[data-reset]");i
 /* semana: junta os vídeos do sábado e do domingo, intercalando os produtos, 10 por dia */
 const DIAS=["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"],HORAS=["8h","9h30","11h","12h30","14h","15h30","17h","18h30","20h","21h30"],CORP=["#C98B7E","#7FA393","#C9A86A","#8E8BC2","#B57FA0","#7E9FC2"];
 function semana(){
-  const fila=[],nomes=[];
-  ["sab","dom"].forEach(d=>L[d].prods.forEach(P=>{if(nomes.indexOf(P.n)<0)nomes.push(P.n);fila.push(vidsDe(P).map(v=>({p:P.n,f:v.F.n,g:v.g})));}));
-  const mix=[];let k=0;while(fila.some(f=>f.length)){const f=fila[k%fila.length];if(f.length)mix.push(f.shift());k++;}
-  const dias=DIAS.map((_,i)=>mix.slice(i*10,i*10+10)),res=Math.max(0,mix.length-70);
+  const nomes=[];["sab","dom"].forEach(d=>L[d].prods.forEach(P=>{if(nomes.indexOf(P.n)<0)nomes.push(P.n);}));
+  const pl=plano(),cv=x=>({p:x.P.n,f:x.v.F.n,g:x.v.g,ag:x.v.st.ag,ps:(L.post||{})[x.id]});
+  const dias=pl.dias.map(d=>d.map(cv)),res=pl.res.length,mix=dias.flat().concat(pl.res);
   document.querySelectorAll("[data-sj]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sj===sj));
   if(!mix.length){$("semanaLote").innerHTML='<p class="sub">Coloque os produtos e as quantidades acima que a semana aparece aqui.</p>';return;}
   let h="";
-  if(sj==="lista")h=dias.map((d,i)=>'<details class="dl"'+(i===0?' open':'')+'><summary><b>'+DIAS[i]+'</b><span>'+d.length+' vídeos</span></summary>'+(d.length?d.map((v,j)=>'<div class="dlr"><i>'+(j+1)+'</i><span>'+esc(v.p)+' · '+esc(v.f)+'<small>'+esc(v.g)+'</small></span></div>').join(""):'<p class="mini">Faltam vídeos para este dia.</p>')+'</details>').join("")+(res?'<p class="sub">Reserva: '+res+' vídeos sobrando para a próxima semana ou para um dia que não der.</p>':'');
+  if(sj==="lista")h=dias.map((d,i)=>'<details class="dl" data-k="d|'+i+'"'+abreK("d|"+i,i===0)+'><summary><b>'+DIAS[i]+'</b><span>'+d.length+' vídeos</span></summary>'+(d.length?d.map((v,j)=>'<div class="dlr"><i>'+(j+1)+'</i><span>'+esc(v.p)+' · '+esc(v.f)+(v.ps?' <b class="tg ps">Postado</b>':v.ag?' <b class="tg ag">Agendado '+dm(v.ag)+'</b>':'')+'<small>'+esc(v.g)+'</small></span></div>').join(""):'<p class="mini">Faltam vídeos para este dia.</p>')+'</details>').join("")+(res?'<p class="sub">Reserva: '+res+' vídeos para a próxima semana (cada dia tem no máximo 1 vídeo de cada produto).</p>':'');
   if(sj==="grade")h='<div class="gd"><div class="gdh">'+DIAS.map(d=>'<span>'+d.slice(0,3)+'</span>').join("")+'</div><div class="gdb">'+dias.map(d=>'<div>'+Array.from({length:10},(_,j)=>d[j]?'<i style="background:'+CORP[nomes.indexOf(d[j].p)%CORP.length]+'" title="'+esc(d[j].p)+'"></i>':'<i class="vz"></i>').join("")+'</div>').join("")+'</div><div class="lg2">'+nomes.map((n,i)=>'<span><i style="background:'+CORP[i%CORP.length]+'"></i>'+esc(n)+'</span>').join("")+'</div></div>';
   if(sj==="hora")h='<div class="chips2">'+DIAS.map((d,i)=>'<button data-hd="'+i+'" aria-pressed="'+(i===horaDia)+'">'+d.slice(0,3)+'</button>').join("")+'</div><p class="mini">Horários sugeridos para programar no TikTok. Mude como quiser.</p>'+
     HORAS.map((hh,j)=>{const v=dias[horaDia][j];return '<div class="hr"><b>'+hh+'</b><span>'+(v?esc(v.p)+' · '+esc(v.f):'<em>vazio</em>')+'</span></div>';}).join("");
@@ -690,19 +770,30 @@ document.addEventListener("click",async e=>{
   const cx=q("[data-ckx]");if(cx){D.ck.splice(Number(cx.dataset.ckx),1);salvaL();lote();return;}
   const sp=q("[data-sugp]");if(sp){const n=sp.dataset.sugp;D.prods.push({n,dores:doresDe(n),dSel:[0],q:{},v:{}});salvaL();lote();return;}
   if(q("[data-padd]")){const n=($("prodNovo").value||"").trim();if(!n){toast("Escreva o produto primeiro");return;}D.prods.push({n,dores:doresDe(n),dSel:[0],q:{},v:{}});salvaL();lote();return;}
-  const rm=q("[data-prm]");if(rm){D.prods.splice(Number(rm.dataset.prm),1);salvaL();lote();return;}
+  const rm=q("[data-prm]");if(rm){e.preventDefault();D.prods.splice(Number(rm.dataset.prm),1);salvaL();lote();return;}
   const dr=q("[data-dor]");if(dr){const[pi,i]=dr.dataset.dor.split("|").map(Number),P=D.prods[pi];const k=P.dSel.indexOf(i);if(k>=0){if(P.dSel.length>1)P.dSel.splice(k,1);}else P.dSel.push(i);salvaL();lote();return;}
+  const fd=q("[data-fdesc]");if(fd){fdAb=fdAb===fd.dataset.fdesc?null:fd.dataset.fdesc;lote();return;}
+  const da=q("[data-doradd]");if(da){const pi=Number(da.dataset.doradd),P=D.prods[pi],t=($("dorNova"+pi).value||"").trim();if(!t){toast("Escreva a dor primeiro");return;}P.dores.push({d:t,f:t});P.dSel.push(P.dores.length-1);salvaL();lote();toast("Dor adicionada");return;}
+  const ea=q("[data-exadd]");if(ea){const pi=Number(ea.dataset.exadd),P=D.prods[pi],n=($("exN"+pi).value||"").trim();if(!n){toast("Escreva o nome do formato");return;}(P.ex=P.ex||[]).push({n,g:($("exG"+pi).value||"").trim(),cta:$("exC"+pi).checked,q:1});salvaL();lote();toast("Formato adicionado");return;}
+  const eq=q("[data-exq]");if(eq){const[pi,xi,s]=eq.dataset.exq.split("|").map(Number),x=D.prods[pi].ex[xi];x.q=Math.max(0,(x.q||0)+s);salvaL();lote();return;}
+  const er=q("[data-exrm]");if(er){const[pi,xi]=er.dataset.exrm.split("|").map(Number),P=D.prods[pi];P.ex.splice(xi,1);Object.keys(P.v).forEach(k=>{if(/^x\d/.test(k))delete P.v[k];});salvaL();lote();return;}
+  const gx=q("[data-gx]");if(gx){const[pi,gi]=gx.dataset.gx.split("|").map(Number);D.prods[pi].gEsc.splice(gi,1);salvaL();lote();return;}
+  if(q("[data-gbib]")){V3={sec:"ganchos",cap:null,i:null};bib();ir("biblio");return;}
   const sg=q("[data-sug]");if(sg){D.prods[Number(sg.dataset.sug)].q=Object.assign({},SUGQ);salvaL();lote();return;}
   const qq=q("[data-q]");if(qq){const[pi,k,s]=qq.dataset.q.split("|");const P=D.prods[Number(pi)];P.q[k]=Math.max(0,(P.q[k]||0)+Number(s));salvaL();lote();return;}
   const va=q("[data-vab]");if(va){aberto=aberto===va.dataset.vab?null:va.dataset.vab;lote();return;}
   const vt=q("[data-vtr]");if(vt){const p=vt.dataset.vtr.split("|"),c=p.pop(),x=acharV(p.join("|"));if(c==="g"){x.v.st.gi++;delete x.v.st.ed.g;}else{x.v.st.ci++;delete x.v.st.ed.cta;}salvaL();lote();return;}
-  const vo=q("[data-vok]");if(vo){const x=acharV(vo.dataset.vok);x.v.st.ok=!x.v.st.ok;salvaL();if(x.v.st.ok)aberto=null;lote();if(x.v.st.ok)toast("Gravado ✓ ("+feitos(dia)+" hoje)");return;}
+  const vo=q("[data-vok]");if(vo){const x=acharV(vo.dataset.vok);x.v.st.ok=!x.v.st.ok;salvaL();const tq=totQ(x.P);if(x.v.st.ok&&tq&&vidsDe(x.P).every(v=>v.st.ok)){ABT["p|"+dia+"|"+x.P.n]=false;aberto=null;lote();toast("Produto completo: recolhi o cartão");return;}lote();if(x.v.st.ok)toast("Gravado ✓ ("+feitos(dia)+" hoje)");return;}
+  const ve=q("[data-vedt]");if(ve){const x=acharV(ve.dataset.vedt);x.v.st.edt=!x.v.st.edt;if(x.v.st.edt){x.v.st.ok=true;aberto=null;}salvaL();lote();if(x.v.st.edt)toast("Fica marcado: editar depois");return;}
+  const vg=q("[data-vagb]");if(vg){agAb=agAb===vg.dataset.vagb?null:vg.dataset.vagb;lote();const i=document.querySelector('[data-vag="'+vg.dataset.vagb+'"]');if(i&&!i.value){try{i.showPicker()}catch(_){i.focus()}}return;}
+  const vx=q("[data-vagx]");if(vx){const x=acharV(vx.dataset.vagx);delete x.v.st.ag;agAb=null;salvaL();lote();return;}
+  const vp=q("[data-vpos]");if(vp){const x=acharV(vp.dataset.vpos),pid=dia+"|"+x.P.n+"|"+x.key;L.post=L.post||{};if(L.post[pid])delete L.post[pid];else{L.post[pid]=HOJE;x.v.st.ok=true;aberto=null;marcaDia();toast("Postado ✓");}salvaL();lote();return;}
   const vc=q("[data-vcp]");if(vc){const x=acharV(vc.dataset.vcp);try{await navigator.clipboard.writeText(x.v.leg);toast("Legenda copiada");}catch(_){toast("Segure o texto para copiar");}return;}
   const s2=q("[data-sj]");if(s2){sj=s2.dataset.sj;semana();return;}
   const hd=q("[data-hd]");if(hd){horaDia=Number(hd.dataset.hd);semana();return;}
 });
 document.addEventListener("change",e=>{const c=e.target.closest("[data-ck]");if(c){L[dia].ck[Number(c.dataset.ck)].ok=c.checked;salvaL();}});
-document.addEventListener("input",e=>{const t=e.target.closest("[data-ved]");if(!t)return;const p=t.dataset.ved.split("|"),c=p.pop(),x=acharV(p.join("|"));x.v.st.ed[c]=t.value;salvaL();});
+document.addEventListener("input",e=>{const id=e.target.closest("[data-ideia]");if(id){L[dia].prods[Number(id.dataset.ideia)].ideia=id.value;salvaL();return;}const t=e.target.closest("[data-ved]");if(!t)return;const p=t.dataset.ved.split("|"),c=p.pop(),x=acharV(p.join("|"));x.v.st.ed[c]=t.value;salvaL();});
 
 /* ---------- links úteis: tudo que fica fora do app, num lugar só (editável) ---------- */
 const LINKS0=[
