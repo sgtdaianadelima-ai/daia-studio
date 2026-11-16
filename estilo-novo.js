@@ -11,10 +11,14 @@
   document.body.appendChild(nav);
   // topo: "← Início" no lugar de "DAIA STUDIO"
   document.querySelectorAll("header.top .brand").forEach(b => {
-    const a = document.createElement("a"); a.href = "novo.html"; a.className = "voltar-novo"; a.textContent = "← Início"; b.prepend(a);
+    const a = document.createElement("a"); a.href = "novo.html"; a.className = "voltar-novo"; a.textContent = "‹ Voltar"; b.prepend(a);
+    // v60: volta para a tela de onde ela veio (ex.: Ajustes › Mais), e não sempre para o Início
+    a.addEventListener("click", e => { try { if (document.referrer && new URL(document.referrer).origin === location.origin && history.length > 1) { e.preventDefault(); history.back(); } } catch(_) {} });
   });
   // atalho "Postei, anotar, converter link" vindo do Início novo
   try { if (sessionStorage.getItem("daia-mais") === "1") { sessionStorage.removeItem("daia-mais"); setTimeout(() => { const m = document.querySelector("[data-mais]"); if (m) m.click(); }, 700); } } catch(_) {}
+  // v60: as metas do dia seguem o Cronograma (Ajustes › Mais › Cronograma)
+  try { const C = JSON.parse(localStorage.getItem("daia-crono-v1") || "null"); if (C && typeof METAS !== "undefined") { const d = (new Date().getDay() + 6) % 7, o = (C.dias || {})[d] || {}, b = C.base || {}; METAS.forEach(m => { const v = o[m.id] != null ? o[m.id] : b[m.id]; if (v != null) m.n = v; }); if (typeof renderHoje === "function") try { renderHoje(); } catch(_) {} } } catch(_) {}
   // v59: páginas abertas pelos Ajustes › Mais (Regras, TikTok Shop, Plataformas, Ofertas)
   try { const pg = sessionStorage.getItem("daia-pag"); if (pg) { sessionStorage.removeItem("daia-pag"); setTimeout(() => { if (window.abrirPagina) abrirPagina(pg); }, 500); } } catch(_) {}
   // v59: se ela escolheu "Com emojis" em Ajustes › Aparência, os emojis ficam

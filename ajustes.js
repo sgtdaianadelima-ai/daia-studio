@@ -39,10 +39,11 @@
     return Object.assign({}, V, { foto: DV.foto(), ini, qua: lsG("daia-qj", "abas"), abrir: lsG("daia-abrir", "novo") });
   }
   let atual = estadoSalvo(), prev = Object.assign({}, atual), quem = "acc", foco = "ini", aba = lsG("daia-aj-aba", "apar");
+  if (!["apar", "aparelhos", "mais"].includes(aba)) aba = "apar";
   let meus = []; try { meus = JSON.parse(localStorage.getItem("daia-visual-meus") || "[]") || []; } catch (_) {}
 
   raiz.innerHTML =
-    '<div class="ax-abas"><div class="ax-seg" role="tablist">' + [["apar", "Aparência"], ["telas", "Telas"], ["aparelhos", "Aparelhos"], ["mais", "Mais"]].map(a => '<button role="tab" data-axaba="' + a[0] + '">' + a[1] + '</button>').join("") + '</div></div>' +
+    '<div class="ax-abas"><div class="ax-seg" role="tablist">' + [["apar", "Aparência"], ["aparelhos", "Aparelhos"], ["mais", "Mais"]].map(a => '<button role="tab" data-axaba="' + a[0] + '">' + a[1] + '</button>').join("") + '</div></div>' +
     '<div class="ax-previa" id="axPrevia"><span class="ax-tit" id="axPrevTit">Prévia do Início</span><div class="ax-fone"><div class="ax-pv" id="axPv"></div></div></div>' +
     '<section data-axpag="apar">' +
       gr("mod", "Modelos prontos", DV.MODELOS.length + " modelos", true, '<p class="ax-dica">Toque para ver na prévia. Depois mude o detalhe que quiser.</p><div class="ax-modelos" id="axModelos"></div>') +
@@ -57,9 +58,9 @@
       gr("ico", "Ícones e emojis", "", false, '<div class="ax-chips" id="axIco"></div><p class="ax-dica">Vale para os atalhos e o menu de baixo.</p>', "axIcoRes") +
       gr("fun", "Fundo", "desenho ou foto", false, '<div class="ax-fundos" id="axFundo"></div><div class="ax-foto"><label for="axFotoIn">Escolher foto do celular</label><input type="file" id="axFotoIn" accept="image/*"><span class="ax-dica" id="axFotoNome"></span></div>' +
         '<div class="ax-rg"><p class="ax-lbl">Clareza da foto</p><span id="axVV"></span><input type="range" id="axV" min="0" max="90" step="5" aria-label="Clareza da foto"></div>') +
+      gr("tel", "Jeito das telas", "Início, Lista, ao abrir", false, '<p class="ax-lbl">Jeito do Início</p><div class="ax-op3" id="axJIni"></div><p class="ax-lbl">Jeito da Lista de hoje</p><div class="ax-op3" id="axJQua"></div><p class="ax-lbl">Ao abrir o app, começar em</p><div class="ax-chips" id="axJAbrir"></div>') +
       gr("meu", "Meus modelos", "", false, '<p class="ax-dica">Gostou do jeito que ficou? Dê um nome e guarde para usar de novo.</p><div class="ax-salva"><input id="axNome" placeholder="Ex.: Natal da Daia"><button class="ax-bt ax-main" id="axGuarda">Guardar</button></div><div class="ax-modelos" id="axMeus"></div><button class="ax-bt" id="axOrig">Voltar ao original do app</button>', "axNMeus") +
     '</section>' +
-    '<section data-axpag="telas"><div class="ax-blk ax-corpo2"><p class="ax-lbl">Jeito do Início</p><div class="ax-op3" id="axJIni"></div><p class="ax-lbl">Jeito da Lista de hoje</p><div class="ax-op3" id="axJQua"></div><p class="ax-lbl">Ao abrir o app, começar em</p><div class="ax-chips" id="axJAbrir"></div></div></section>' +
     '<section data-axpag="aparelhos"><div class="syncbox" id="syncBox"></div><p class="ax-dica" style="margin-top:10px">Aparelho novo: abra o link de ligar que você guardou, ou cole o código no campo acima quando ele aparecer.</p></section>' +
     '<section data-axpag="mais">' + mais() + '</section>' +
     '<div class="ax-barra" id="axBarra" hidden><div class="ax-in"><p><b>Só a prévia.</b> Nada mudou ainda.</p><button class="ax-bt" id="axVer">Ver</button><button class="ax-bt" id="axDesfaz">Voltar</button><button class="ax-bt ax-main" id="axAplica">Aplicar</button></div></div>';
@@ -68,20 +69,21 @@
     return '<details class="ax-gr" data-axgr="' + id + '"' + (aberto ? " open" : "") + '><summary><b>' + tit + '</b><small' + (resId ? ' id="' + resId + '"' : '') + '>' + res + '</small></summary><div class="ax-corpo">' + corpo + '</div></details>';
   }
   function mais() {
-    const it = (href, t, s) => '<a href="' + href + '"><span><b>' + t + '</b><small>' + s + '</small></span><i>›</i></a>';
-    const ant = (q) => "index.html?antigo=1&" + q;
+    // v60: só o que ela usa no dia a dia (ideias e produtos ficam no Bloco; IAs viraram o robozinho)
+    const it = (attr, t, s) => '<a ' + attr + '><span><b>' + t + '</b><small>' + s + '</small></span><i>›</i></a>';
+    const ant = q => 'href="index.html?antigo=1&' + q + '"';
+    const tela = t => 'href="#' + t + '" data-ir="' + t + '"';
     return '<h2 class="ax-h">Guias</h2><div class="ax-grupo">' +
-      it("manual.html", "Manual", "como usar cada parte do app") + it("cronograma.html", "Cronograma", "o que postar em cada dia da semana") +
-      it(ant("tab=ajustes&pag=regras"), "Regras e níveis", "Shopee Vídeo, diretrizes, @daledaia") + it("como-esta.html", "Como está tudo", "os robôs e o que mudou") + '</div>' +
-      '<h2 class="ax-h">Lojas e vendas</h2><div class="ax-grupo">' +
-      it(ant("tab=ajustes&pag=tiktokshop"), "TikTok Shop", "10 vídeos por dia, mineração, 60x60") + it(ant("tab=ajustes&pag=plataformas"), "Plataformas e minhas tags", "Shein, Amazon e as outras") +
+      it(tela("manual"), "Manual", "Como faço…? Procure e siga poucos passos") +
+      it(tela("crono"), "Cronograma", "quanto postar por dia; o app todo segue") +
+      it(tela("regras"), "Regras e níveis", "TikTok Shop, Shopee Vídeo e Instagram") + '</div>' +
+      '<h2 class="ax-h">Vendas e crescer</h2><div class="ax-grupo">' +
+      it(ant("tab=ajustes&pag=tiktokshop"), "TikTok Shop", "10 vídeos por dia até os 2 mil, mineração") +
+      it(ant("tab=crescer"), "Crescer e parcerias", "números, propostas para blogueiras e curso") +
+      it(ant("tab=ajustes&pag=plataformas"), "Plataformas e minhas tags", "Shein, Amazon e as outras") +
       it(ant("tab=ajustes&pag=ofertas"), "Ofertas do grupo", "ofertas com o seu link para o VIP") + '</div>' +
-      '<h2 class="ax-h">Minhas coisas</h2><div class="ax-grupo">' +
-      it(ant("tab=ideias"), "Minhas ideias", "ideias que você anotou") + it(ant("tab=produtos"), "Meus produtos", "produtos que chegaram para gravar") + it(ant("tab=ia"), "IAs", "atalhos e pedidos prontos") + '</div>' +
-      '<h2 class="ax-h">Robô</h2><div class="ax-grupo">' +
-      '<a href="https://claude.ai/artifact/5Pgs6xkAreQUUq4XfRujjr" target="_blank" rel="noopener"><span><b>Relatório completo</b><small>o Claude escreve todo dia</small></span><i>↗</i></a>' +
-      '<a href="https://docs.google.com/spreadsheets/d/1aVQHfnnTc8kui8VHRQxt7vyP75S87wBq-RuoiOyyJyU/edit" target="_blank" rel="noopener"><span><b>Planilha do robô</b><small>onde fica tudo o que o app mostra</small></span><i>↗</i></a>' +
-      it("redesign.html", "Repaginada do app", "as ideias de visual de antes") + '</div>';
+      '<h2 class="ax-h">Robôs</h2><div class="ax-grupo">' +
+      it('href="como-esta.html"', "Como está tudo", "os robôs e o que mudou") + '</div>';
   }
 
   const chips = (id, lista, k) => { $(id).innerHTML = lista.map(x => '<button class="ax-chip' + (String(prev[k]) === x[0] ? " ax-sel" : "") + '" data-axk="' + k + '" data-axv="' + x[0] + '">' + x[1] + '</button>').join(""); };
@@ -141,8 +143,9 @@
   }
 
   function mostraPrevia() { const p = $("axPrevia"); if (p.hidden) return; const r = p.getBoundingClientRect(); if (r.bottom < 90 || r.top > innerHeight - 140) p.scrollIntoView({ behavior: "smooth", block: "center" }); }
-  function aviso(m) { try { toast(m); } catch (_) {} }
+  function aviso(m) { try { window.daiaApp.toast(m); } catch (_) {} }
 
+  raiz.addEventListener("click", e => { if (e.target.closest("a[data-ir]")) e.preventDefault(); });
   raiz.addEventListener("click", e => {
     const ab = e.target.closest("[data-axaba]"); if (ab) { aba = ab.dataset.axaba; lsS("daia-aj-aba", aba); if (aba === "apar") foco = "ini"; pinta(); return; }
     const md = e.target.closest("[data-axmod]"); if (md) { Object.assign(prev, DV.doModelo(DV.MODELOS.find(x => x[0] === md.dataset.axmod))); pinta(); mostraPrevia(); return; }
@@ -184,8 +187,8 @@
     lsS(DV.VK, JSON.stringify(V));
     if (prev.foto !== atual.foto) { if (prev.foto) { if (!lsS(DV.FK, prev.foto)) aviso("A foto é grande demais. Tente outra."); } else { try { localStorage.removeItem(DV.FK); } catch (_) {} } }
     // telas
-    if (typeof P === "object") { P.ini = prev.ini; if (typeof aplicaP === "function") aplicaP(); }
-    if (prev.qua !== atual.qua) { lsS("daia-qj", prev.qua); try { qj = prev.qua; if (typeof quadro === "function") quadro(); } catch (_) {} }
+    const AP = window.daiaApp; if (AP && AP.P) { AP.P.ini = prev.ini; AP.aplicaP(); }
+    if (prev.qua !== atual.qua) { lsS("daia-qj", prev.qua); try { AP.setQj(prev.qua); } catch (_) {} }
     lsS("daia-abrir", prev.abrir);
     DV.aplicar();
     atual = Object.assign({}, prev); pinta(); aviso("Aplicado");
@@ -200,8 +203,9 @@
 
   const st = document.createElement("style");
   st.textContent = `
+.ax-previa[hidden],.ax-barra[hidden],#ax section[hidden]{display:none!important}
 .ax-abas{position:sticky;top:env(safe-area-inset-top,0px);z-index:4;background:var(--bg);padding:6px 0 10px}
-.ax-seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--line);border-radius:12px;padding:3px;gap:3px}
+.ax-seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--line);border-radius:12px;padding:3px;gap:3px}
 .ax-seg button{padding:8px 4px;border-radius:9px;font-size:13px;font-weight:600;color:var(--mute)}
 .ax-seg button[aria-selected="true"]{background:var(--card);color:var(--ink)}
 .ax-lbl{font-size:13.5px;font-weight:600;margin:0}.ax-dica{font-size:12px;color:var(--mute);margin:0}

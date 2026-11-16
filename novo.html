@@ -368,6 +368,7 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
 <nav class="bnav" aria-label="Menu"><button data-ir="inicio" data-nv="inicio">⌂<span>Início</span></button><button data-ir="noite" data-nv="noite">☰<span>Hoje</span></button><button data-ir="lote" data-nv="lote">▣<span>Gravar</span></button><button data-ir="biblio" data-nv="biblio">❖<span>Biblioteca</span></button><button data-ir="pers" data-nv="pers">⚙<span>Ajustes</span></button></nav>
 <div class="toast" id="toast" hidden></div>
 
+<script src="telas60.js"></script>
 <script>
 (function(){
 const $=id=>document.getElementById(id);
@@ -397,7 +398,7 @@ function plano(){
     const k=P.n.toLowerCase();if(!filas[k]){filas[k]=[];ordem.push(k);}filas[k].push(x);})));
   let r=0;
   for(let i=0;i<7;i++){const tem=new Set(dias[i].map(x=>x.P.n.toLowerCase()));
-    for(let t=0;t<ordem.length&&dias[i].length<10;t++){const k=ordem[(r+t)%ordem.length];if(tem.has(k)||!filas[k].length)continue;dias[i].push(filas[k].shift());tem.add(k);}
+    for(let t=0,cap=(window.daiaCrono?daiaCrono.metaDia("tiktok",i):10);t<ordem.length&&dias[i].length<cap;t++){const k=ordem[(r+t)%ordem.length];if(tem.has(k)||!filas[k].length)continue;dias[i].push(filas[k].shift());tem.add(k);}
     r++;}
   const res=[];ordem.forEach(k=>res.push(...filas[k]));
   return {dias,res};
@@ -732,7 +733,7 @@ function lote(){
       '</div></details>';
   }).join("")||'<p class="sub" style="margin-top:10px">Nenhum produto ainda. Toque numa sugestão ou escreva o seu.</p>';
   const n=feitos(dia),t=feitos("sab")+feitos("dom"),pl=plan(dia);
-  $("loteN").textContent=n;$("loteDe").textContent="gravados hoje, de "+pl+" planejados";$("loteTot").textContent=t+"/120";$("loteBar").style.width=Math.min(100,t/120*100)+"%";
+  $("loteN").textContent=n;$("loteDe").textContent="gravados hoje, de "+pl+" planejados";{const MF=window.daiaCrono?daiaCrono.metaFim():120;$("loteTot").textContent=t+"/"+MF;$("loteBar").style.width=Math.min(100,t/MF*100)+"%";}
   semana();
   $("resetBox").innerHTML=!resetPerg?'<p class="sub">Quando chegar o outro fim de semana, comece do zero. O checklist fica.</p><button class="bt" data-reset="1">Começar outro fim de semana</button>':
     '<div class="vazio"><p><b>Apagar os produtos e roteiros deste fim de semana?</b></p><p class="sub">A Lista de hoje fica vazia até você montar o próximo. Não dá para desfazer.</p><div class="row"><button class="bt pri" data-reset="sim">Sim, começar do zero</button><button class="bt" data-reset="nao">Cancelar</button></div></div>';
@@ -863,8 +864,11 @@ bib();lote();links();
 {const h=location.hash.slice(1);if(h&&document.getElementById("t-"+h))ir(h);}
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
+// v60: ponte para ajustes.js, telas60.js e ia.js (o resto do app fica fechado aqui dentro)
+window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
 })();
 </script>
 <script src="ajustes.js"></script>
+<script src="ia.js"></script>
 </body>
 </html>
