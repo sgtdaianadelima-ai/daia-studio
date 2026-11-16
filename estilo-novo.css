@@ -102,3 +102,9 @@ html[data-novo] .topo-bts .ico[aria-label="Ajustes"],html[data-novo] .topo-bts .
 
 /* sem tela de abertura ao passar do Início novo para estas telas: parece um app só */
 html[data-novo] .splash{display:none!important}
+
+/* v58 — tablet e tela larga: as telas de antes também ocupam a tela toda */
+@media (min-width:700px){
+  html[data-novo] body{padding-left:max(32px,env(safe-area-inset-left,0px))!important;padding-right:max(32px,env(safe-area-inset-right,0px))!important}
+  html[data-novo] .wrap,html[data-novo] .voz-box{max-width:1100px!important}
+}

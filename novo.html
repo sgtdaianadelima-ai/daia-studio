@@ -2,6 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script src="sync.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Daia Studio</title>
 <meta name="theme-color" content="#FAF7F4">
@@ -26,6 +27,8 @@ body{color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.5;paddin
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
 button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .app{max-width:440px;margin:0 auto}
+/* tablet e tela larga: o app ocupa a tela toda (v58) */
+@media (min-width:700px){body{font-size:16px;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px))}.app{max-width:1100px}}
 .aviso{font-size:12.5px;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:16px}
 .tela[hidden]{display:none}
 .voltar{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute);padding:6px 0;margin-bottom:6px}
@@ -237,7 +240,8 @@ details.lprod>summary::after,.sec>summary::after{content:"›";color:var(--mute)
 details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90deg)}
 .secs{display:grid;gap:6px;margin-top:10px}
 .sec{border-top:1px solid var(--line);padding-top:6px}.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px}
-.sec.ck{margin-top:18px;border-top:0}.sec.ck>summary{font-size:18px}
+.sec.ckb{margin-top:18px;border-top:0}.sec.ckb>summary{font-size:18px}
+.syncbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:10px}.syncbox .mini{margin:0}.syncl{display:flex;gap:8px;flex-wrap:wrap}.syncl input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
 .sec>summary b{flex:1;font-weight:600}.sec>summary span{font-size:12px;color:var(--mute)}
 .secb{display:grid;gap:6px;padding:4px 0 8px}
 .tgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;font-style:normal}.tg{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--ink)}
@@ -320,7 +324,7 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
 <!-- PERSONALIZAR -->
 <section class="tela pers" id="t-pers" hidden>
   <button class="voltar" data-ir="inicio">← Início</button>
-  <h1>Configurações</h1><p class="sub">Tema e jeito das telas. Mude quando quiser, fica salvo no seu celular.</p>
+  <h1>Configurações</h1><p class="sub">Tema e jeito das telas. Mude quando quiser.</p>
   <h2>Estética</h2>
   <div class="temas" id="temas"></div>
   <h2>Jeito do Início</h2>
@@ -329,6 +333,8 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
   <div class="jeitos" id="jQua"></div>
   <h2>Ao abrir o app</h2>
   <div class="jeitos" id="jAbrir"></div>
+  <h2>Aparelhos ligados</h2>
+  <div class="syncbox" id="syncBox"></div>
   <h2>Mais ajustes</h2>
   <div class="jeitos"><button data-antigo="ajustes"><span><b>Robô, página de links e mais</b><small>lembretes, cor de antes, manual, planilha</small></span>›</button></div>
 </section>
@@ -343,7 +349,7 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
     <div class="missao"><span>Fim de semana</span><span class="b"><i id="loteBar" style="width:0"></i></span><span id="loteTot">0/120</span></div>
     <p class="sub" style="margin:0">Toque em <b>Gravei</b> em cada vídeo e o número sobe sozinho.</p>
   </div>
-  <details class="sec ck" data-k="ckAntes" open><summary><b>Antes de começar</b><span>checklist</span></summary>
+  <details class="sec ckb" data-k="ckAntes" open><summary><b>Antes de começar</b><span>checklist</span></summary>
   <div id="ckAntes"></div></details>
   <h2>Seus produtos de hoje</h2>
   <p class="sub">Você escolhe. As sugestões são só ideias: toque para adicionar, ou escreva o seu.</p>
