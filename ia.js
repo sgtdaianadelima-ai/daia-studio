@@ -12,12 +12,14 @@
     ["Legenda + SEO", t => "Escreva uma legenda curta com palavras de busca (SEO) para um vídeo sobre: " + t + ". Sem preço. 3 a 5 hashtags."],
     ["Responder comentário", t => "Sugira 3 respostas simpáticas e curtas para este comentário: " + t + ". Se pedirem o link, diga que mandei no direct ou que está na sacolinha."]
   ];
+  // a figurinha da Dalinha, a mesma de sempre (igual à do voz.js)
+  const DALINHA = '<svg class="robo" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 9.5c-2.2-3-7-1.4-7 2.2 0 3 4 5.4 7 7.6 3-2.2 7-4.6 7-7.6 0-3.6-4.8-5.2-7-2.2z" fill="#F4A9B8"/><rect x="6" y="30" width="6" height="13" rx="3" fill="#F7EDE4"/><rect x="52" y="30" width="6" height="13" rx="3" fill="#F7EDE4"/><rect x="10" y="19" width="44" height="38" rx="17" fill="#FBF7F2"/><rect x="16" y="27" width="32" height="21" rx="10.5" fill="#3B2A22"/><g class="olhos"><circle cx="25.5" cy="36" r="3.4" fill="#fff"/><circle cx="38.5" cy="36" r="3.4" fill="#fff"/></g><path d="M28.5 41.5q3.5 2.6 7 0" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/><circle cx="20" cy="51" r="2.6" fill="#F4A9B8"/><circle cx="44" cy="51" r="2.6" fill="#F4A9B8"/></svg>';
   const fab = document.createElement("button");
-  fab.className = "ia-fab"; fab.type = "button"; fab.setAttribute("aria-label", "Abrir a IA"); fab.textContent = "🤖";
+  fab.className = "ia-fab"; fab.type = "button"; fab.setAttribute("aria-label", "Falar com a Dalinha"); fab.innerHTML = DALINHA;
   const folha = document.createElement("div");
   folha.className = "ia-folha"; folha.hidden = true;
   folha.innerHTML = '<div class="ia-in"><div class="ia-alca"></div>' +
-    '<div class="ia-top"><b>Falar com a IA</b><button type="button" class="ia-bt" data-iafecha="1">Fechar</button></div>' +
+    '<div class="ia-top"><b class="ia-nome">' + DALINHA + 'Dalinha <span>· sua ajudante</span></b><button type="button" class="ia-bt" data-iafecha="1">Fechar</button></div>' +
     '<button type="button" class="ia-bt ia-main" data-iadal="1">🎤 Falar com a Dalinha</button>' +
     '<p class="ia-mini">Abrir uma IA (sem gastar nada daqui):</p>' +
     '<div class="ia-apps"><a href="https://chatgpt.com" target="_blank" rel="noopener">ChatGPT<small>roteiros</small></a><a href="https://gemini.google.com" target="_blank" rel="noopener">Gemini<small>imagens</small></a><a href="https://claude.ai" target="_blank" rel="noopener">Claude<small>planejar</small></a></div>' +
@@ -47,7 +49,13 @@
   });
   const st = document.createElement("style");
   st.textContent = `
-.ia-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:54px;height:54px;border-radius:50%;background:var(--acc,var(--wine,#7A2E3A));color:#fff;font-size:25px;display:grid;place-items:center;box-shadow:0 8px 20px rgba(0,0,0,.18);z-index:35;border:0;cursor:pointer}
+.ia-fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));width:62px;height:62px;padding:0;border-radius:50%;background:var(--acc,var(--wine,#7A2E3A));color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px rgba(0,0,0,.2);z-index:35;border:0;cursor:pointer}
+.ia-fab .robo{width:44px;height:44px}
+.ia-nome{display:flex;align-items:center;gap:8px}.ia-nome span{font-weight:400;font-size:12.5px;color:var(--mute,var(--muted,#857873))}
+.ia-nome .robo{width:36px;height:36px;background:var(--acc,var(--wine,#7A2E3A));border-radius:50%;padding:3px;flex:none}
+.ia-fab .olhos,.ia-nome .olhos{transform-box:fill-box;transform-origin:center;animation:dalPisca 5s infinite}
+@keyframes dalPisca{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@media (prefers-reduced-motion:reduce){.ia-fab .olhos,.ia-nome .olhos{animation:none}}
 .voz-fab{display:none!important}
 .ia-folha{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.28);display:flex;align-items:flex-end}
 .ia-folha[hidden]{display:none!important}
