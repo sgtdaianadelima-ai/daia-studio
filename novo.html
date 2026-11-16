@@ -333,7 +333,7 @@ details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90
 <section class="tela" id="t-lote" hidden>
   <button class="voltar" data-ir="inicio">← Início</button>
   <h1>Dia de gravar</h1><p class="sub">Sábado e domingo. A meta sugerida é 60 por dia (120 no fim de semana), mas quem decide é você.</p>
-  <div class="seg"><button data-dia="sab" aria-pressed="true">Sábado</button><button data-dia="dom" aria-pressed="false">Domingo</button></div>
+  <div class="dg-dias" id="dgDias"></div><div id="dgHoje"></div>
   <div class="streak">
     <div class="l1"><span class="num" id="loteN">0</span><span id="loteDe">gravados hoje</span></div>
     <div class="missao"><span>Fim de semana</span><span class="b"><i id="loteBar" style="width:0"></i></span><span id="loteTot">0/120</span></div>
@@ -393,7 +393,7 @@ let diaLista=hojeIdx(),atual=-1,V=[];
 const diaDaData=s=>{const p=String(s).split("-").map(Number);if(p.length!==3)return -1;return (new Date(p[0],p[1]-1,p[2]).getDay()+6)%7;};
 function plano(){
   const dias=[[],[],[],[],[],[],[]],filas={},ordem=[];
-  ["sab","dom"].forEach(d=>L[d].prods.forEach(P=>vidsDe(P).forEach(v=>{const x={d,P,v,id:d+"|"+P.n+"|"+v.key},pd=(L.post||{})[x.id],fx=v.st.ag||(typeof pd==="string"?pd:null),di=fx?diaDaData(fx):-1;
+  DKS().forEach(d=>L[d].prods.forEach(P=>vidsDe(P).forEach(v=>{const x={d,P,v,id:d+"|"+P.n+"|"+v.key},pd=(L.post||{})[x.id],fx=v.st.ag||(typeof pd==="string"?pd:null),di=fx?diaDaData(fx):-1;
     if(di>=0){dias[di].push(x);return;}
     const k=P.n.toLowerCase();if(!filas[k]){filas[k]=[];ordem.push(k);}filas[k].push(x);})));
   let r=0;
@@ -573,9 +573,9 @@ const salvaBib=()=>{try{localStorage.setItem(BK,JSON.stringify(DB))}catch(_){}};
 const CORES=["c1","c2","c3","c4"];
 /* mandar um gancho da Biblioteca para um produto do Dia de gravar */
 function usarBox(){
-  const ps=[];["sab","dom"].forEach(d=>L[d].prods.forEach((P,pi)=>ps.push([d,pi,P.n])));
+  const ps=[];DKS().forEach(d=>L[d].prods.forEach((P,pi)=>ps.push([d,pi,P.n])));
   if(!ps.length)return '<div class="usarbox"><p class="mini">Ainda não tem produto no Dia de gravar.</p><button class="bt" data-c1="irgravar">Ir para Gravar</button></div>';
-  return '<div class="usarbox"><p class="mini">Para qual produto?</p><div class="chips2">'+ps.map(x=>'<button data-c1="gusa:'+x[0]+'|'+x[1]+'">'+(x[0]==="sab"?"Sáb":"Dom")+' · '+esc(x[2])+'</button>').join("")+'</div></div>';
+  return '<div class="usarbox"><p class="mini">Para qual produto?</p><div class="chips2">'+ps.map(x=>'<button data-c1="gusa:'+x[0]+'|'+x[1]+'">'+nomeDia(x[0]).slice(0,3)+' · '+esc(x[2])+'</button>').join("")+'</div></div>';
 }
 let V3={sec:null,cap:null,i:null,ed:false,novo:false,apaga:false};
 function bib(){
@@ -667,6 +667,7 @@ const ANTES0=["Produtos separados","Luz boa: janela ou luzinha","Fundo limpo, no
 const LK="daia-lote-v2";
 let L;try{L=JSON.parse(localStorage.getItem(LK)||"null")}catch(_){L=null}
 const novoDia=()=>({ck:ANTES0.map(t=>({t,ok:false})),prods:[]});
+const DKS=()=>Object.keys(L).filter(k=>k!=="post"&&L[k]&&Array.isArray(L[k].prods));const nomeDia=k=>k==="sab"?"Sábado":k==="dom"?"Domingo":(L[k]&&L[k].nome)||k;
 if(!L)L={sab:novoDia(),dom:novoDia()};
 let dia="sab",sj="lista",horaDia=0,aberto=null;
 const salvaL=()=>{try{localStorage.setItem(LK,JSON.stringify(L))}catch(_){}};
@@ -691,7 +692,7 @@ const dm=s=>{const p=String(s).split("-");return p.length===3?p[2]+"/"+p[1]:s;};
 document.addEventListener("change",e=>{const a=e.target.closest("[data-vag]");if(!a)return;const x=acharV(a.dataset.vag);if(a.value){x.v.st.ag=a.value;x.v.st.ok=true;agAb=null;aberto=null;toast("Agendado para "+dm(a.value));}else delete x.v.st.ag;salvaL();lote();});
 const feitos=d=>L[d].prods.reduce((s,P)=>s+vidsDe(P).filter(v=>v.st.ok).length,0);
 const plan=d=>L[d].prods.reduce((s,P)=>s+totQ(P),0);
-function lote(){
+function lote(){if(!L[dia])dia="sab";try{window.daiaDias&&daiaDias.pinta()}catch(_){}
   const D=L[dia];
   $("ckAntes").innerHTML=D.ck.map((c,i)=>'<div class="ck2"><label><input type="checkbox" data-ck="'+i+'"'+(c.ok?" checked":"")+'><span>'+esc(c.t)+'</span></label><button data-ckx="'+i+'" aria-label="Tirar">✕</button></div>').join("")+
     '<div class="addrow"><input id="ckNovo" placeholder="Adicionar outro item"><button class="bt" data-ckadd="1">Adicionar</button></div>';
@@ -732,7 +733,7 @@ function lote(){
           '<div class="row"><button class="bt" data-vcp="'+id+'">Copiar legenda</button></div></div>':'')+'</div>';}).join("")+'</div>'):'')+
       '</div></details>';
   }).join("")||'<p class="sub" style="margin-top:10px">Nenhum produto ainda. Toque numa sugestão ou escreva o seu.</p>';
-  const n=feitos(dia),t=feitos("sab")+feitos("dom"),pl=plan(dia);
+  const n=feitos(dia),t=DKS().reduce((s,k)=>s+feitos(k),0),pl=plan(dia);
   $("loteN").textContent=n;$("loteDe").textContent="gravados hoje, de "+pl+" planejados";{const MF=window.daiaCrono?daiaCrono.metaFim():120;$("loteTot").textContent=t+"/"+MF;$("loteBar").style.width=Math.min(100,t/MF*100)+"%";}
   semana();
   $("resetBox").innerHTML=!resetPerg?'<p class="sub">Quando chegar o outro fim de semana, comece do zero. O checklist fica.</p><button class="bt" data-reset="1">Começar outro fim de semana</button>':
@@ -747,7 +748,7 @@ document.addEventListener("click",e=>{const r=e.target.closest("[data-reset]");i
 /* semana: junta os vídeos do sábado e do domingo, intercalando os produtos, 10 por dia */
 const DIAS=["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"],HORAS=["8h","9h30","11h","12h30","14h","15h30","17h","18h30","20h","21h30"],CORP=["#C98B7E","#7FA393","#C9A86A","#8E8BC2","#B57FA0","#7E9FC2"];
 function semana(){
-  const nomes=[];["sab","dom"].forEach(d=>L[d].prods.forEach(P=>{if(nomes.indexOf(P.n)<0)nomes.push(P.n);}));
+  const nomes=[];DKS().forEach(d=>L[d].prods.forEach(P=>{if(nomes.indexOf(P.n)<0)nomes.push(P.n);}));
   const pl=plano(),cv=x=>({p:x.P.n,f:x.v.F.n,g:x.v.g,ag:x.v.st.ag,ps:(L.post||{})[x.id]});
   const dias=pl.dias.map(d=>d.map(cv)),res=pl.res.length,mix=dias.flat().concat(pl.res);
   document.querySelectorAll("[data-sj]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sj===sj));
@@ -865,11 +866,12 @@ bib();lote();links();
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
 // v60: ponte para ajustes.js, telas60.js e ia.js (o resto do app fica fechado aqui dentro)
-window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,FT,FK,salvaL,get L(){return L},get dia(){return dia},setDia(d){dia=d},get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
+window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,FT,FK,salvaL,DK:DKS,nomeDia,novoDia,vidsDe,listaDo,hojeIdx,feitos,get L(){return L},get dia(){return dia},setDia(d){dia=d},get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
 })();
 </script>
 <script src="ajustes.js"></script>
 <script src="ia.js"></script>
 <script src="colar.js"></script>
+<script src="dias.js"></script>
 </body>
 </html>

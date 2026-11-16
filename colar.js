@@ -97,7 +97,7 @@
     $("cl6p").innerHTML = '<div class="cl6-passos"><span>1 Colar</span><span class="on">2 Conferir</span><span>3 Pronto</span></div>' +
       '<div class="cl6-res"><div><b>' + P.length + '</b><small>produtos</small></div><div><b>' + tt + '</b><small>TikTok</small></div><div><b>' + ig + '</b><small>Instagram</small></div></div>' +
       P.map((p, i) => '<label class="cl6-prod"><input type="checkbox" checked data-clp="' + i + '"><span><b>' + esc(p.n) + '</b><small>' + (p.tiktok || []).length + ' TikTok · ' + (p.instagram ? 1 : 0) + ' Instagram' + ((p.dores || []).length ? ' · dores: ' + esc(p.dores.join(", ")) : '') + '</small></span></label>').join("") +
-      '<p class="mini">Colocar no dia:</p><div class="cl6-chips">' + [["sab", "Sábado"], ["dom", "Domingo"], ["dividir", "Dividir entre os dois"]].map(d => '<button class="cl6-chip" aria-pressed="' + (diaEsc === d[0]) + '" data-cldia="' + d[0] + '">' + d[1] + '</button>').join("") + '</div>' +
+      '<p class="mini">Colocar no dia:</p><div class="cl6-chips">' + (A().DK ? A().DK().map(k => [k, A().nomeDia(k)]) : [["sab", "Sábado"], ["dom", "Domingo"]]).concat([["dividir", "Dividir sábado e domingo"]]).map(d => '<button class="cl6-chip" aria-pressed="' + (diaEsc === d[0]) + '" data-cldia="' + d[0] + '">' + d[1] + '</button>').join("") + '</div>' +
       '<p class="mini">Produto que já está no dia: os roteiros novos entram nele, sem apagar o que você já marcou (Gravei, Postei).</p>' +
       '<div class="cl6-bts"><button class="bt pri" data-cl="add">Adicionar ao Dia de gravar</button><button class="bt" data-cl="voltar1">Voltar</button></div>';
   }
@@ -107,14 +107,14 @@
     const a = b.dataset.cl;
     if (a === "abrir") { const p = $("cl6p"); if (!p.hidden) { p.hidden = true; return; } passo1(); setTimeout(() => { const t = $("cl6t"); if (t) t.focus(); }, 50); return; }
     if (a === "fechar") { $("cl6p").hidden = true; return; }
-    if (a === "ler") { dados = ler($("cl6t").value); if (!dados || !dados.produtos.length) { aviso("Não achei o bloco do Claude. Copie o \"Para colar no app\" inteiro."); return; } diaEsc = A().dia === "dom" ? "dom" : "sab"; passo2(); return; }
+    if (a === "ler") { dados = ler($("cl6t").value); if (!dados || !dados.produtos.length) { aviso("Não achei o bloco do Claude. Copie o \"Para colar no app\" inteiro."); return; } diaEsc = A().dia || "sab"; passo2(); return; }
     if (a === "voltar1") { passo1(); return; }
     if (a === "add") {
       const marc = [...document.querySelectorAll("[data-clp]")].filter(x => x.checked).map(x => +x.dataset.clp);
       if (!marc.length) { aviso("Marque pelo menos um produto"); return; }
       const n = colocar(dados, diaEsc, marc);
       const vids = marc.reduce((s, i) => s + (dados.produtos[i].tiktok || []).length + (dados.produtos[i].instagram ? 1 : 0), 0);
-      const onde = diaEsc === "dividir" ? "no sábado e no domingo" : diaEsc === "dom" ? "no domingo" : "no sábado";
+      const onde = diaEsc === "dividir" ? "no sábado e no domingo" : "em " + (A().nomeDia ? A().nomeDia(diaEsc) : diaEsc).toLowerCase();
       if (diaEsc !== "dividir" && A().dia !== diaEsc) { const t = document.querySelector('#t-lote [data-dia="' + diaEsc + '"]'); if (t) t.click(); }
       try { A().lote(); } catch (_) {}
       $("cl6p").hidden = false;
