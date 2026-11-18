@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<script src="sync.js"></script>
+<script src="visual.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Daia Studio</title>
+<meta name="theme-color" content="#FAF7F4">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700&family=Caveat:wght@600&family=DM+Sans:wght@400;500;700&display=swap">
+<style>
+/* Daia Studio v54 — Início novo (atalhos + constância) › Lista de hoje (linha / quadro) › Modo gravação › Dia de gravar › Biblioteca fixa › Ajustes.
+   Tudo do app antigo continua em index.html (tile "Tudo do app"). */
+:root{
+  --bg:#FAF7F4; --card:#FFFFFF; --ink:#2A2220; --mute:#857873; --line:#ECE5E0; --acc:#7A2E3A; --acc-soft:#F4E8E6; --ok:#4E7363; --ok-soft:#E6EFEA; --warn:#9A6B2E; --warn-soft:#F6EEE2;
+  --rec-bg:#141212; --rec-ink:#F4F1EE;
+  --f:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif; --fn:"Fraunces",Georgia,serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#171413;--card:#211D1B;--ink:#F1EBE7;--mute:#A99C96;--line:#332D2A;--acc:#E09AA5;--acc-soft:#3A2427;--ok:#94C2AE;--ok-soft:#1E2B26;--warn:#DDB57A;--warn-soft:#2F2619;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#171413;--card:#211D1B;--ink:#F1EBE7;--mute:#A99C96;--line:#332D2A;--acc:#E09AA5;--acc-soft:#3A2427;--ok:#94C2AE;--ok-soft:#1E2B26;--warn:#DDB57A;--warn-soft:#2F2619;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f);font-size:15px;line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:16px 40px}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.app{max-width:440px;margin:0 auto}
+/* tablet e tela larga: o app ocupa a tela toda (v58) */
+@media (min-width:700px){body{font-size:16px;padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px))}.app{max-width:1100px}}
+.aviso{font-size:12.5px;color:var(--mute);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:16px}
+.tela[hidden]{display:none}
+.voltar{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--mute);padding:6px 0;margin-bottom:6px}
+h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:0;line-height:1.15;text-wrap:balance}
+h2{font-size:18px;font-weight:600;margin:22px 0 10px}
+.sub{color:var(--mute);font-size:13px;margin:2px 0 0}
+
+/* Início */
+.topo{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:18px}
+.streak{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px;display:grid;gap:12px}
+.streak .l1{display:flex;align-items:flex-end;gap:10px}
+.streak .num{font-family:var(--fn);font-size:56px;line-height:.85;font-weight:600;color:var(--acc)}
+.streak .l1 span{font-size:13px;color:var(--mute);padding-bottom:4px}
+.semana{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.semana i{font-style:normal;height:34px;border-radius:9px;background:var(--acc-soft);display:grid;place-items:center;font-size:11px;color:var(--mute)}
+.semana i.ok{background:var(--acc);color:var(--card)}.semana i.hoje{outline:1.5px solid var(--ink);outline-offset:1px}
+.missao{display:grid;grid-template-columns:100px 1fr 40px;align-items:center;gap:10px;font-size:13px}
+.missao .b{height:6px;border-radius:3px;background:var(--line);overflow:hidden}.missao .b i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.missao span:last-child{font-size:12px;color:var(--mute);text-align:right;font-variant-numeric:tabular-nums}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;min-height:96px;display:flex;flex-direction:column;justify-content:space-between;gap:10px;text-align:left}
+.tile b{font-weight:600;font-size:14.5px}.tile small{display:block;color:var(--mute);font-size:12px;font-weight:400;margin-top:2px}
+.tile .ic{width:30px;height:30px;border-radius:9px;background:var(--acc-soft);display:grid;place-items:center;font-size:15px}
+.tile.big{grid-column:span 2;background:var(--ink);color:var(--bg);border-color:var(--ink);min-height:86px}
+.tile.big small{color:var(--line)}
+.tile.big .ic{background:rgba(255,255,255,.12)}
+.tile.lib{grid-column:span 2;flex-direction:row;align-items:center;justify-content:flex-start;gap:12px;min-height:0}
+
+/* Noite */
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--line);border-radius:12px;padding:3px;margin:14px 0}
+.seg button{padding:8px;border-radius:9px;font-size:13px;font-weight:600;color:var(--mute)}.seg button[aria-pressed="true"]{background:var(--card);color:var(--ink)}
+.tl{position:relative;padding-left:4px}
+.tl::before{content:"";position:absolute;left:13px;top:8px;bottom:8px;width:1.5px;background:var(--line)}
+.it{position:relative;padding:0 0 16px 32px}
+.it .dot{position:absolute;left:6px;top:4px;width:16px;height:16px;border-radius:50%;background:var(--bg);border:1.5px solid var(--mute)}
+.it.ok .dot{background:var(--ok);border-color:var(--ok)}.it.gr .dot{background:var(--warn-soft);border-color:var(--warn)}
+.it.now .dot{background:var(--ink);border-color:var(--ink);box-shadow:0 0 0 5px var(--acc-soft)}
+.it .t{font-size:14.5px;font-weight:500;text-align:left;width:100%;display:flex;justify-content:space-between;gap:8px}
+.it.ok .t{color:var(--mute);text-decoration:line-through}
+.it .t small{font-size:11px;color:var(--mute);font-weight:400;white-space:nowrap;text-decoration:none}
+.box{margin-top:8px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;display:grid;gap:10px}
+.box .lab{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--mute);font-weight:600}
+.box .gch{font-size:17px;font-weight:600;line-height:1.3}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.bt{border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:600;background:var(--card)}
+.bt.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip{font-size:11px;border-radius:99px;padding:3px 9px;font-weight:600}
+.chip.prod{background:var(--acc-soft);color:var(--acc)}.chip.rec{background:var(--warn-soft);color:var(--warn)}.chip.nov{background:var(--ok-soft);color:var(--ok)}
+.nocta{font-size:12px;color:var(--mute)}
+/* quadro */
+.cols{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x mandatory;margin-inline:-4px;padding-inline:4px}
+.col{flex:0 0 82%;scroll-snap-align:start;background:var(--line);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.col h3{margin:0 0 2px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between}
+/* ===== Temas (estética + formas). Ficam salvos no celular. ===== */
+h1{font-family:var(--fh,var(--f))}
+:root[data-est="rosa"]{--bg:#FCEFF2;--card:#FFFFFF;--ink:#4A2C35;--mute:#A07C86;--line:#F5D9DF;--acc:#D46F88;--acc-soft:#FBE2E8;--ok:#5E9A84;--ok-soft:#E3F2EC;--warn:#C98A3E;--warn-soft:#FFF0DD;--f:"Quicksand",system-ui,sans-serif;--fn:"Quicksand",system-ui,sans-serif;--fh:"Quicksand",system-ui,sans-serif;color-scheme:light}
+:root[data-est="rosa"] .tile,:root[data-est="rosa"] .streak,:root[data-est="rosa"] .lprod,:root[data-est="rosa"] .card1,:root[data-est="rosa"] .gr3 button,:root[data-est="rosa"] .qlist,:root[data-est="rosa"] .qp,:root[data-est="rosa"] .box{border-radius:26px;border-color:transparent;box-shadow:0 6px 18px rgba(212,111,136,.12)}
+:root[data-est="rosa"] .bt,:root[data-est="rosa"] .qb,:root[data-est="rosa"] .nav1 button{border-radius:99px}
+:root[data-est="rosa"] .tile.big{background:var(--acc);border-color:var(--acc);color:#fff}
+:root[data-est="salvia"]{--bg:#E8ECE3;--card:#FAF8F2;--ink:#2E3A2D;--mute:#738070;--line:#D5DCCC;--acc:#5D7A59;--acc-soft:#DCE5D4;--ok:#5D7A59;--ok-soft:#DCE5D4;--warn:#A07A3C;--warn-soft:#F0E6D2;--f:"Nunito",system-ui,sans-serif;--fn:"Fraunces",Georgia,serif;--fh:"Fraunces",Georgia,serif;color-scheme:light}
+:root[data-est="salvia"] h1{font-weight:400}
+:root[data-est="salvia"] .tile,:root[data-est="salvia"] .streak,:root[data-est="salvia"] .lprod,:root[data-est="salvia"] .card1,:root[data-est="salvia"] .gr3 button,:root[data-est="salvia"] .qlist,:root[data-est="salvia"] .qp,:root[data-est="salvia"] .box{border-radius:28px 8px 28px 8px}
+:root[data-est="salvia"] .tile.big{background:var(--acc);border-color:var(--acc);color:var(--card)}
+:root[data-est="caderno"]{--bg:#FFFDF7;--card:#FFFFFF;--ink:#2D2A26;--mute:#8C857A;--line:#E8E0D0;--acc:#C2655A;--acc-soft:#FBE9E3;--ok:#4F8A6E;--ok-soft:#E2F1E9;--warn:#B08A2E;--warn-soft:#FFF2B8;--f:"DM Sans",system-ui,sans-serif;--fn:"Caveat",cursive;--fh:"Caveat",cursive;color-scheme:light}
+:root[data-est="caderno"] body{background-image:radial-gradient(#E3DACA 1px,transparent 1px);background-size:16px 16px}
+:root[data-est="caderno"] h1{font-size:38px;font-weight:600}
+:root[data-est="caderno"] .tile,:root[data-est="caderno"] .streak,:root[data-est="caderno"] .lprod,:root[data-est="caderno"] .card1,:root[data-est="caderno"] .gr3 button,:root[data-est="caderno"] .qlist,:root[data-est="caderno"] .qp,:root[data-est="caderno"] .box{border-radius:6px;box-shadow:1px 2px 0 rgba(0,0,0,.06)}
+:root[data-est="caderno"] .tile.big{background:#FFF2B8;color:var(--ink);border:1px dashed #D9C46A}
+:root[data-est="caderno"] .ft{border-radius:2px;transform:rotate(-1deg)}:root[data-est="caderno"] .ft.c2,:root[data-est="caderno"] .ft.c4{transform:rotate(1.2deg)}
+/* jeitos do Início */
+#t-inicio.ini-lista .tiles{grid-template-columns:1fr;gap:0;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:0 14px}
+#t-inicio.ini-lista .tile{flex-direction:row;align-items:center;min-height:0;border:0;border-top:1px solid var(--line);border-radius:0;padding:14px 0;box-shadow:none;background:transparent;color:var(--ink)}
+#t-inicio.ini-lista .tile:first-child{border-top:0}#t-inicio.ini-lista .tile.big small{color:var(--mute)}#t-inicio.ini-lista .tile.big .ic{background:var(--acc-soft)}
+#t-inicio.ini-grande .tiles{grid-template-columns:1fr}#t-inicio.ini-grande .tile{flex-direction:row;align-items:center;min-height:76px;padding:18px}#t-inicio.ini-grande .tile .ic{width:44px;height:44px;font-size:20px}#t-inicio.ini-grande .tile b{font-size:17px}
+.aviso{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.aviso span{flex-basis:100%;font-size:11.5px}
+.tsw{display:flex;gap:6px;flex-wrap:wrap}.tsw button{border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12.5px;font-weight:600;color:var(--mute);background:var(--bg)}
+.tsw button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:#fff}
+body{padding-bottom:calc(86px + env(safe-area-inset-bottom,0px))}
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:space-around;background:var(--card);border-top:1px solid var(--line);padding:8px max(8px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.bnav button{display:grid;justify-items:center;gap:1px;font-size:18px;color:var(--mute);padding:4px 8px;border-radius:12px}.bnav span{font-size:10.5px;font-weight:600}
+.bnav button.on{color:var(--acc);background:var(--acc-soft)}
+.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+:root[data-est="caderno"] .bnav{background:#FFFDF7}
+.streak .l1 .num{font-size:56px;padding:0;color:var(--acc)}
+:root[data-est="caderno"] .tile.big small{color:var(--mute)}:root[data-est="caderno"] .tile.big .ic{background:#FFFDF7}
+/* Personalizar */
+.pers h2{margin-top:20px}
+.temas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.temas button{border:2px solid var(--line);border-radius:16px;padding:10px;text-align:left;background:var(--card);display:grid;gap:8px}
+.temas button[aria-pressed="true"]{border-color:var(--ink)}
+.temas .amostra{height:64px;border-radius:10px;display:flex;align-items:flex-end;gap:5px;padding:8px}
+.temas .amostra i{flex:1;height:22px;border-radius:6px}
+.temas b{font-size:13.5px}.temas small{display:block;font-size:11.5px;color:var(--mute);font-weight:400}
+.jeitos{display:grid;gap:6px}.jeitos button{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--card);text-align:left;font-size:14px}
+.jeitos button[aria-pressed="true"]{border-color:var(--acc);background:var(--acc-soft)}.jeitos small{display:block;font-size:12px;color:var(--mute)}
+.topo .ico{width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font-size:17px;flex:none}
+.qsel{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;font-size:12.5px;color:var(--mute)}
+.qsel button{border:1px solid var(--line);border-radius:99px;padding:5px 11px;font-size:12.5px;background:var(--card);color:var(--mute)}.qsel button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.qtabs button{border:1px solid var(--line);border-radius:12px;padding:9px 4px;font-size:13px;background:var(--card);color:var(--mute)}.qtabs button b{display:block;font-size:20px;color:var(--ink)}
+.qtabs button[aria-pressed="true"]{border-color:var(--acc);background:var(--acc-soft);color:var(--acc)}.qtabs button[aria-pressed="true"] b{color:var(--acc)}
+.qlist,.qp{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 12px}
+.qp{margin-bottom:8px}.qp summary{display:flex;align-items:center;gap:8px;padding:11px 0;font-weight:600;cursor:pointer;list-style:none}.qp summary::-webkit-details-marker{display:none}.qp summary b{margin-left:auto;font-size:12.5px;color:var(--mute);font-weight:500}
+.qr{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}.qlist .qr:first-child{border-top:0}
+.qd{width:10px;height:10px;border-radius:50%;flex:none;background:var(--line)}.qd.gr{background:var(--warn)}.qd.ok{background:var(--ok)}
+.qt2{flex:1;min-width:0;font-size:14px;line-height:1.3}.qt2 small{display:block;font-size:11.5px;color:var(--mute)}
+.qb{flex:none;border:1px solid var(--line);border-radius:10px;padding:6px 10px;font-size:12.5px;font-weight:600;background:var(--card)}.qb.pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qok{color:var(--ok);font-weight:700;padding:0 6px}
+.qcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:start}
+.qc{background:var(--line);border-radius:14px;padding:6px;display:grid;gap:6px}.qc h3{margin:2px 4px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);display:flex;justify-content:space-between}
+.qm{background:var(--card);border-radius:10px;padding:8px;font-size:12px;line-height:1.3;text-align:left;border-left:3px solid var(--line)}
+.qm.k-prod{border-left-color:var(--acc)}.qm.k-rec{border-left-color:var(--warn)}.qm.k-nov{border-left-color:var(--ok)}
+.tk{background:var(--card);border-radius:12px;padding:10px 12px;font-size:13.5px;display:grid;gap:6px;text-align:left}
+.tk .mv{display:flex;gap:6px}.tk .mv button{font-size:11.5px;border:1px solid var(--line);border-radius:8px;padding:4px 8px}
+
+/* Modo gravação */
+.rec{background:var(--rec-bg);color:var(--rec-ink);border-radius:22px;padding:14px;min-height:560px;display:flex;flex-direction:column}
+.rec .bars{display:flex;gap:4px}.rec .bars i{flex:1;height:3px;border-radius:2px;background:#3A3634}.rec .bars i.on{background:var(--rec-ink)}
+.rec .top{display:flex;justify-content:space-between;font-size:12px;color:#A9A29D;margin:10px 0 0}
+.rec .top button{color:#A9A29D}
+.rec .tele{flex:1;display:flex;align-items:center}
+.rec .tele p{margin:0;font-size:28px;line-height:1.22;font-weight:600}
+.rec .tele em{font-style:normal;color:#F2B8A8}
+.rec .acts{display:grid;grid-template-columns:1fr 1.4fr;gap:8px}
+.rec .acts button{border:1px solid #3A3634;border-radius:14px;padding:14px;font-weight:600;color:var(--rec-ink)}
+.rec .acts button.pri{background:var(--rec-ink);color:var(--rec-bg);border-color:var(--rec-ink)}
+
+/* Biblioteca */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 0 4px;margin-inline:-4px;padding-inline:4px}
+.tabs button{white-space:nowrap;border:1px solid var(--line);border-radius:99px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--mute);background:var(--card)}
+.tabs button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.rede{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.rede button{border:1px solid var(--line);border-radius:10px;padding:8px;font-size:13px;font-weight:600;color:var(--mute);background:var(--card)}
+.rede button[aria-pressed="true"]{border-color:var(--acc);color:var(--acc);background:var(--acc-soft)}
+.grupo{margin-top:16px}
+.grupo h3{font-size:15px;font-weight:600;margin:0 0 2px}
+.grupo .q{font-size:12.5px;color:var(--mute);margin:0 0 8px}
+.lin{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line);font-size:14.5px}
+.lin span{flex:1;min-width:0}
+.lin small{display:block;color:var(--mute);font-size:12px;margin-top:2px}
+.lin button{flex:none;font-size:12px;border:1px solid var(--line);border-radius:8px;padding:5px 9px;color:var(--mute)}
+.regra{background:var(--acc-soft);border-radius:14px;padding:12px 14px;font-size:13.5px;margin-top:12px}
+.regra b{color:var(--acc)}
+.fmt{display:grid;gap:8px;margin-top:10px}
+.fmt div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.fmt b{font-size:14.5px}.fmt p{margin:4px 0 0;font-size:13px;color:var(--mute)}
+.tag{font-size:11px;border-radius:99px;padding:2px 8px;margin-left:6px;font-weight:600;background:var(--line);color:var(--mute)}
+.seg button{border:0}
+/* Biblioteca nova */
+.gr3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.gr3 button{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;min-height:104px;text-align:left;display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+.gr3 .e{width:32px;height:32px;border-radius:10px;background:var(--acc-soft);color:var(--acc);display:grid;place-items:center;font-size:16px}
+.gr3 b{font-size:14.5px;font-weight:600;line-height:1.25}.gr3 small{display:block;font-size:12px;color:var(--mute);margin-top:2px}
+.restaura{margin-top:18px;font-size:12.5px;color:var(--mute);text-decoration:underline}
+.conf{margin-top:10px;background:var(--acc-soft);border-radius:12px;padding:10px 12px;font-size:13.5px;display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chap{border-top:1.5px solid var(--ink);padding-top:10px;margin-top:18px}
+.chap small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--acc);font-weight:600}
+.chap h4{font-family:var(--fn);font-weight:500;font-size:24px;margin:2px 0 4px;line-height:1.1}
+.chap p{font-size:13px;color:var(--mute);margin:0 0 10px}
+.mas{columns:2;column-gap:8px}
+.ft{display:block;width:100%;break-inside:avoid;margin-bottom:8px;border-radius:14px;padding:11px;font-size:13px;line-height:1.35;text-align:left}
+.ft.c1{background:#F6E3DF;color:#5E2B2B}.ft.c2{background:#E3ECE6;color:#29453A}.ft.c3{background:#F3EBD9;color:#5A4421}.ft.c4{background:#E6E6F2;color:#353358}
+.ft.add{background:transparent;border:1.5px dashed var(--line);color:var(--mute);text-align:center;font-weight:600}
+.card1{margin:10px 0;background:var(--card);border:1px solid var(--line);border-radius:22px;min-height:280px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;gap:14px}
+.card1 small{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.card1 p{font-family:var(--fn);font-size:28px;line-height:1.15;margin:0}
+.card1 i{font-style:normal;font-size:12px;color:var(--mute)}
+.card1 textarea{width:100%;font:inherit;font-size:18px;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--bg);color:var(--ink);resize:vertical}
+.nav1{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px}.nav1 button{border:1px solid var(--line);border-radius:14px;padding:12px 4px;font-size:13px;font-weight:600;background:var(--card)}
+.nav1 .pri{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.nav2{display:flex;justify-content:center;gap:18px;margin-top:12px}.nav2 button{font-size:13px;color:var(--mute);text-decoration:underline}
+.ck{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:14px;cursor:pointer}
+.ck input{width:20px;height:20px;accent-color:var(--acc);flex:none}
+.lprod{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-top:10px;display:grid;gap:10px}
+.lprod .hd{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lprod input.nome{flex:1;min-width:0;border:0;border-bottom:1px solid var(--line);background:none;font:inherit;font-weight:600;font-size:15px;color:var(--ink);padding:4px 0}
+.lprod input.nome:focus-visible{outline:none;border-color:var(--acc)}
+.lprod .hd span{font-size:12px;color:var(--mute);white-space:nowrap;font-variant-numeric:tabular-nums}
+.seg3{grid-template-columns:1fr 1fr 1fr}
+.ck2{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line)}.ck2 label{flex:1;display:flex;gap:10px;align-items:center;padding:9px 0;font-size:14px;cursor:pointer}.ck2 input{width:20px;height:20px;accent-color:var(--acc);flex:none}
+.ck2 button,.lprod .x{color:var(--mute);font-size:13px;padding:6px}
+.addrow{display:flex;gap:8px;margin-top:8px}.addrow input{flex:1;min-width:0;border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;background:var(--card);color:var(--ink)}
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chips2 button{border:1px solid var(--line);border-radius:99px;padding:6px 11px;font-size:12.5px;color:var(--mute);background:var(--card)}
+.chips2 button[aria-pressed="true"]{background:var(--acc-soft);border-color:var(--acc);color:var(--acc)}
+button.missao{width:100%;text-align:left;padding:2px 0}
+.vazio{background:var(--card);border:1px dashed var(--line);border-radius:16px;padding:16px;display:grid;gap:8px;justify-items:start}.vazio p{margin:0}
+.dsel{margin-top:12px}
+.lks{display:grid;gap:6px}.lk{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 12px}.lk a,.lk>span:first-child{flex:1;min-width:0;color:var(--ink);text-decoration:none}.lk b{font-weight:600;font-size:14.5px}.lk small{display:block;font-size:12px;color:var(--mute)}.lk i{font-style:normal;color:var(--mute)}.lk .x{color:var(--mute);padding:4px 8px}
+.lks .addrow input{width:0}
+.lprod .pn{flex:1;font-size:16px}.mini{font-size:12.5px;color:var(--mute);margin:4px 0}
+.qt{display:grid;gap:2px;margin-top:6px}.qt>div{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:3px 0}
+.qt em{font-style:normal;font-size:10.5px;color:var(--mute);margin-left:4px}
+.qt .fn{display:flex;align-items:center;gap:2px;text-align:left;font-size:13.5px;color:var(--ink);padding:4px 0;flex:1;min-width:0}
+.qt .fn i{font-style:normal;display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--line);font-size:10.5px;color:var(--mute);margin-left:6px}
+.qt .fn.on i{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.qt .fn.meu .x{padding:2px 6px;font-size:11px}
+.fdesc{margin:0 0 6px;padding:10px 12px;border-radius:12px;background:var(--acc-soft);font-size:13px;line-height:1.45;color:var(--ink)}
+.meuf{display:grid;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.meuf input:not([type]),.ideia{border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;background:var(--card);color:var(--ink);width:100%}
+.ideia{resize:vertical}
+.ckl{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mute)}
+.gesc{display:grid;gap:6px;margin:6px 0}.gesc span{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:8px 10px;font-size:13px;background:var(--bg)}.gesc button{color:var(--mute);font-size:12px}
+.usar{width:100%;margin-top:10px}.usarbox{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.stp{display:flex;align-items:center;gap:8px}.stp button{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);font-size:16px;line-height:1;background:var(--card)}.stp b{min-width:18px;text-align:center;font-variant-numeric:tabular-nums}
+.vids{display:grid;gap:6px}
+.vd{border:1px solid var(--line);border-radius:12px;overflow:hidden}.vd.ok{opacity:.7}
+details.lprod{display:block}details.lprod>summary{list-style:none;cursor:pointer}details.lprod>summary::-webkit-details-marker,.sec>summary::-webkit-details-marker{display:none}
+details.lprod>summary::after,.sec>summary::after{content:"›";color:var(--mute);font-size:18px;transition:transform .15s;margin-left:2px}
+details.lprod[open]>summary::after,.sec[open]>summary::after{transform:rotate(90deg)}
+.secs{display:grid;gap:6px;margin-top:10px}
+.sec{border-top:1px solid var(--line);padding-top:6px}.sec>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:6px 0;font-size:14px}
+.sec.ckb{margin-top:18px;border-top:0}.sec.ckb>summary{font-size:18px}
+.syncbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:grid;gap:10px}.syncbox .mini{margin:0}.syncl{display:flex;gap:8px;flex-wrap:wrap}.syncl input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink)}
+.sec>summary b{flex:1;font-weight:600}.sec>summary span{font-size:12px;color:var(--mute)}
+.secb{display:grid;gap:6px;padding:4px 0 8px}
+.tgs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;font-style:normal}.tg{font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:99px;background:var(--line);color:var(--ink)}
+.tg.ed{background:#F6EEE2;color:#9A6B2E}.tg.ag{background:var(--acc-soft);color:var(--acc)}.tg.ps{background:#E6EFEA;color:#4E7363}
+.sts{display:grid;grid-template-columns:1fr 1fr;gap:6px}.sts button{border:1px solid var(--line);border-radius:10px;padding:10px 6px;font-size:13px;font-weight:600;background:var(--card);color:var(--ink)}
+.sts button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.agbox{display:grid;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px}.agbox input{border:1px solid var(--line);border-radius:10px;padding:9px;font:inherit;background:var(--card);color:var(--ink)}
+.vh{width:100%;display:flex;justify-content:space-between;gap:8px;align-items:center;padding:10px 12px;text-align:left;font-size:13.5px}
+.vh small{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);font-weight:600}.vh i{font-style:normal;color:var(--mute)}
+.vb{padding:0 12px 12px;display:grid;gap:6px}.vb label{display:flex;justify-content:space-between;align-items:center;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);font-weight:600;margin-top:4px}
+.vb label button{font-size:12px;letter-spacing:0;text-transform:none;border:1px solid var(--line);border-radius:8px;padding:3px 8px;color:var(--ink)}
+.vb textarea{width:100%;font:inherit;font-size:14px;line-height:1.45;border:1px solid var(--line);border-radius:10px;padding:9px;background:var(--bg);color:var(--ink);resize:vertical}
+.dl{border-top:1px solid var(--line)}.dl summary{display:flex;justify-content:space-between;padding:11px 0;cursor:pointer;list-style:none}.dl summary::-webkit-details-marker{display:none}.dl summary span{font-size:12.5px;color:var(--mute)}
+.dlr{display:flex;gap:10px;padding:6px 0;font-size:13.5px}.dlr i{font-style:normal;color:var(--mute);width:18px;text-align:right;font-variant-numeric:tabular-nums}.dlr small{display:block;font-size:12px;color:var(--mute)}
+.gd{margin-top:6px}.gdh,.gdb{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}.gdh span{font-size:11px;color:var(--mute);text-align:center}
+.gdb>div{display:grid;gap:4px}.gdb i{display:block;height:16px;border-radius:4px}.gdb i.vz{background:var(--line)}
+.lg2{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;font-size:12px;color:var(--mute)}.lg2 i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.hr{display:flex;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:13.5px}.hr b{width:44px;flex:none;font-variant-numeric:tabular-nums}.hr em{color:var(--mute)}
+.fmts{display:flex;flex-wrap:wrap;gap:6px}
+.fmts button{border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;color:var(--mute);background:var(--card)}
+.fmts button[aria-pressed="true"]{background:var(--ok-soft);border-color:var(--ok);color:var(--ok)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:99px;font-size:13px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<!-- INÍCIO -->
+<section class="tela" id="t-inicio">
+  <div class="topo"><div><h1 id="ola">Olá, Daia</h1><p class="sub" id="hojeData"></p></div><button class="ico" data-ir="pers" aria-label="Configurações">⚙</button></div>
+  <div class="streak">
+    <div class="l1"><span class="num" id="seqN">0</span><span id="seqTxt">dias seguidos postando</span></div>
+    <div class="semana" aria-label="Semana" id="semDots"></div>
+    <div id="missoes"></div>
+    <p class="mini" style="margin:0">Toque em Shopee Vídeo ou Instagram para marcar o que postou. O TikTok conta sozinho pela Lista de hoje.</p>
+  </div>
+  <div class="tiles">
+    <button class="tile big" id="proxBt"><span class="ic">●</span><span><b>Próximo vídeo</b><small id="proxTxt">Monte o Dia de gravar</small></span></button>
+    <button class="tile" data-ir="noite"><span class="ic">☰</span><span><b>Lista de hoje</b><small id="listaN">0 vídeos</small></span></button>
+    <button class="tile" data-antigo="criar"><span class="ic">＋</span><span><b>Novo produto</b><small>acha as dores</small></span></button>
+    <button class="tile" data-ir="lote"><span class="ic">▣</span><span><b>Dia de gravar</b><small>sábado e domingo</small></span></button>
+    <button class="tile" data-antigo="bloco"><span class="ic">✎</span><span><b>Bloco</b><small>notas e links</small></span></button>
+    <button class="tile lib" data-ir="biblio"><span class="ic">❖</span><span><b>Biblioteca</b><small>todos os ganchos, CTAs, SEO e formatos do curso</small></span></button>
+    <button class="tile lib" data-ir="links"><span class="ic">↗</span><span><b>Links úteis</b><small>Kalodata, TikTok Studio, CapCut, Shopee e tudo fora do app</small></span></button>
+  </div>
+  <h2>Mais do app</h2>
+  <div class="tiles">
+    <button class="tile" data-antigo="hoje"><span class="ic">◎</span><span><b>Metas e Faça agora</b><small>Shopee Vídeo do dia, packs, post pronto</small></span></button>
+    <button class="tile" data-antigo="criar"><span class="ic">✦</span><span><b>Criar conteúdo</b><small>dores, ganchos, roteiros, legendas</small></span></button>
+    <button class="tile" data-antigo="prontos"><span class="ic">▤</span><span><b>Prontos</b><small>carrosséis desenhados</small></span></button>
+    <button class="tile" data-antigo="ajustes" data-pag="ttgrupo"><span class="ic">◫</span><span><b>TikTok do grupo VIP</b><small>carrosséis para encher o grupo</small></span></button>
+    <button class="tile" data-antigo="crescer"><span class="ic">↗</span><span><b>Crescer</b><small>números, parcerias e curso</small></span></button>
+    <button class="tile" data-antigo="ia"><span class="ic">◇</span><span><b>IAs</b><small>pedidos prontos</small></span></button>
+    <button class="tile" data-antigo="hoje" data-mais="1"><span class="ic">＋</span><span><b>Postei / anotar</b><small>marcar post, ideia, converter link</small></span></button>
+  </div>
+</section>
+
+<!-- NOITE -->
+<section class="tela" id="t-noite" hidden>
+  <button class="voltar" data-ir="inicio">← Início</button>
+  <h1>Lista de hoje</h1><p class="sub">Os 10 do dia, na ordem. Vêm do seu Dia de gravar.</p>
+  <div id="diasL"></div>
+  <div class="seg"><button id="vLinha" aria-pressed="true">Linha</button><button id="vQuadro" aria-pressed="false">Quadro</button></div>
+  <div id="linha"></div>
+  <div id="quadro" hidden></div>
+</section>
+
+<!-- MODO GRAVAÇÃO -->
+<section class="tela" id="t-gravar" hidden>
+  <button class="voltar" data-ir="noite">← Lista de hoje</button>
+  <div class="rec">
+    <div class="bars" id="bars"></div>
+    <div class="top"><span id="cena">Cena 1</span><span id="recCta"></span></div>
+    <div class="tele"><p id="tele"></p></div>
+    <div class="acts"><button id="recVolta">← Voltar</button><button class="pri" id="recVai">Próxima cena</button></div>
+  </div>
+</section>
+
+<!-- PERSONALIZAR -->
+<section class="tela pers" id="t-pers" hidden>
+  <button class="voltar" data-ir="inicio">← Início</button>
+  <h1>Ajustes</h1><p class="sub">Tudo do app num lugar só, separado por assunto.</p>
+  <div id="ax"></div>
+</section>
+
+<!-- DIA DE GRAVAR -->
+<section class="tela" id="t-lote" hidden>
+  <button class="voltar" data-ir="inicio">← Início</button>
+  <h1>Dia de gravar</h1><p class="sub">Sábado e domingo. A meta sugerida é 60 por dia (120 no fim de semana), mas quem decide é você.</p>
+  <div class="dg-dias" id="dgDias"></div><div id="dgHoje"></div>
+  <div class="streak">
+    <div class="l1"><span class="num" id="loteN">0</span><span id="loteDe">gravados hoje</span></div>
+    <div class="missao"><span>Fim de semana</span><span class="b"><i id="loteBar" style="width:0"></i></span><span id="loteTot">0/120</span></div>
+    <p class="sub" style="margin:0">Toque em <b>Gravei</b> em cada vídeo e o número sobe sozinho.</p>
+  </div>
+  <details class="sec ckb" data-k="ckAntes" open><summary><b>Antes de começar</b><span>checklist</span></summary>
+  <div id="ckAntes"></div></details>
+  <h2>Seus produtos de hoje</h2>
+  <p class="sub">Você escolhe. As sugestões são só ideias: toque para adicionar, ou escreva o seu.</p>
+  <div id="prodAdd"></div>
+  <div id="prods"></div>
+  <h2>A semana com esses vídeos</h2>
+  <p class="sub">Escolha como você quer ver. São 3 jeitos.</p>
+  <div class="seg seg3" id="semJeito"><button data-sj="lista" aria-pressed="true">Por dia</button><button data-sj="grade" aria-pressed="false">Grade</button><button data-sj="hora" aria-pressed="false">Horários</button></div>
+  <div id="semanaLote"></div>
+  <h2>Próximo fim de semana</h2>
+  <div id="resetBox"></div>
+</section>
+
+<!-- LINKS ÚTEIS -->
+<section class="tela" id="t-links" hidden>
+  <button class="voltar" data-ir="inicio">← Início</button>
+  <h1>Links úteis</h1>
+  <div id="lnk"></div>
+</section>
+
+<!-- BIBLIOTECA -->
+<section class="tela" id="t-biblio" hidden>
+  <div id="bib"></div>
+</section>
+</div>
+<nav class="bnav" aria-label="Menu"><button data-ir="inicio" data-nv="inicio">⌂<span>Início</span></button><button data-ir="noite" data-nv="noite">☰<span>Hoje</span></button><button data-ir="lote" data-nv="lote">▣<span>Gravar</span></button><button data-ir="biblio" data-nv="biblio">❖<span>Biblioteca</span></button><button data-ir="pers" data-nv="pers">⚙<span>Ajustes</span></button></nav>
+<div class="toast" id="toast" hidden></div>
+
+<script src="telas60.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const toast=t=>{const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,2200);};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+/* menus que recolhem: lembra o que ela abriu ou fechou (mesmo quando a tela se redesenha) */
+const ABT={};try{Object.assign(ABT,JSON.parse(localStorage.getItem("daia-abertos")||"{}"))}catch(_){}
+const abreK=(k,padrao)=>(k in ABT?ABT[k]:padrao)?" open":"";
+document.addEventListener("toggle",e=>{const d=e.target;if(!d.dataset||!d.dataset.k)return;ABT[d.dataset.k]=d.open;try{localStorage.setItem("daia-abertos",JSON.stringify(ABT))}catch(_){}},true);
+const ir=t=>{document.querySelectorAll(".tela").forEach(s=>s.hidden=s.id!=="t-"+t);document.querySelectorAll("[data-nv]").forEach(b=>b.classList.toggle("on",b.dataset.nv===t));window.scrollTo(0,0);if(t==="gravar")rec(0);};
+document.addEventListener("click",e=>{const a=e.target.closest("[data-ir]");if(a){ir(a.dataset.ir);return;}const b=e.target.closest("[data-toast]");if(b)toast(b.dataset.toast);});
+
+/* ---------- lista de hoje: vem do Dia de gravar (10 por dia, mesma ordem da semana) ---------- */
+const ORD=["id","gr","ok"];
+const NOME={id:"Ideia",gr:"Gravado",ok:"Postado"},PROX={id:"Gravei",gr:"Postei"};
+const pad2=n=>String(n).padStart(2,"0"),keyOf=d=>d.getFullYear()+"-"+pad2(d.getMonth()+1)+"-"+pad2(d.getDate());
+const HOJE=keyOf(new Date());
+const hojeIdx=()=>(new Date().getDay()+6)%7;
+let diaLista=hojeIdx(),atual=-1,V=[];
+/* semana: no máximo 1 vídeo de cada produto por dia (nada de 10 do mesmo produto no mesmo dia), até 10 por dia.
+   Vídeo agendado ou postado vai para o dia da semana da data que ela marcou. O que sobra fica de reserva. */
+const diaDaData=s=>{const p=String(s).split("-").map(Number);if(p.length!==3)return -1;return (new Date(p[0],p[1]-1,p[2]).getDay()+6)%7;};
+function plano(){
+  const dias=[[],[],[],[],[],[],[]],filas={},ordem=[];
+  DKS().forEach(d=>L[d].prods.forEach(P=>vidsDe(P).forEach(v=>{const x={d,P,v,id:d+"|"+P.n+"|"+v.key},pd=(L.post||{})[x.id],fx=v.st.ag||(typeof pd==="string"?pd:null),di=fx?diaDaData(fx):-1;
+    if(di>=0){dias[di].push(x);return;}
+    const k=P.n.toLowerCase();if(!filas[k]){filas[k]=[];ordem.push(k);}filas[k].push(x);})));
+  let r=0;
+  for(let i=0;i<7;i++){const tem=new Set(dias[i].map(x=>x.P.n.toLowerCase()));
+    for(let t=0,cap=(window.daiaCrono?daiaCrono.metaDia("tiktok",i):10);t<ordem.length&&dias[i].length<cap;t++){const k=ordem[(r+t)%ordem.length];if(tem.has(k)||!filas[k].length)continue;dias[i].push(filas[k].shift());tem.add(k);}
+    r++;}
+  const res=[];ordem.forEach(k=>res.push(...filas[k]));
+  return {dias,res};
+}
+const comSt=x=>Object.assign(x,{t:x.P.n+" · "+x.v.F.n,st:(L.post||{})[x.id]?"ok":x.v.st.ok?"gr":"id"});
+const listaDo=i=>plano().dias[i].map(comSt);
+function setSt(x,st){
+  L.post=L.post||{};
+  if(st==="id"){x.v.st.ok=false;delete L.post[x.id];}
+  if(st==="gr"){x.v.st.ok=true;delete L.post[x.id];}
+  if(st==="ok"){x.v.st.ok=true;L.post[x.id]=HOJE;marcaDia();}
+  salvaL();lote();
+}
+function vazio(){return '<div class="vazio"><p><b>Nada para '+(diaLista===hojeIdx()?'hoje':DIAS[diaLista].toLowerCase())+' ainda.</b></p><p class="sub">Os vídeos aparecem aqui quando você monta o Dia de gravar: 10 por dia, na ordem da semana.</p><button class="bt pri" data-ir="lote">Abrir Dia de gravar</button></div>';}
+function linha(){
+  $("diasL").innerHTML='<div class="chips2 dsel">'+DIAS.map((d,i)=>'<button data-dl="'+i+'" aria-pressed="'+(i===diaLista)+'">'+(i===hojeIdx()?'Hoje':d.slice(0,3))+'</button>').join("")+'</div>';
+  if(!V.length){$("linha").innerHTML=vazio();return;}
+  if(atual<0||atual>=V.length){atual=V.findIndex(v=>v.st!=="ok");if(atual<0)atual=0;}
+  $("linha").innerHTML='<div class="tl">'+V.map((v,i)=>{const now=i===atual;
+    return '<div class="it '+(v.st==="ok"?"ok ":v.st==="gr"?"gr ":"")+(now?"now":"")+'"><span class="dot"></span><button class="t" data-abre="'+i+'">'+(i+1)+'. '+esc(v.t)+'<small>'+NOME[v.st]+'</small></button>'+
+      (now?'<div class="box"><span class="lab">Gancho</span><span class="gch">'+esc(v.v.g)+'</span>'+
+      (v.v.cta!==null?'<span class="nocta">CTA: “'+esc(v.v.cta)+'”</span>':'<span class="nocta">Sem CTA: '+esc(v.v.F.n)+' é vídeo curto.</span>')+
+      '<div class="row">'+(v.st==="id"?'<button class="bt pri" data-grav="'+i+'">Gravar agora</button>':'')+
+      (v.st!=="ok"?'<button class="bt'+(v.st==="gr"?' pri':'')+'" data-post="'+i+'">Postei</button>':'<button class="bt" data-mv="'+i+'|-1">Desmarcar postado</button>')+
+      '<button class="bt" data-lcp="'+i+'">Copiar legenda</button><button class="bt" data-led="'+i+'">Editar</button></div></div>':'')+'</div>';}).join("")+'</div>';
+}
+/* Quadro: 3 jeitos (abas, colunas, pilhas) — ela escolhe em Ajustes ou aqui */
+let qj="abas",qaba="id";try{qj=localStorage.getItem("daia-qj")||"abas"}catch(_){}
+const nst=st=>V.filter(v=>v.st===st).length;
+function quadro(){
+  let h='<div class="qsel"><span>Jeito do quadro:</span>'+[["abas","Abas"],["cols","Colunas"],["pilhas","Pilhas"]].map(x=>'<button data-qj="'+x[0]+'" aria-pressed="'+(qj===x[0])+'">'+x[1]+'</button>').join("")+'</div>';
+  if(!V.length){$("quadro").innerHTML=h+vazio();return;}
+  const linhaV=(v,i)=>'<div class="qr"><span class="qd '+v.st+'"></span><span class="qt2">'+esc(v.P.n)+'<small>'+esc(v.v.F.n)+'</small></span>'+
+    (v.st!=="id"?'<button class="qb" data-mv="'+i+'|-1" aria-label="Voltar etapa">←</button>':'')+(v.st!=="ok"?'<button class="qb pri" data-mv="'+i+'|1">'+PROX[v.st]+'</button>':'<span class="qok">✓</span>')+'</div>';
+  if(qj==="abas"){
+    h+='<div class="qtabs">'+ORD.map(st=>'<button data-qaba="'+st+'" aria-pressed="'+(qaba===st)+'">'+NOME[st]+' <b>'+nst(st)+'</b></button>').join("")+'</div>'+
+      '<div class="qlist">'+(V.map((v,i)=>v.st===qaba?linhaV(v,i):"").join("")||'<p class="sub">Nada aqui ainda.</p>')+'</div>';
+  }
+  if(qj==="cols"){
+    h+='<div class="qcols">'+ORD.map(st=>'<div class="qc"><h3>'+NOME[st]+'<span>'+nst(st)+'</span></h3>'+V.map((v,i)=>v.st!==st?"":'<button class="qm" data-mv="'+i+'|'+(st==="ok"?-2:1)+'">'+esc(v.t)+'</button>').join("")+'</div>').join("")+'</div><p class="sub">Toque no cartão para passar para a próxima coluna (em Postado, ele volta para Ideia).</p>';
+  }
+  if(qj==="pilhas"){
+    h+=ORD.map(st=>'<details class="qp"'+(st!=="ok"?" open":"")+'><summary><span class="qd '+st+'"></span>'+NOME[st]+'<b>'+nst(st)+'</b></summary>'+V.map((v,i)=>v.st===st?linhaV(v,i):"").join("")+'</details>').join("");
+  }
+  $("quadro").innerHTML=h;
+}
+/* constância: dias em que ela postou (lista de hoje, metas do app de antes) */
+const DK="daia-novo-dias";
+const lerJ=(k,d)=>{try{return JSON.parse(localStorage.getItem(k)||"null")||d}catch(_){return d}};
+const gravaJ=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch(_){}};
+function marcaDia(){const d=lerJ(DK,{});d[HOJE]=1;gravaJ(DK,d);}
+function diasPostados(){
+  const s=Object.assign({},lerJ(DK,{})),A=lerJ("daia-app-v1",{});
+  Object.keys(A.metaMan||{}).forEach(k=>{const m=A.metaMan[k]||{};if(Object.keys(m).some(x=>m[x]>0))s[k]=1;});
+  return s;
+}
+const MIS=[["tiktok","TikTok",10],["shopee","Shopee Vídeo",3],["insta","Instagram",2]];
+function conta(){
+  const hj=listaDo(hojeIdx()),post=hj.filter(v=>v.st==="ok").length;
+  const A=lerJ("daia-app-v1",{}),man=(A.metaMan||{})[HOJE]||{};
+  $("missoes").innerHTML=MIS.map(m=>{const n=m[0]==="tiktok"?Math.max(post,man.tiktok||0):(man[m[0]]||0),f=Math.min(n,m[2]);
+    return '<button class="missao" '+(m[0]==="tiktok"?'data-ir="noite"':'data-mis="'+m[0]+'"')+'><span>'+m[1]+'</span><span class="b"><i style="width:'+(f/m[2]*100)+'%"></i></span><span>'+f+'/'+m[2]+'</span></button>';}).join("");
+  const S=diasPostados();let seq=0;const d=new Date();if(!S[keyOf(d)])d.setDate(d.getDate()-1);
+  while(S[keyOf(d)]){seq++;d.setDate(d.getDate()-1);}
+  $("seqN").textContent=seq;$("seqTxt").textContent=seq===1?"dia seguido postando":"dias seguidos postando";
+  const seg=new Date();seg.setDate(seg.getDate()-hojeIdx());
+  $("semDots").innerHTML=["S","T","Q","Q","S","S","D"].map((l,i)=>{const x=new Date(seg);x.setDate(seg.getDate()+i);return '<i class="'+(S[keyOf(x)]?"ok ":"")+(i===hojeIdx()?"hoje":"")+'">'+l+'</i>';}).join("");
+  const p=hj.findIndex(v=>v.st!=="ok");
+  $("proxTxt").textContent=p>=0?hj[p].t:(hj.length?"Todos de hoje postados 🎉":"Monte o Dia de gravar");
+  $("listaN").textContent=hj.length?(hj.length-post)+" de "+hj.length+" para postar":"monte o Dia de gravar";
+}
+function refreshLista(){V=listaDo(diaLista);linha();quadro();conta();}
+document.addEventListener("click",async e=>{
+  const q=s=>e.target.closest(s);
+  const j=q("[data-qj]");if(j){qj=j.dataset.qj;try{localStorage.setItem("daia-qj",qj)}catch(_){}quadro();if(window.persR)persR();return;}
+  const a=q("[data-qaba]");if(a){qaba=a.dataset.qaba;quadro();return;}
+  const dl=q("[data-dl]");if(dl){diaLista=Number(dl.dataset.dl);atual=-1;refreshLista();return;}
+  const ab=q("[data-abre]");if(ab){atual=Number(ab.dataset.abre);linha();return;}
+  const po=q("[data-post]");if(po){setSt(V[Number(po.dataset.post)],"ok");toast("Postado ✓");return;}
+  const mv=q("[data-mv]");if(mv){const[i,d]=mv.dataset.mv.split("|").map(Number),x=V[i];setSt(x,ORD[Math.max(0,Math.min(2,ORD.indexOf(x.st)+d))]);return;}
+  const gv=q("[data-grav]");if(gv){abreRec(V[Number(gv.dataset.grav)]);return;}
+  const lc=q("[data-lcp]");if(lc){try{await navigator.clipboard.writeText(V[Number(lc.dataset.lcp)].v.leg);toast("Legenda copiada");}catch(_){toast("Não consegui copiar. Abra em Editar e segure o texto.");}return;}
+  const le=q("[data-led]");if(le){const x=V[Number(le.dataset.led)];dia=x.d;aberto=L[x.d].prods.indexOf(x.P)+"|"+x.v.key;document.querySelectorAll("[data-dia]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.dia===dia));lote();ir("lote");const el=document.querySelector('[data-vab="'+aberto+'"]');if(el)el.scrollIntoView({block:"center"});return;}
+  const ms=q("[data-mis]");if(ms){const A=lerJ("daia-app-v1",{});A.metaMan=A.metaMan||{};const m=A.metaMan[HOJE]=A.metaMan[HOJE]||{},max=MIS.find(x=>x[0]===ms.dataset.mis)[2];m[ms.dataset.mis]=(m[ms.dataset.mis]||0)>=max?0:(m[ms.dataset.mis]||0)+1;gravaJ("daia-app-v1",A);conta();return;}
+  if(q("#proxBt")){diaLista=hojeIdx();V=listaDo(diaLista);const p=V.findIndex(v=>v.st!=="ok");if(p<0){ir(V.length?"noite":"lote");return;}atual=p;if(V[p].st==="id")abreRec(V[p]);else{linha();ir("noite");}return;}
+  const an=q("[data-antigo]");if(an){location.href="index.html?antigo=1&tab="+an.dataset.antigo+(an.dataset.mais?"&mais=1":"")+(an.dataset.pag?"&pag="+an.dataset.pag:"");return;}
+});
+$("vLinha").onclick=()=>{$("vLinha").setAttribute("aria-pressed","true");$("vQuadro").setAttribute("aria-pressed","false");$("linha").hidden=false;$("quadro").hidden=true;};
+$("vQuadro").onclick=()=>{$("vQuadro").setAttribute("aria-pressed","true");$("vLinha").setAttribute("aria-pressed","false");$("linha").hidden=true;$("quadro").hidden=false;};
+
+/* ---------- modo gravação: as cenas do roteiro do vídeo, em letra grande ---------- */
+let recX=null,CENAS=[],c=0;
+function abreRec(x){
+  recX=x;atual=V.indexOf(x);const v=x.v;
+  CENAS=['<em>Gancho:</em> '+esc(v.g)].concat(String(v.r).split("\n").map(s=>s.trim()).filter(Boolean).map(s=>esc(s.replace(/^\d+\.\s*/,"")))).concat(v.cta!==null?['<em>CTA:</em> '+esc(v.cta)]:[]);
+  ir("gravar");
+}
+function rec(n){
+  if(!recX){$("tele").innerHTML="Escolha um vídeo na Lista de hoje e toque em <em>Gravar agora</em>.";$("cena").textContent="";$("recCta").textContent="";$("bars").innerHTML="";$("recVai").hidden=true;$("recVolta").hidden=true;return;}
+  $("recVai").hidden=false;$("recVolta").hidden=false;
+  c=n;$("tele").innerHTML=CENAS[c];$("cena").textContent="Cena "+(c+1)+" de "+CENAS.length+" · "+recX.v.F.n;$("recCta").textContent=recX.v.cta!==null?"com CTA":"sem CTA";
+  $("bars").innerHTML=CENAS.map((_,i)=>'<i class="'+(i<=c?"on":"")+'"></i>').join("");$("recVai").textContent=c===CENAS.length-1?"Gravei ✓":"Próxima cena";
+}
+$("recVai").onclick=()=>{if(c<CENAS.length-1)rec(c+1);else{setSt(recX,"gr");recX=null;toast("Marcado como gravado");ir("noite");}};
+$("recVolta").onclick=()=>rec(Math.max(0,c-1));
+
+/* ---------- biblioteca (conteúdo das aulas) ---------- */
+const GANCHOS=[
+ ["10 que sempre funcionam","Do vídeo que você salvou (@creatorcarolshop).",["Ninguém fala sobre isso","Eu queria ter descoberto isso antes","Você já reparou nesse padrão?","Vou te falar a real","Vou te poupar um tempo","Isso aqui vai te surpreender","Você precisa disso agora","Acabei de descobrir isso","Você não vai concordar com isso"]],
+ ["Começos visuais","Do vídeo de ganchos visuais (@creatorcarolshop). Comece o vídeo…",["Cortando uma fruta aleatória","Virando a câmera e mudando o ângulo","Pegando o celular do chão","Colocando o celular no tripé","Fazendo uma transição","Saindo por uma porta","Colocando alguma coisa no copo","Fazendo coisas comuns do seu dia a dia"]],
+ ["3 que viralizaram","Do vídeo da @dailybrucreator (sem dizer o valor, como na sua regra).",["Visual + falado: mão tampando a câmera e “Não, amiga, não, não, não… eu não acredito que eu paguei mais caro nisso”","Falado + escrito: “Não, amiga, por esse preço eu não pensei duas vezes e já comprei” (com um olhinho de lado)","Falado + escrito: “Finalmente entrou na promo e agora eu tenho [produto] e posso [o que ele faz] em casa”"]],
+ ["Curiosidade","Faz a pessoa querer saber o resto.",["Só eu que não sabia disso?","Ninguém te conta isso sobre [produto]","Duvido você adivinhar pra que serve isso","O detalhe que ninguém repara em [produto]"]],
+ ["Dor e identificação","Toca no problema que o produto resolve.",["Se você sofre com [dor], olha o que eu descobri","Sabe quando [dor] e parece que nada resolve?","Eu vivia com [dor] até achar isso aqui","Pra você que não aguenta mais [dor]"]],
+ ["Arrependimento","“Por que não comprei antes?”",["Se eu soubesse disso antes, teria comprado muito antes","Como eu vivi tanto tempo sem isso?","Me arrependi… de não ter comprado antes"]],
+ ["Choque e surpresa","Frase forte, com a entonação certa.",["A marca enlouqueceu de vez","Fui enganada todo esse tempo","Eu estava cansada de [dor]"]],
+ ["Economia e comparação","Mostra que vale a pena.",["Não tem dinheiro pro caro? Compra esse","Parece de loja de decoração, mas não é","Se eu tivesse conhecido antes, teria economizado muito"]],
+ ["POV (gancho escrito)","Fica escrito em cima do vídeo o tempo todo.",["POV: você encontrou o [produto] perfeito","POV: você fez a melhor compra da vida","POV: duvido que você conheça algo melhor que isso","POV: [dor] nunca mais"]],
+ ["Lista","Prende até o fim.",["3 motivos para ter [produto] em casa","3 motivos para acabar com [dor] hoje"]],
+ ["Engajamento","Feito para gerar comentário.",["Cabe literalmente tudo aqui","Você usaria isso?","Quem aí também sofre com [dor]?"]],
+ ["Respondendo comentário","Vira vídeo novo a partir de uma dúvida.",["Respondendo quem perguntou se [produto] resolve [dor]","Me perguntaram se isso funciona mesmo…"]],
+ ["Visual (sem fala)","O movimento chama a atenção.",["Tirar o produto de um lugar inesperado (ex.: amaciante saindo da geladeira)","Algo caindo na sua mão","Tampar a câmera com a mão e revelar","Sentar na cadeira já falando","Abrir o pacote já no 1º segundo","Tirar a mão do celular de repente"]],
+ ["Som (auditivo)","O ouvido também é gancho.",["Efeito sonoro no 1º segundo","Som em alta desde o começo","Texto animado aparecendo junto com o som"]]
+];
+const REGRA_G='<div class="regra"><b>Regras do curso:</b> use os 3 ganchos juntos nos 3 primeiros segundos: o escrito, o visual e o falado. A entonação combina com a frase. Corte o suspiro do começo. Nunca comece com “Oi gente, vim mostrar”.</div>';
+const CTA_TT=[
+ ["Carrinho sem cara de venda","O curso ensina a não mandar: a pessoa clica porque quer ver.",["Clica no carrinho laranja pra ver o preço, tá quase de graça","Confere se o valor pra você também tá com promoção","Vê se esse valor tá disponível pra você","Corre no carrinho laranja e vê se ainda tá em oferta relâmpago pra você","Comprei aqui no TikTok Shop, no carrinho laranja em cima do meu nome. Vê se tem cupom e frete grátis"]],
+ ["Urgência e escassez","Use com moderação.",["Promoção válida só hoje","Últimas unidades disponíveis"]],
+ ["Engajamento (sem vender)","Ajuda a entrega do vídeo.",["Salva pra não perder","Me conta: você também passa por isso?","Você já tem um?","Manda pra amiga que precisa disso"]]
+];
+const CTA_IG=[
+ ["Levar para o link da Shopee","Instagram divulga Shopee: diga onde achou.",["Achei na Shopee, o link tá no meu story","Comenta EU QUERO que te mando o link no direct","Tá nos destaques: Achadinhos"]],
+ ["Grupo VIP","Chamada discreta.",["Encontrei no grupo VIP 🤍 link no destaque","Entra no grupo pelo link da bio. Se não abrir, toca nos 3 pontinhos e abre no navegador"]],
+ ["Engajamento","Para o Reels entregar mais.",["Salva pra lembrar na hora de comprar","Manda pra amiga que ama casa organizada","Qual cantinho da sua casa precisa disso?"]]
+];
+const REGRA_C='<div class="regra"><b>Regras:</b> POV e vídeo curto não têm CTA. Evite “compre agora” e “corre pra garantir”. No TikTok nunca fale “link”: fale “carrinho laranja”. Uma CTA de até 10 segundos.</div>';
+const SEO=[
+ ["Os 4 jeitos que o TikTok entende o vídeo","Use todos que der.",["O que você FALA: diga o nome do produto e as características (ex.: compacto, transparente, com divisória)","O que você ESCREVE: gancho escrito com o nome do produto (“o organizador de gaveta mais…”, nunca só “isso aqui”)","O que você MOSTRA: o produto claro, centralizado, no cenário certo (cozinha para cozinha)","A LEGENDA: palavra-chave logo no começo"]],
+ ["Narração e legenda na tela","Vídeo narrado é o que mais vende.",["Narre com a sua voz falando o nome do produto","Coloque legenda na tela igual à narração (muita gente assiste sem som)"]],
+ ["Hashtags","",["Até 5 hashtags, todas do produto (#organizadordegaveta #organizacao …)","Nada de #fyp, #viral, #foryou: não aumentam o alcance"]],
+ ["Pesquisa de palavras (grátis)","",["Peça ao Claude as melhores palavras-chave do produto (o curso fala do ChatGPT; o Claude faz o mesmo)","Digite o produto na busca do TikTok e anote as sugestões (ex.: “organizador de gaveta pequeno”)","Veja a legenda e as hashtags dos vídeos mais vistos desse produto","No seu vídeo: Mais insights › termos pesquisados. Repita esses termos no próximo"]]
+];
+const FORMATOS=[
+ ["POV","Um take + frase na tela + som em alta. O mais fácil.",false],["Storytelling","Conta uma história sua. Vende sem parecer venda.",true],["Unboxing","Abrindo o pacote. Mostre o produto já no começo.",true],["Engajamento","Feito para gerar comentário (pergunta, enquete, “comenta EU QUERO”). Tenha paciência com os comentários.",false],["Antes e depois","A dor antes, o resultado depois.",false],["Respondendo comentário","Grava respondendo uma dúvida.",true],["Lista (3 motivos)","Um motivo por cena.",true],["Demonstração","Mostra como funciona na prática.",true],["Prova e experiência","Testando pela primeira vez e mostrando o resultado.",true],["Produto + música","Só o produto com trend ou som em alta.",false],["Produto + narração","Você narra por cima, falando o nome.",true],["Mãos mostrando","Sem aparecer, só as mãos.",false],["Comparação","Jeito antigo ou caro × o produto.",true],["Para quem…","O mesmo produto falando com outro público.",true]
+];
+const VIRAL=[
+ ["Retenção","Prenda nos 3 primeiros segundos. Nunca comece parada e calada."],
+ ["Engajamento natural","Pergunte em vez de mandar: “o que você acha?”, “já fez isso?”."],
+ ["Repetição (loop)","O final emenda no começo: a pessoa assiste de novo sem perceber."],
+ ["Comentários","Responda sempre com outra pergunta (“você tem ele?”). Ou responda com vídeo."],
+ ["Tempo","De 7 a 25 segundos. Mais que isso, só se prender muito."],
+ ["Constância","Postar todo dia pesa mais que o horário. O curso fala em 10 vídeos por dia."],
+ ["Estude os ganchos","Anote os ganchos dos vídeos que bombam do mesmo produto e adapte (sem copiar)."],
+ ["Teste os públicos","O mesmo produto para pessoas diferentes. Ex.: organizador para quem tem casa pequena, para mãe sem tempo, para quem ama casa bonita."],
+ ["Dica valiosa","Grave o mesmo produto em vários formatos, veja qual entregou mais e repita esse formato com outros ganchos."],
+ ["Estrutura","Gancho (para a pessoa parar), desenvolvimento (ela pensa que PRECISA), CTA (o que fazer). POV e trend curta não precisam da estrutura completa."]
+];
+/* Biblioteca: quadradinhos (temas) › revista (capítulos) com fichas coloridas › cartão por vez. Tudo editável. */
+const strip=h=>h.replace(/<[^>]+>/g,"");
+const cap=arr=>arr.map(g=>({t:g[0],q:g[1]||"",itens:g[2].slice()}));
+const ORIGINAL=()=>({
+  ganchos:{n:"Ganchos",e:"✦",nota:strip(REGRA_G),caps:cap(GANCHOS).concat([{t:"Meus ganchos",q:"Os que você mesma criar ou achar por aí.",itens:[]}])},
+  ctatt:{n:"CTAs · TikTok Shop",e:"◎",nota:strip(REGRA_C),caps:cap(CTA_TT).concat([{t:"Minhas CTAs",q:"",itens:[]}])},
+  ctaig:{n:"CTAs · Instagram e Shopee",e:"◐",nota:"No Instagram você divulga Shopee: diga onde achou.",caps:cap(CTA_IG).concat([{t:"Minhas CTAs",q:"",itens:[]}])},
+  seo:{n:"SEO",e:"⌕",nota:"",caps:cap(SEO)},
+  formatos:{n:"Formatos de vídeo",e:"▢",nota:"Grave o mesmo produto em vários formatos e repita o que entregar mais.",caps:[{t:"Sem CTA",q:"Vídeos curtos: não precisam de chamada no final.",itens:FORMATOS.filter(f=>!f[2]).map(f=>f[0]+": "+f[1])},{t:"Com CTA",q:"Vídeos maiores, com fala ou narração.",itens:FORMATOS.filter(f=>f[2]).map(f=>f[0]+": "+f[1])}]},
+  viral:{n:"Viralizar",e:"↺",nota:"",caps:[{t:"O que o TikTok olha",q:"Do Segredo da viralização.",itens:VIRAL.map(f=>f[0]+": "+f[1])}]}
+});
+const BK="daia-bib-v1";
+let DB;try{DB=JSON.parse(localStorage.getItem(BK)||"null")}catch(_){DB=null}
+if(!DB)DB=ORIGINAL();
+const salvaBib=()=>{try{localStorage.setItem(BK,JSON.stringify(DB))}catch(_){}};
+const CORES=["c1","c2","c3","c4"];
+/* mandar um gancho da Biblioteca para um produto do Dia de gravar */
+function usarBox(){
+  const ps=[];DKS().forEach(d=>L[d].prods.forEach((P,pi)=>ps.push([d,pi,P.n])));
+  if(!ps.length)return '<div class="usarbox"><p class="mini">Ainda não tem produto no Dia de gravar.</p><button class="bt" data-c1="irgravar">Ir para Gravar</button></div>';
+  return '<div class="usarbox"><p class="mini">Para qual produto?</p><div class="chips2">'+ps.map(x=>'<button data-c1="gusa:'+x[0]+'|'+x[1]+'">'+nomeDia(x[0]).slice(0,3)+' · '+esc(x[2])+'</button>').join("")+'</div></div>';
+}
+let V3={sec:null,cap:null,i:null,ed:false,novo:false,apaga:false};
+function bib(){
+  const v=V3;let h="";
+  if(!v.sec){
+    h='<button class="voltar" data-ir="inicio">← Início</button><h1>Biblioteca</h1><p class="sub">Tudo o que você pode usar num vídeo, tirado das aulas. Você pode adicionar, editar e excluir.</p><div class="gr3">'+
+      Object.keys(DB).map(k=>{const s=DB[k],n=s.caps.reduce((a,c)=>a+c.itens.length,0);return '<button data-sec="'+k+'"><span class="e">'+s.e+'</span><span><b>'+esc(s.n)+'</b><small>'+n+' itens</small></span></button>';}).join("")+'</div>'+
+      '<button class="restaura" data-restaura="1">Voltar a biblioteca para o original</button>'+(v.apaga==="tudo"?'<div class="conf">Apagar o que você mudou e voltar ao original? <button class="bt pri" data-restaura="sim">Sim</button><button class="bt" data-restaura="nao">Não</button></div>':'');
+  } else if(v.cap===null){
+    const s=DB[v.sec];
+    h='<button class="voltar" data-voltar="temas">← Temas</button><h1>'+esc(s.n)+'</h1>'+(s.nota?'<p class="sub">'+esc(s.nota)+'</p>':'')+
+      s.caps.map((c,ci)=>'<div class="chap"><small>Capítulo '+(ci+1)+'</small><h4>'+esc(c.t)+'</h4>'+(c.q?'<p>'+esc(c.q)+'</p>':'')+'<div class="mas">'+
+        c.itens.map((x,i)=>'<button class="ft '+CORES[ci%4]+'" data-ft="'+ci+'|'+i+'">'+esc(x)+'</button>').join("")+
+        '<button class="ft add" data-add="'+ci+'">+ Adicionar</button></div></div>').join("");
+  } else {
+    const s=DB[v.sec],c=s.caps[v.cap],n=c.itens.length,txt=v.novo?"":c.itens[v.i];
+    h='<button class="voltar" data-voltar="caps">← '+esc(s.n)+'</button><div class="card1"><small>'+esc(c.t)+'</small>'+
+      (v.ed?'<textarea id="edTxt" rows="4" placeholder="Escreva aqui">'+esc(txt)+'</textarea>':'<p>'+esc(txt)+'</p>')+
+      '<i>'+(v.novo?'Novo item':(v.i+1)+' de '+n)+'</i></div>'+
+      (v.ed?'<div class="nav1"><button data-c1="cancela">Cancelar</button><button class="pri" data-c1="salva">Salvar</button></div>':
+       '<div class="nav1"><button data-c1="ant">← Anterior</button><button class="pri" data-c1="copia">Copiar</button><button data-c1="prox">Próximo →</button></div>'+
+       (v.sec==="ganchos"?'<button class="bt pri usar" data-c1="usar">Usar este gancho num produto de gravar</button>'+(v.usar?usarBox():''):'')+
+       '<div class="nav2"><button data-c1="edita">Editar</button><button data-c1="apaga">Excluir</button></div>'+
+       (v.apaga===true?'<div class="conf">Excluir este item? <button class="bt pri" data-c1="apagasim">Sim, excluir</button><button class="bt" data-c1="apaganao">Não</button></div>':''));
+  }
+  $("bib").innerHTML=h;
+  if(v.ed){const t=$("edTxt");if(t)t.focus();}
+}
+document.addEventListener("click",async e=>{
+  const q=s=>e.target.closest(s),v=V3;
+  const s=q("[data-sec]");if(s){V3={sec:s.dataset.sec,cap:null,i:null};bib();window.scrollTo(0,0);return;}
+  const vt=q("[data-voltar]");if(vt){if(vt.dataset.voltar==="temas")V3={sec:null,cap:null};else V3={sec:v.sec,cap:null};bib();return;}
+  const ft=q("[data-ft]");if(ft){const[c,i]=ft.dataset.ft.split("|").map(Number);V3={sec:v.sec,cap:c,i,ed:false};bib();window.scrollTo(0,0);return;}
+  const ad=q("[data-add]");if(ad){V3={sec:v.sec,cap:Number(ad.dataset.add),i:null,ed:true,novo:true};bib();window.scrollTo(0,0);return;}
+  const rs=q("[data-restaura]");if(rs){const a=rs.dataset.restaura;if(a==="1")v.apaga="tudo";else{if(a==="sim"){DB=ORIGINAL();salvaBib();toast("Biblioteca voltou ao original");}v.apaga=false;}bib();return;}
+  const c1=q("[data-c1]");if(!c1)return;
+  const it=DB[v.sec].caps[v.cap].itens,a=c1.dataset.c1;
+  if(a==="ant"&&it.length){v.i=(v.i+it.length-1)%it.length;v.apaga=false;}
+  if(a==="prox"&&it.length){v.i=(v.i+1)%it.length;v.apaga=false;}
+  if(a==="usar"){v.usar=!v.usar;bib();return;}
+  if(a==="irgravar"){ir("lote");return;}
+  if(a.indexOf("gusa:")===0){const[d,pi]=a.slice(5).split("|"),P=L[d].prods[Number(pi)],g=it[v.i];P.gEsc=P.gEsc||[];if(P.gEsc.indexOf(g)<0)P.gEsc.push(g);salvaL();v.usar=false;bib();lote();toast("Gancho foi para "+P.n);return;}
+  if(a==="copia"){try{await navigator.clipboard.writeText(it[v.i]);toast("Copiado");}catch(_){toast("Segure o texto para copiar");}return;}
+  if(a==="edita"){v.ed=true;v.apaga=false;}
+  if(a==="cancela"){if(v.novo)V3={sec:v.sec,cap:null};else v.ed=false;}
+  if(a==="salva"){const t=($("edTxt").value||"").trim();if(!t){toast("Escreva alguma coisa primeiro");return;}if(v.novo){it.push(t);v.i=it.length-1;v.novo=false;toast("Adicionado");}else{it[v.i]=t;toast("Salvo");}v.ed=false;salvaBib();}
+  if(a==="apaga")v.apaga=true;
+  if(a==="apaganao")v.apaga=false;
+  if(a==="apagasim"){it.splice(v.i,1);salvaBib();toast("Excluído");if(!it.length)V3={sec:v.sec,cap:null};else{v.i=Math.min(v.i,it.length-1);v.apaga=false;}}
+  bib();
+});
+/* ---------- dia de gravar ---------- */
+/* Formatos com roteiro completo. {p} produto · {o} o/a · {de} do/da · {dor} dor · {fala} a dor como a cliente fala */
+const FT={
+ pov:{n:"POV",cta:false,g:["POV: {dor} nunca mais","POV: você achou {o} {p} que faltava","POV: você fez a melhor compra da vida","POV: chega de {dor} 🤍"],r:["Gancho escrito em cima do vídeo o tempo todo (é o título acima)","Um take só {de} {p} resolvendo {dor}, bem de perto","Som em alta, sem falar","Termine no mesmo ângulo do começo (loop)"]},
+ maos:{n:"Mãos mostrando",cta:false,g:["Olha como {o} {p} acaba com {dor}","Só eu que não sabia que {dor} se resolvia assim?","O jeito mais fácil de acabar com {dor}"],r:["Mãos pegando {o} {p}","Mãos usando, passo a passo","Mostra o resultado e volta para a 1ª cena (loop)"]},
+ historia:{n:"Storytelling",cta:true,g:["Eu vivia com {dor} até achar isso aqui","“{fala}”: eu dizia isso todo dia","Deixa eu te contar como eu resolvi {dor}","Eu queria ter descoberto isso antes"],r:["Gancho (3 s): fale a frase olhando para a câmera, com a entonação certa","Começo: conte a dor como pra uma amiga: “{fala}”","Meio: como você achou {o} {p} e o que mudou (fale o nome do produto)","Fim: mostre como ficou e faça a CTA"]},
+ antes:{n:"Antes e depois",cta:false,g:["Antes: {dor}. Depois: olha isso","Isso aqui virou ISSO","A diferença que {o} {p} fez"],r:["Antes: o cantinho com {dor}","Usando {o} {p} (corte rápido)","Depois: o resultado, câmera parada 2 segundos"]},
+ motivos:{n:"3 motivos",cta:true,g:["3 motivos para ter {o} {p} em casa","3 motivos para acabar com {dor} hoje","Se você sofre com {dor}, veja o motivo 3"],r:["Gancho: diga o título","Motivo 1 (o mais visual)","Motivo 2","Motivo 3 (o que mais resolve {dor})","CTA"]},
+ unbox:{n:"Unboxing",cta:true,g:["Chegou o que vai acabar com {dor}","Comprei {o} {p} por causa de {dor}: valeu?","Abri {o} {p} e olha esse detalhe"],r:["Já abre mostrando o produto (nada de 3 segundos de caixa)","2 detalhes de perto","Usa na hora e diz se resolveu {dor}","CTA"]},
+ demo:{n:"Demonstração",cta:true,g:["Olha como funciona {o} {p}","Ninguém fala sobre isso","Você não vai acreditar no que isso faz"],r:["Gancho falado","Mostra funcionando na prática, falando as características","CTA"]},
+ engaja:{n:"Engajamento",cta:false,g:["Quem aí também sofre com {dor}? 🙋‍♀️","Cabe literalmente tudo aqui","Você usaria isso?"],r:["Mostra {o} {p} sem explicar","Revela como resolve {dor}","Pergunta no final para as pessoas comentarem"]},
+ narrado:{n:"Narrado",cta:true,g:["Se você sofre com {dor}, olha o que eu descobri","Esse é {o} {p} que acabou com {dor} aqui em casa","Vou te poupar um tempo"],r:["Gancho falado e escrito, com o nome do produto","Desenvolvimento: fale o nome {de} {p} e 3 características enquanto mostra","Legenda na tela igual à narração","CTA natural no fim"]},
+ compara:{n:"Comparação",cta:true,g:["Jeito antigo x {p}: qual resolve {dor}?","Parece de loja de decoração, mas não é","Não tem dinheiro pro caro? Olha esse"],r:["Mostra o jeito antigo (com {dor})","Mostra {o} {p}","Lado a lado e pergunta: qual você escolhe?","CTA"]},
+ resp:{n:"Respondendo comentário",cta:true,g:["Respondendo: “{o} {p} resolve {dor} mesmo?”","Me perguntaram se isso funciona mesmo…"],r:["Use “Responder com vídeo” no comentário","Mostre exatamente o que perguntaram","CTA ou uma pergunta de volta"]}
+};
+const FK=Object.keys(FT);
+const DESC={pov:"Você filma como se a pessoa estivesse vendo pelos seus olhos. Um take só, uma frase escrita na tela e um som em alta. Sem falar. É o mais rápido de gravar.",
+maos:"Só as suas mãos aparecem: pegando, abrindo e usando o produto, passo a passo. Bom para quando você não quer aparecer.",
+historia:"Você conta uma história sua, como para uma amiga: a dor que tinha, como achou o produto e o que mudou. Vende sem parecer venda. Tem CTA no final.",
+antes:"Mostra o problema primeiro (a bagunça, o canto feio) e depois o resultado com o produto. A virada é o que prende.",
+motivos:"Uma lista: 3 motivos para ter o produto, um motivo em cada cena. Fácil de seguir e de assistir até o fim.",
+unbox:"Abrindo o pacote. Mostre o produto logo no começo, a reação e os detalhes de perto.",
+demo:"Mostra como funciona na prática, do começo ao fim. A pessoa vê que funciona mesmo.",
+engaja:"Feito para a pessoa comentar: uma pergunta, uma enquete, \"comenta EU QUERO\". O vídeo é curto; o resultado vem nos comentários.",
+narrado:"Você grava as cenas e depois narra por cima com a sua voz, falando o nome do produto. Coloque legenda igual à fala.",
+compara:"Coloca lado a lado o jeito antigo (ou o produto caro) e o produto. A pessoa vê a diferença na hora.",
+resp:"Você responde a dúvida de um comentário com um vídeo (\"Responder com vídeo\"). Mostra que é real e gera mais comentários."};
+const CTA_L=["Confere no carrinho laranja se o valor pra você também tá com promoção","Vê se ainda tá em oferta relâmpago pra você","Clica no carrinho laranja pra ver o preço, tá quase de graça","Comprei aqui no TikTok Shop, no carrinho laranja em cima do meu nome. Vê se tem cupom e frete grátis"];
+const SUGQ={pov:3,maos:2,historia:2,narrado:2,antes:1};
+const SUGP=["Organizador de gaveta","Pisca-pisca","Vila natalina","Porta-temperos","Difusor de aromas","Cesto organizador"];
+const DORES=[[/gaveta|organiz|cesto|caixa|nicho/i,[["gaveta bagunçada","eu nunca acho nada"],["falta de espaço","não cabe mais nada aqui"],["bagunça que volta todo dia","minha casa nunca fica arrumada"]]],[/tempero|cozinha|pote/i,[["cozinha bagunçada","minha cozinha vive uma bagunça"],["falta de espaço no armário","não cabe mais nada no armário"]]],[/natal|pisca|vila|árvore|arvore|enfeite/i,[["casa sem clima de Natal","minha casa não parece Natal"],["decoração com cara de barata","minha decoração fica com cara de barata"],["cantinho escuro","esse canto é muito escuro"]]],[/cheiro|difusor|aroma|vela/i,[["casa sem cheirinho","minha casa não tem cheiro de casa limpa"],["visita chegando de surpresa","e se chegar visita agora?"]]]];
+const doresDe=p=>{const a=DORES.find(d=>d[0].test(p));return (a?a[1]:[]).concat([["casa sem graça","minha casa não tem a minha cara"]]).map(x=>({d:x[0],f:x[1]}));};
+const artP=p=>{const w=String(p).trim().toLowerCase().split(/\s+/)[0]||"";return /(a|ão|ade|agem)$/.test(w)&&!/(ma|pa)$/.test(w)?"a":"o";};
+const fill=(t,p,dor)=>{const o=artP(p);return t.replace(/\{o\}/g,o).replace(/\{de\}/g,o==="a"?"da":"do").replace(/\{p\}/g,p.toLowerCase()).replace(/\{dor\}/g,dor.d).replace(/\{fala\}/g,dor.f);};
+const capi=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const tagsDe=p=>["#"+p.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]/g,""),"#casaorganizada","#achadosdecasa","#tiktokshop"].join(" ");
+const ANTES0=["Produtos separados","Luz boa: janela ou luzinha","Fundo limpo, no cenário certo (cozinha para cozinha)","Celular carregado e no “não perturbe”","Ganchos escolhidos na Biblioteca","Uma troca de roupa ou de ângulo entre os formatos"];
+const LK="daia-lote-v2";
+let L;try{L=JSON.parse(localStorage.getItem(LK)||"null")}catch(_){L=null}
+const novoDia=()=>({ck:ANTES0.map(t=>({t,ok:false})),prods:[]});
+const DKS=()=>Object.keys(L).filter(k=>k!=="post"&&L[k]&&Array.isArray(L[k].prods));const nomeDia=k=>k==="sab"?"Sábado":k==="dom"?"Domingo":(L[k]&&L[k].nome)||k;
+if(!L)L={sab:novoDia(),dom:novoDia()};
+let dia="sab",sj="lista",horaDia=0,aberto=null;
+const salvaL=()=>{try{localStorage.setItem(LK,JSON.stringify(L))}catch(_){}};
+/* vídeos de um produto, montados a partir das quantidades que ela escolheu */
+function vidsDe(P){
+  const out=[];const dores=P.dSel.map(i=>P.dores[i]).filter(Boolean);const ds=dores.length?dores:[P.dores[0]||{d:"bagunça",f:"minha casa nunca fica arrumada"}];
+  /* formatos do app + os formatos que ela mesma escreveu (P.ex); ganchos que ela mandou da Biblioteca (P.gEsc) vão para os primeiros vídeos */
+  const esc0=P.gEsc||[];let idx=0;
+  const lista=FK.map(k=>({k,F:FT[k],q:P.q[k]||0})).concat((P.ex||[]).map((x,i)=>({k:"x"+i,F:{n:x.n,cta:!!x.cta,g:x.g?[x.g]:["Escreva o seu gancho"],r:x.r?x.r.split("\n"):["Escreva aqui como vai ser o vídeo"],meu:true},q:x.q||0})));
+  lista.forEach(({k,F,q})=>{for(let j=0;j<q;j++){const key=k+"-"+j,st=P.v[key]=P.v[key]||{gi:j,ci:j,ed:{},ok:false},dor=ds[j%ds.length];
+    const gs=[];ds.forEach(d=>F.g.forEach(t=>{const s=capi(fill(t,P.n,d));if(gs.indexOf(s)<0)gs.push(s);}));
+    const gB=(st.gi===j&&idx<esc0.length)?esc0[idx]:null;idx++;
+    out.push({key,k,j,F,st,g:st.ed.g!=null?st.ed.g:gB!=null?gB:gs[st.gi%gs.length],gs,
+      r:st.ed.r!=null?st.ed.r:F.r.map((x,i)=>(i+1)+". "+capi(fill(x,P.n,dor))).join("\n"),
+      cta:F.cta?(st.ed.cta!=null?st.ed.cta:CTA_L[st.ci%CTA_L.length]):null,
+      leg:st.ed.leg!=null?st.ed.leg:capi(P.n)+": chega de "+dor.d+" 🤍 Você também passa por isso?\n\n"+tagsDe(P.n)});}});
+  return out;
+}
+const totQ=P=>FK.reduce((s,k)=>s+(P.q[k]||0),0)+(P.ex||[]).reduce((s,x)=>s+(x.q||0),0);
+let fdAb=null,agAb=null;
+const dm=s=>{const p=String(s).split("-");return p.length===3?p[2]+"/"+p[1]:s;};
+document.addEventListener("change",e=>{const a=e.target.closest("[data-vag]");if(!a)return;const x=acharV(a.dataset.vag);if(a.value){x.v.st.ag=a.value;x.v.st.ok=true;agAb=null;aberto=null;toast("Agendado para "+dm(a.value));}else delete x.v.st.ag;salvaL();lote();});
+const feitos=d=>L[d].prods.reduce((s,P)=>s+vidsDe(P).filter(v=>v.st.ok).length,0);
+const plan=d=>L[d].prods.reduce((s,P)=>s+totQ(P),0);
+function lote(){if(!L[dia])dia="sab";try{window.daiaDias&&daiaDias.pinta()}catch(_){}
+  const D=L[dia];
+  $("ckAntes").innerHTML=D.ck.map((c,i)=>'<div class="ck2"><label><input type="checkbox" data-ck="'+i+'"'+(c.ok?" checked":"")+'><span>'+esc(c.t)+'</span></label><button data-ckx="'+i+'" aria-label="Tirar">✕</button></div>').join("")+
+    '<div class="addrow"><input id="ckNovo" placeholder="Adicionar outro item"><button class="bt" data-ckadd="1">Adicionar</button></div>';
+  const usados=D.prods.map(P=>P.n.toLowerCase());
+  $("prodAdd").innerHTML='<div class="chips2">'+SUGP.filter(s=>usados.indexOf(s.toLowerCase())<0).map(s=>'<button data-sugp="'+esc(s)+'">+ '+esc(s)+'</button>').join("")+'</div>'+
+    '<div class="addrow"><input id="prodNovo" placeholder="Escreva o produto"><button class="bt pri" data-padd="1">Adicionar</button></div>';
+  $("prods").innerHTML=D.prods.map((P,pi)=>{
+    const vs=vidsDe(P),ok=vs.filter(v=>v.st.ok).length,tq=totQ(P);
+    const pk="p|"+dia+"|"+P.n,sk=s=>'s|'+dia+'|'+P.n+'|'+s,completo=tq>0&&ok>=tq,nd=P.dSel.length;
+    const sec=(s,tit,res,padrao,corpo)=>'<details class="sec" data-k="'+sk(s)+'"'+abreK(sk(s),padrao)+'><summary><b>'+tit+'</b><span>'+res+'</span></summary><div class="secb">'+corpo+'</div></details>';
+    return '<details class="lprod" data-k="'+pk+'"'+abreK(pk,!completo)+'><summary class="hd"><b class="pn">'+esc(P.n)+'</b><span>'+(completo?'✓ ':'')+ok+'/'+tq+' gravados</span><button class="x" data-prm="'+pi+'" aria-label="Tirar produto">✕</button></summary><div class="secs">'+
+      sec("dor","Dor",nd+(nd===1?' marcada':' marcadas'),!tq,'<p class="mini">Que dor ele resolve? (o app sugere; você marca)</p><div class="chips2">'+P.dores.map((d,i)=>'<button data-dor="'+pi+'|'+i+'" aria-pressed="'+(P.dSel.indexOf(i)>=0)+'">'+esc(d.d)+'</button>').join("")+'</div>'+
+        '<div class="addrow"><input id="dorNova'+pi+'" placeholder="Escrever outra dor"><button class="bt" data-doradd="'+pi+'">Adicionar</button></div>')+
+      sec("fmt","Formatos",tq+' vídeos',!tq,'<p class="mini">Quantos de cada formato? Você decide (pode ser 10 de POV). Toque no nome para ver o que é.</p>'+
+      (tq?'':'<button class="bt" data-sug="'+pi+'">Usar sugestão: 3 POV, 2 mãos, 2 storytelling, 2 narrados, 1 antes e depois</button>')+
+      '<div class="qt">'+FK.map(k=>{const ab=fdAb===pi+"|"+k;return '<div><button class="fn'+(ab?' on':'')+'" data-fdesc="'+pi+'|'+k+'" aria-expanded="'+ab+'">'+FT[k].n+(FT[k].cta?'':' <em>sem CTA</em>')+'<i>'+(ab?'−':'?')+'</i></button><span class="stp"><button data-q="'+pi+'|'+k+'|-1" aria-label="Menos">−</button><b>'+(P.q[k]||0)+'</b><button data-q="'+pi+'|'+k+'|1" aria-label="Mais">+</button></span></div>'+(ab?'<p class="fdesc">'+esc(DESC[k]||"")+'</p>':'');}).join("")+
+        (P.ex||[]).map((x,xi)=>'<div><span class="fn meu">'+esc(x.n)+' <em>seu</em><button class="x" data-exrm="'+pi+'|'+xi+'" aria-label="Tirar formato">✕</button></span><span class="stp"><button data-exq="'+pi+'|'+xi+'|-1" aria-label="Menos">−</button><b>'+(x.q||0)+'</b><button data-exq="'+pi+'|'+xi+'|1" aria-label="Mais">+</button></span></div>').join("")+'</div>'+
+      '<div class="meuf"><p class="mini">Viu um vídeo diferente? Coloque o seu formato.</p><input id="exN'+pi+'" placeholder="Nome do formato (ex.: só o título na tela)"><input id="exG'+pi+'" placeholder="Gancho ou título (se quiser)"><label class="ckl"><input type="checkbox" id="exC'+pi+'"> tem CTA no final</label><button class="bt" data-exadd="'+pi+'">Adicionar formato</button></div>'+
+      '<p class="mini">Total: <b>'+tq+'</b> vídeos deste produto</p>')+
+      sec("gan","Ganchos da Biblioteca",(P.gEsc||[]).length?(P.gEsc.length+' escolhido'+(P.gEsc.length>1?'s':'')):'nenhum',false,'<p class="mini">Os ganchos que você escolher vão para os primeiros vídeos.</p>'+
+        ((P.gEsc||[]).length?'<div class="gesc">'+P.gEsc.map((g,gi)=>'<span>'+esc(g)+'<button data-gx="'+pi+'|'+gi+'" aria-label="Tirar gancho">✕</button></span>').join("")+'</div>':'')+
+        '<button class="bt" data-gbib="1">Escolher gancho na Biblioteca</button>')+
+      sec("ide","Ideia sua",P.ideia?'escrita':'vazia',false,'<textarea class="ideia" data-ideia="'+pi+'" rows="2" placeholder="Escreva o que quiser: uma cena, um cenário, um vídeo que você viu">'+esc(P.ideia||"")+'</textarea>')+
+      (vs.length?sec("rot","Roteiros",ok+'/'+tq+' gravados',true,'<div class="vids"><p class="mini">Toque para abrir, trocar ou editar.</p>'+vs.map(v=>{const id=pi+"|"+v.key,op=aberto===id;
+        const pid=dia+"|"+P.n+"|"+v.key,pos=(L.post||{})[pid],tags=(v.st.ok?'<b class="tg">Gravado</b>':'')+(v.st.edt?'<b class="tg ed">Editar</b>':'')+(v.st.ag?'<b class="tg ag">Agendado '+dm(v.st.ag)+'</b>':'')+(pos?'<b class="tg ps">Postado</b>':'');
+        return '<div class="vd'+(pos||v.st.ag?' ok':'')+'"><button class="vh" data-vab="'+id+'"><span><small>'+v.F.n+' '+(v.j+1)+'</small>'+esc(v.g)+(tags?'<em class="tgs">'+tags+'</em>':'')+'</span><i>'+(op?'−':'›')+'</i></button>'+
+        (op?'<div class="vb">'+
+          '<label>Gancho <button data-vtr="'+id+'|g">🔄 Trocar</button></label><textarea data-ved="'+id+'|g" rows="2">'+esc(v.g)+'</textarea>'+
+          '<label>'+(v.F.cta?'Roteiro (gancho, desenvolvimento e CTA)':'Roteiro')+'</label><textarea data-ved="'+id+'|r" rows="'+(v.r.split("\n").length+1)+'">'+esc(v.r)+'</textarea>'+
+          (v.cta!==null?'<label>CTA <button data-vtr="'+id+'|cta">🔄 Trocar</button></label><textarea data-ved="'+id+'|cta" rows="2">'+esc(v.cta)+'</textarea>':'<p class="mini">Sem CTA: '+v.F.n+' é vídeo curto.</p>')+
+          '<label>Legenda</label><textarea data-ved="'+id+'|leg" rows="4">'+esc(v.leg)+'</textarea>'+
+          '<p class="mini">Onde está este vídeo? Marque o que já fez.</p><div class="sts">'+
+            '<button data-vok="'+id+'" aria-pressed="'+!!v.st.ok+'">Gravei</button>'+
+            '<button data-vedt="'+id+'" aria-pressed="'+!!v.st.edt+'">Precisa editar</button>'+
+            '<button data-vagb="'+id+'" aria-pressed="'+!!v.st.ag+'">'+(v.st.ag?'Agendado '+dm(v.st.ag):'Agendei')+'</button>'+
+            '<button data-vpos="'+id+'" aria-pressed="'+!!pos+'">Postei</button></div>'+
+          (agAb===id?'<div class="agbox"><label>Agendado para qual dia?</label><input type="date" data-vag="'+id+'" value="'+(v.st.ag||"")+'">'+(v.st.ag?'<button class="bt" data-vagx="'+id+'">Tirar agendamento</button>':'')+'</div>':'')+
+          '<div class="row"><button class="bt" data-vcp="'+id+'">Copiar legenda</button></div></div>':'')+'</div>';}).join("")+'</div>'):'')+
+      '</div></details>';
+  }).join("")||'<p class="sub" style="margin-top:10px">Nenhum produto ainda. Toque numa sugestão ou escreva o seu.</p>';
+  const n=feitos(dia),t=DKS().reduce((s,k)=>s+feitos(k),0),pl=plan(dia);
+  $("loteN").textContent=n;$("loteDe").textContent="gravados hoje, de "+pl+" planejados";{const MF=window.daiaCrono?daiaCrono.metaFim():120;$("loteTot").textContent=t+"/"+MF;$("loteBar").style.width=Math.min(100,t/MF*100)+"%";}
+  semana();
+  $("resetBox").innerHTML=!resetPerg?'<p class="sub">Quando chegar o outro fim de semana, comece do zero. O checklist fica.</p><button class="bt" data-reset="1">Começar outro fim de semana</button>':
+    '<div class="vazio"><p><b>Apagar os produtos e roteiros deste fim de semana?</b></p><p class="sub">A Lista de hoje fica vazia até você montar o próximo. Não dá para desfazer.</p><div class="row"><button class="bt pri" data-reset="sim">Sim, começar do zero</button><button class="bt" data-reset="nao">Cancelar</button></div></div>';
+  refreshLista();
+}
+let resetPerg=false;
+document.addEventListener("click",e=>{const r=e.target.closest("[data-reset]");if(!r)return;const v=r.dataset.reset;
+  if(v==="1")resetPerg=true;if(v==="nao")resetPerg=false;
+  if(v==="sim"){resetPerg=false;L={sab:{ck:L.sab.ck.map(c=>({t:c.t,ok:false})),prods:[]},dom:{ck:L.dom.ck.map(c=>({t:c.t,ok:false})),prods:[]},post:{}};aberto=null;salvaL();toast("Pronto para o próximo fim de semana");}
+  lote();});
+/* semana: junta os vídeos do sábado e do domingo, intercalando os produtos, 10 por dia */
+const DIAS=["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"],HORAS=["8h","9h30","11h","12h30","14h","15h30","17h","18h30","20h","21h30"],CORP=["#C98B7E","#7FA393","#C9A86A","#8E8BC2","#B57FA0","#7E9FC2"];
+function semana(){
+  const nomes=[];DKS().forEach(d=>L[d].prods.forEach(P=>{if(nomes.indexOf(P.n)<0)nomes.push(P.n);}));
+  const pl=plano(),cv=x=>({p:x.P.n,f:x.v.F.n,g:x.v.g,ag:x.v.st.ag,ps:(L.post||{})[x.id]});
+  const dias=pl.dias.map(d=>d.map(cv)),res=pl.res.length,mix=dias.flat().concat(pl.res);
+  document.querySelectorAll("[data-sj]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sj===sj));
+  if(!mix.length){$("semanaLote").innerHTML='<p class="sub">Coloque os produtos e as quantidades acima que a semana aparece aqui.</p>';return;}
+  let h="";
+  if(sj==="lista")h=dias.map((d,i)=>'<details class="dl" data-k="d|'+i+'"'+abreK("d|"+i,i===0)+'><summary><b>'+DIAS[i]+'</b><span>'+d.length+' vídeos</span></summary>'+(d.length?d.map((v,j)=>'<div class="dlr"><i>'+(j+1)+'</i><span>'+esc(v.p)+' · '+esc(v.f)+(v.ps?' <b class="tg ps">Postado</b>':v.ag?' <b class="tg ag">Agendado '+dm(v.ag)+'</b>':'')+'<small>'+esc(v.g)+'</small></span></div>').join(""):'<p class="mini">Faltam vídeos para este dia.</p>')+'</details>').join("")+(res?'<p class="sub">Reserva: '+res+' vídeos para a próxima semana (cada dia tem no máximo 1 vídeo de cada produto).</p>':'');
+  if(sj==="grade")h='<div class="gd"><div class="gdh">'+DIAS.map(d=>'<span>'+d.slice(0,3)+'</span>').join("")+'</div><div class="gdb">'+dias.map(d=>'<div>'+Array.from({length:10},(_,j)=>d[j]?'<i style="background:'+CORP[nomes.indexOf(d[j].p)%CORP.length]+'" title="'+esc(d[j].p)+'"></i>':'<i class="vz"></i>').join("")+'</div>').join("")+'</div><div class="lg2">'+nomes.map((n,i)=>'<span><i style="background:'+CORP[i%CORP.length]+'"></i>'+esc(n)+'</span>').join("")+'</div></div>';
+  if(sj==="hora")h='<div class="chips2">'+DIAS.map((d,i)=>'<button data-hd="'+i+'" aria-pressed="'+(i===horaDia)+'">'+d.slice(0,3)+'</button>').join("")+'</div><p class="mini">Horários sugeridos para programar no TikTok. Mude como quiser.</p>'+
+    HORAS.map((hh,j)=>{const v=dias[horaDia][j];return '<div class="hr"><b>'+hh+'</b><span>'+(v?esc(v.p)+' · '+esc(v.f):'<em>vazio</em>')+'</span></div>';}).join("");
+  $("semanaLote").innerHTML=h;
+}
+const acharV=id=>{const[pi,key]=id.split("|");const P=L[dia].prods[Number(pi)];return {P,key,v:vidsDe(P).find(x=>x.key===key)};};
+document.addEventListener("click",async e=>{
+  const q=s=>e.target.closest(s),D=L[dia];
+  const d=q("[data-dia]");if(d){dia=d.dataset.dia;aberto=null;document.querySelectorAll("[data-dia]").forEach(b=>b.setAttribute("aria-pressed",b===d));lote();return;}
+  if(q("[data-ckadd]")){const t=($("ckNovo").value||"").trim();if(t){D.ck.push({t,ok:false});salvaL();lote();}return;}
+  const cx=q("[data-ckx]");if(cx){D.ck.splice(Number(cx.dataset.ckx),1);salvaL();lote();return;}
+  const sp=q("[data-sugp]");if(sp){const n=sp.dataset.sugp;D.prods.push({n,dores:doresDe(n),dSel:[0],q:{},v:{}});salvaL();lote();return;}
+  if(q("[data-padd]")){const n=($("prodNovo").value||"").trim();if(!n){toast("Escreva o produto primeiro");return;}D.prods.push({n,dores:doresDe(n),dSel:[0],q:{},v:{}});salvaL();lote();return;}
+  const rm=q("[data-prm]");if(rm){e.preventDefault();D.prods.splice(Number(rm.dataset.prm),1);salvaL();lote();return;}
+  const dr=q("[data-dor]");if(dr){const[pi,i]=dr.dataset.dor.split("|").map(Number),P=D.prods[pi];const k=P.dSel.indexOf(i);if(k>=0){if(P.dSel.length>1)P.dSel.splice(k,1);}else P.dSel.push(i);salvaL();lote();return;}
+  const fd=q("[data-fdesc]");if(fd){fdAb=fdAb===fd.dataset.fdesc?null:fd.dataset.fdesc;lote();return;}
+  const da=q("[data-doradd]");if(da){const pi=Number(da.dataset.doradd),P=D.prods[pi],t=($("dorNova"+pi).value||"").trim();if(!t){toast("Escreva a dor primeiro");return;}P.dores.push({d:t,f:t});P.dSel.push(P.dores.length-1);salvaL();lote();toast("Dor adicionada");return;}
+  const ea=q("[data-exadd]");if(ea){const pi=Number(ea.dataset.exadd),P=D.prods[pi],n=($("exN"+pi).value||"").trim();if(!n){toast("Escreva o nome do formato");return;}(P.ex=P.ex||[]).push({n,g:($("exG"+pi).value||"").trim(),cta:$("exC"+pi).checked,q:1});salvaL();lote();toast("Formato adicionado");return;}
+  const eq=q("[data-exq]");if(eq){const[pi,xi,s]=eq.dataset.exq.split("|").map(Number),x=D.prods[pi].ex[xi];x.q=Math.max(0,(x.q||0)+s);salvaL();lote();return;}
+  const er=q("[data-exrm]");if(er){const[pi,xi]=er.dataset.exrm.split("|").map(Number),P=D.prods[pi];P.ex.splice(xi,1);Object.keys(P.v).forEach(k=>{if(/^x\d/.test(k))delete P.v[k];});salvaL();lote();return;}
+  const gx=q("[data-gx]");if(gx){const[pi,gi]=gx.dataset.gx.split("|").map(Number);D.prods[pi].gEsc.splice(gi,1);salvaL();lote();return;}
+  if(q("[data-gbib]")){V3={sec:"ganchos",cap:null,i:null};bib();ir("biblio");return;}
+  const sg=q("[data-sug]");if(sg){D.prods[Number(sg.dataset.sug)].q=Object.assign({},SUGQ);salvaL();lote();return;}
+  const qq=q("[data-q]");if(qq){const[pi,k,s]=qq.dataset.q.split("|");const P=D.prods[Number(pi)];P.q[k]=Math.max(0,(P.q[k]||0)+Number(s));salvaL();lote();return;}
+  const va=q("[data-vab]");if(va){aberto=aberto===va.dataset.vab?null:va.dataset.vab;lote();return;}
+  const vt=q("[data-vtr]");if(vt){const p=vt.dataset.vtr.split("|"),c=p.pop(),x=acharV(p.join("|"));if(c==="g"){x.v.st.gi++;delete x.v.st.ed.g;}else{x.v.st.ci++;delete x.v.st.ed.cta;}salvaL();lote();return;}
+  const vo=q("[data-vok]");if(vo){const x=acharV(vo.dataset.vok);x.v.st.ok=!x.v.st.ok;salvaL();const tq=totQ(x.P);if(x.v.st.ok&&tq&&vidsDe(x.P).every(v=>v.st.ok)){ABT["p|"+dia+"|"+x.P.n]=false;aberto=null;lote();toast("Produto completo: recolhi o cartão");return;}lote();if(x.v.st.ok)toast("Gravado ✓ ("+feitos(dia)+" hoje)");return;}
+  const ve=q("[data-vedt]");if(ve){const x=acharV(ve.dataset.vedt);x.v.st.edt=!x.v.st.edt;if(x.v.st.edt){x.v.st.ok=true;aberto=null;}salvaL();lote();if(x.v.st.edt)toast("Fica marcado: editar depois");return;}
+  const vg=q("[data-vagb]");if(vg){agAb=agAb===vg.dataset.vagb?null:vg.dataset.vagb;lote();const i=document.querySelector('[data-vag="'+vg.dataset.vagb+'"]');if(i&&!i.value){try{i.showPicker()}catch(_){i.focus()}}return;}
+  const vx=q("[data-vagx]");if(vx){const x=acharV(vx.dataset.vagx);delete x.v.st.ag;agAb=null;salvaL();lote();return;}
+  const vp=q("[data-vpos]");if(vp){const x=acharV(vp.dataset.vpos),pid=dia+"|"+x.P.n+"|"+x.key;L.post=L.post||{};if(L.post[pid])delete L.post[pid];else{L.post[pid]=HOJE;x.v.st.ok=true;aberto=null;marcaDia();toast("Postado ✓");}salvaL();lote();return;}
+  const vc=q("[data-vcp]");if(vc){const x=acharV(vc.dataset.vcp);try{await navigator.clipboard.writeText(x.v.leg);toast("Legenda copiada");}catch(_){toast("Segure o texto para copiar");}return;}
+  const s2=q("[data-sj]");if(s2){sj=s2.dataset.sj;semana();return;}
+  const hd=q("[data-hd]");if(hd){horaDia=Number(hd.dataset.hd);semana();return;}
+});
+document.addEventListener("change",e=>{const c=e.target.closest("[data-ck]");if(c){L[dia].ck[Number(c.dataset.ck)].ok=c.checked;salvaL();}});
+document.addEventListener("input",e=>{const id=e.target.closest("[data-ideia]");if(id){L[dia].prods[Number(id.dataset.ideia)].ideia=id.value;salvaL();return;}const t=e.target.closest("[data-ved]");if(!t)return;const p=t.dataset.ved.split("|"),c=p.pop(),x=acharV(p.join("|"));x.v.st.ed[c]=t.value;salvaL();});
+
+/* ---------- links úteis: tudo que fica fora do app, num lugar só (editável) ---------- */
+const LINKS0=[
+ ["Métricas e pesquisa",[
+  ["Kalodata","https://www.kalodata.com","produtos e vídeos que mais vendem no TikTok Shop (aula Espionando criativos)"],
+  ["TikTok Studio","https://www.tiktok.com/tiktokstudio","as métricas dos seus vídeos e o TikTok Shop para Criadores"],
+  ["Tendências do TikTok","https://ads.tiktok.com/business/creativecenter/inspiration/popular/hashtag/pc/pt","hashtags, músicas e vídeos em alta (Creative Center, grátis)"],
+  ["Google Trends","https://trends.google.com.br/trends/","o que o Brasil está pesquisando agora"]]],
+ ["Postar e programar",[
+  ["Programar no TikTok","https://www.tiktok.com/tiktokstudio/upload","enviar e agendar os vídeos do fim de semana"],
+  ["Meta Business Suite","https://business.facebook.com","agendar posts e stories do Instagram"]]],
+ ["Editar",[
+  ["CapCut","https://www.capcut.com/","editar, legenda automática e modelos"]]],
+ ["Vender",[
+  ["Shopee Afiliados","https://affiliate.shopee.com.br","links e comissões da Shopee"],
+  ["Shopee Vídeo (Creator)","https://creator.shopee.com.br","seus vídeos da Shopee"],
+  ["Magalu (sua loja)","https://www.magazinevoce.com.br/magazinedaledaia/","Magazine Você"],
+  ["Natura (sua consultoria)","https://www.natura.com.br/consultoria/daledaia","sua página da Natura"],
+  ["Grupo VIP","https://app.gruposinteligentes.com/r/Daledaia","link de entrada do grupo"]]],
+ ["Seus perfis",[
+  ["Página de links","https://daledaia.github.io","daledaia.github.io"],
+  ["Instagram @daledaia","https://www.instagram.com/daledaia/","seu perfil"]]],
+ ["Estudar e IAs",[
+  ["Cursos (Kiwify)","https://dashboard.kiwify.com/courses","as aulas da mentoria"],
+  ["Claude","https://claude.ai/new",""],["ChatGPT","https://chatgpt.com/",""],["Gemini","https://gemini.google.com/app",""]]]
+];
+const LKK="daia-links-v1";
+let LNK=lerJ(LKK,null)||JSON.parse(JSON.stringify(LINKS0)),lEd=false,lApaga=null;
+const salvaLnk=()=>gravaJ(LKK,LNK);
+function links(){
+  const okUrl=u=>/^https?:\/\//i.test(u);
+  $("lnk").innerHTML='<div class="row" style="justify-content:space-between;align-items:center"><p class="sub" style="margin:0">Toque para abrir. Abre fora do app.</p><button class="bt" data-led2="1">'+(lEd?'Pronto':'Editar')+'</button></div>'+
+    LNK.map((g,gi)=>'<h2>'+esc(g[0])+'</h2><div class="lks">'+g[1].map((l,li)=>{const id=gi+"|"+li;
+      return '<div class="lk">'+(okUrl(l[1])?'<a href="'+esc(l[1])+'" target="_blank" rel="noopener">':'<span>')+'<b>'+esc(l[0])+'</b>'+(l[2]?'<small>'+esc(l[2])+'</small>':'')+(okUrl(l[1])?'</a>':'</span>')+
+      (lEd?(lApaga===id?'<span class="row"><button class="bt pri" data-lx="'+id+'">Apagar</button><button class="bt" data-lxn="1">Não</button></span>':'<button class="x" data-lq="'+id+'" aria-label="Apagar link">✕</button>'):'<i>↗</i>')+'</div>';}).join("")+
+      (lEd?'<div class="addrow"><input data-ln="'+gi+'" placeholder="Nome"><input data-lu="'+gi+'" placeholder="https://…" inputmode="url"><button class="bt pri" data-ladd="'+gi+'">+</button></div>':'')+'</div>').join("")+
+    (lEd?'<h2>Novo grupo</h2><div class="addrow"><input id="lgNovo" placeholder="Nome do grupo"><button class="bt" data-lgadd="1">Criar</button></div><p style="margin-top:18px"><button class="bt" data-lorig="1">Voltar aos links originais</button></p>':'');
+}
+document.addEventListener("click",e=>{
+  const q=s=>e.target.closest(s);
+  if(q("[data-led2]")){lEd=!lEd;lApaga=null;links();return;}
+  const lq=q("[data-lq]");if(lq){lApaga=lq.dataset.lq;links();return;}
+  if(q("[data-lxn]")){lApaga=null;links();return;}
+  const lx=q("[data-lx]");if(lx){const[g,i]=lx.dataset.lx.split("|").map(Number);LNK[g][1].splice(i,1);if(!LNK[g][1].length)LNK.splice(g,1);lApaga=null;salvaLnk();links();toast("Link apagado");return;}
+  const la=q("[data-ladd]");if(la){const g=la.dataset.ladd,n=(document.querySelector('[data-ln="'+g+'"]').value||"").trim();let u=(document.querySelector('[data-lu="'+g+'"]').value||"").trim();
+    if(!n||!u){toast("Escreva o nome e o link");return;}if(!/^https?:\/\//i.test(u))u="https://"+u;LNK[Number(g)][1].push([n,u,""]);salvaLnk();links();toast("Link guardado");return;}
+  if(q("[data-lgadd]")){const n=($("lgNovo").value||"").trim();if(!n)return;LNK.push([n,[]]);salvaLnk();links();return;}
+  if(q("[data-lorig]")){LNK=JSON.parse(JSON.stringify(LINKS0));salvaLnk();links();toast("Links originais de volta");return;}
+});
+
+/* ---------- personalizar ---------- */
+const TEMAS=[["","Padrão","Claro e neutro",["#FAF7F4","#2A2220","#7A2E3A","#ECE5E0"]],["rosa","Rosa delicado","Arredondado e fofo",["#FCEFF2","#D46F88","#FBE2E8","#FFFFFF"]],["salvia","Verde sálvia","Natural e aconchegante",["#E8ECE3","#5D7A59","#F0E6D2","#FAF8F2"]],["caderno","Caderno","Papel e post-it",["#FFFDF7","#FFF2B8","#DCEEFB","#FBE0E8"]]];
+const JINI=[["","Quadradinhos","Atalhos em grade, 2 por linha"],["ini-lista","Lista","Atalhos um embaixo do outro, com linhas finas"],["ini-grande","Botões grandes","Um atalho por linha, bem grande"]];
+const JQUA=[["abas","Abas","Ideia, Gravado e Postado em abas, com lista"],["cols","Colunas","As 3 colunas lado a lado, sem arrastar"],["pilhas","Pilhas","3 grupos um embaixo do outro, que abrem e fecham"]];
+let P={est:"",ini:""};try{P=Object.assign(P,JSON.parse(localStorage.getItem("daia-novo-pers")||"{}"))}catch(_){}
+let abrir="novo";try{abrir=localStorage.getItem("daia-abrir")||"novo"}catch(_){}
+function aplicaP(){if(window.daiaVisual&&daiaVisual.ler())daiaVisual.aplicar();else document.documentElement.dataset.est=P.est;
+  {const d=new Date(),h=d.getHours();$("ola").textContent=(h<12?"Bom dia":h<18?"Boa tarde":"Boa noite")+", Daia";$("hojeData").textContent=d.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"});}
+  if($("tsw"))$("tsw").innerHTML=TEMAS.slice(1).concat([TEMAS[0]]).map(t=>'<button data-est="'+t[0]+'" aria-pressed="'+(P.est===t[0])+'">'+t[1]+'</button>').join("");const t=$("t-inicio");t.classList.remove("ini-lista","ini-grande");if(P.ini)t.classList.add(P.ini);try{localStorage.setItem("daia-novo-pers",JSON.stringify(P))}catch(_){}}
+function pers(){ /* v59: a tela de Ajustes agora é feita pelo ajustes.js */ }
+window.persR=pers;
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button[data-est]");if(t){P.est=t.dataset.est;aplicaP();pers();toast("Estética trocada");return;}
+  const i=e.target.closest("[data-jini]");if(i){P.ini=i.dataset.jini;aplicaP();pers();toast("Início trocado");return;}
+  const q=e.target.closest("[data-jq]");if(q){qj=q.dataset.jq;try{localStorage.setItem("daia-qj",qj)}catch(_){}quadro();pers();toast("Quadro trocado");return;}
+  const ab=e.target.closest("[data-abrir]");if(ab){abrir=ab.dataset.abrir;try{localStorage.setItem("daia-abrir",abrir)}catch(_){}pers();toast(abrir==="novo"?"O app vai abrir no Início novo":"O app vai abrir nas telas de antes");}
+});
+try{sessionStorage.removeItem("daia-antigo")}catch(_){}
+aplicaP();pers();document.querySelector("[data-nv=inicio]").classList.add("on");
+bib();lote();links();
+{const h=location.hash.slice(1);if(h&&document.getElementById("t-"+h))ir(h);}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden){aplicaP();conta();}});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").then(reg=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)reg.update().catch(()=>{});});}).catch(()=>{});
+// v60: ponte para ajustes.js, telas60.js e ia.js (o resto do app fica fechado aqui dentro)
+window.daiaApp={ir,toast,conta,lote,quadro,aplicaP,MIS,FT,FK,salvaL,DK:DKS,nomeDia,novoDia,vidsDe,listaDo,hojeIdx,feitos,get L(){return L},get dia(){return dia},setDia(d){dia=d},get P(){return P},setQj(v){qj=v;try{localStorage.setItem("daia-qj",v)}catch(_){}quadro();}};
+})();
+</script>
+<script src="ajustes.js"></script>
+<script src="ia.js"></script>
+<script src="colar.js"></script>
+<script src="dias.js"></script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+/* Daia Studio v48 — versão de computador. Só vale em tela larga (1000 px ou mais): no celular nada muda. */
+@media (min-width: 1000px) {
+  body { padding-left: 252px; padding-bottom: 32px; padding-right: 32px; }
+  .wrap { max-width: 1240px; }
+
+  /* menu de baixo vira menu na lateral esquerda */
+  nav.tabs { top: 0; bottom: 0; right: auto; width: 220px; flex-direction: column; justify-content: flex-start; align-items: stretch;
+    gap: 4px; padding: 22px 14px; border-top: 0; border-right: 1px solid var(--line); }
+  nav.tabs::before { content: "Daia Studio"; font-family: var(--display); font-size: 24px; font-style: italic; color: var(--wine); padding: 0 10px 18px; }
+  nav.tabs button { flex: 0 0 auto; max-width: none; display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+    padding: 11px 12px; font-size: 15px; border-radius: 12px; text-align: left; }
+  nav.tabs button:hover { background: var(--wine-soft); }
+  nav.tabs svg { width: 22px; height: 22px; flex: none; }
+  nav.tabs .nav-mais { order: 99; margin-top: auto; justify-content: center; border: 1px solid var(--line) !important; border-radius: 12px !important; padding: 10px !important; }
+  nav.tabs .nav-mais::after { content: "Postei, link, ideia"; font-size: 14px; font-weight: 700; color: var(--ink); margin-left: 8px; }
+  nav.tabs .nav-mais span { font-size: 20px; }
+  .dk-item .dk-ico { width: 22px; text-align: center; font-size: 18px; }
+
+  /* menu do + abre ao lado da lateral */
+  .mais-menu { left: 236px; right: auto; bottom: 24px; width: 340px; margin: 0; }
+  .toast { left: calc(50% + 110px); bottom: 28px; }
+  .voz-fab { bottom: 28px; }
+  .voz-box { bottom: 0; left: 220px; }
+
+  /* cabeçalho e subabas ocupam a largura toda */
+  header.top { max-width: none; }
+  header.top .brand { display: none; }
+  .subtabs { max-width: 560px; }
+
+  /* cartões lado a lado (2 colunas; 3 em tela bem grande) */
+  #cards, #crescerBox, #parcBox, #ajBox, #prontoList, #iaBox, #c2 { display: block !important; column-count: 2; column-gap: 18px; }
+  #cards > .meta-dia, #cards > .faca { column-span: all; }
+  #cards > *, #crescerBox > *, #parcBox > *, #ajBox > *, #prontoList > *, #iaBox > *, #c2 > * { break-inside: avoid; display: block; width: 100%; margin-top: 0; margin-bottom: 14px; }
+  #crescerBox > h2 { column-span: all; }
+
+  /* telas de formulário: mais largas, mas ainda confortáveis de ler */
+  #criarBox, #blocoBox, #cursoBox, #pagBox, #respBox { max-width: 880px; }
+  #c2 { margin-bottom: 8px; }
+  .dia-grade { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+  .bolinhas { max-width: 320px; }
+}
+@media (min-width: 1500px) {
+  #cards, #crescerBox, #ajBox, #prontoList, #iaBox { column-count: 3; }
+  .dia-grade { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+}

@@ -2,9 +2,17 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
+<script src="sync.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Daia Studio</title>
-<meta name="theme-color" content="#7A1F2B">
+<script>/* v54: o app abre no Início novo (novo.html). As telas de antes continuam aqui: novo.html › "Tudo do app" abre index.html?antigo=1&tab=... */
+(function(){try{var r=document.documentElement;r.setAttribute("data-novo","");var P=JSON.parse(localStorage.getItem("daia-novo-pers")||"{}");if(P.est)r.setAttribute("data-est",P.est);}catch(e){}})();
+(function(){try{var q=new URLSearchParams(location.search);
+if(q.has("antigo")){sessionStorage.setItem("daia-antigo","1");var t=q.get("tab");if(t)sessionStorage.setItem("daia-tab",t);if(q.has("mais"))sessionStorage.setItem("daia-mais","1");if(q.has("pag"))sessionStorage.setItem("daia-pag",q.get("pag"));history.replaceState(null,"",location.pathname);return;}
+if(q.has("compartilhado")||sessionStorage.getItem("daia-antigo")==="1"||localStorage.getItem("daia-abrir")==="antigo")return;
+location.replace("novo.html"+({hoje:"#noite",gravar:"#lote"}[localStorage.getItem("daia-abrir")]||""));}catch(e){}})();</script>
+<script src="visual.js"></script>
+<meta name="theme-color" content="#FAF7F4">
 <meta name="robots" content="noindex,nofollow">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -366,7 +374,7 @@ details.cr-bloco>summary{list-style:none;cursor:pointer}details.cr-bloco>summary
 .mic-bt.on{background:var(--wine);border-color:var(--wine);animation:micpulso 1.2s infinite}
 @keyframes micpulso{0%{box-shadow:0 0 0 0 rgba(122,31,43,.5)}100%{box-shadow:0 0 0 12px rgba(122,31,43,0)}}
 .dica-gal{display:block!important;line-height:1.5;background:var(--wine-soft,#f6e8ea);border-color:var(--wine);font-size:14px;margin:6px 0 10px}.dica-gal small{color:var(--muted)}
-html,body{max-width:100%;overflow-x:hidden}
+html,body{max-width:100%;overflow-x:clip}
 body.clean .det{display:none}
 body.clean .card.aberto .det{display:revert}
 body.clean .card .title{cursor:pointer}
@@ -382,6 +390,9 @@ body.letra-grande .btn{font-size:16px}
 .tema-clean{display:flex;gap:10px;align-items:flex-start;font-size:15px}
 .tema-clean input{width:22px;height:22px;margin-top:2px}
 </style>
+<link rel="stylesheet" href="desktop.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Quicksand:wght@500;600;700&family=Nunito:wght@400;600;700&family=Caveat:wght@600&family=DM+Sans:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="estilo-novo.css">
 </head>
 <body>
 <div class="splash" id="splash"><div>Daia <em>Studio</em></div></div>
@@ -390,7 +401,7 @@ body.letra-grande .btn{font-size:16px}
 <!-- HOJE -->
 <section id="tab-hoje">
   <header class="top">
-    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><button type="button" class="ico" data-tabir="ajustes" aria-label="Ajustes">⚙️</button></span></div>
+    <div class="brand"><span>Daia Studio</span><span class="topo-bts"><button type="button" class="ico" onclick="location.href='novo.html'" aria-label="Início novo">🏠</button><button type="button" class="ico" data-tabir="ajustes" aria-label="Ajustes">⚙️</button></span></div>
     <div class="dayrow">
       <h1 id="dayTitle">Hoje</h1>
       <div class="arrows"><button class="round" id="prev" aria-label="Dia anterior">‹</button><button class="round" id="next" aria-label="Próximo dia">›</button></div>
@@ -621,8 +632,14 @@ body.letra-grande .btn{font-size:16px}
 <script src="tts.js"></script>
 <script src="respostas.js"></script>
 <script src="ttgrupo.js"></script>
+<script src="curso2.js"></script>
+<script src="daiaia.js"></script>
+<script src="plano10.js"></script>
+<script src="desktop.js"></script>
 <script src="ditado.js"></script>
 <script src="voz.js"></script>
+<script src="ia.js"></script>
 <script src="tema.js"></script>
+<script src="estilo-novo.js"></script>
 </body>
 </html>
